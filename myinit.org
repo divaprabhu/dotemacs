@@ -1,5 +1,4 @@
 * Basic settings
-
     This avoid litter and helps version control only config files.
   #+begin_src emacs-lisp
     (setq user-emacs-directory (expand-file-name "~/.cache/emacs/"))
@@ -74,6 +73,12 @@
     (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
     (require 'package)
     (package-initialize)
+    (if (< emacs-major-version 28)
+	(add-to-list 'package-archives
+		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
+    (add-to-list 'package-archives
+		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+
     (unless package-archive-contents
       (package-refresh-contents))
   #+end_src
@@ -1928,6 +1933,29 @@
    | M-x woman | display manual using emacs for-matter  |
    |-----------+---------------------------------------|
 
+** Hideshow minor mode
+   - Hideshow mode is a buffer local mode that allows to selectively
+     display portions of a program referred to as blocks 
+   - The block disappears from screen to be replaced by an
+     ellipsis. What constitutes a block depends on major mode
+  |------------------------------------+------+-------------------------------------------------|
+  | M-x hs-minor-mode                  |      | toggle hideshow mode                            |
+  | C-c @ C-h                          | *zc* | hs-hide-block                                   |
+  | C-c @ C-s                          | *zo* | hs-show-block                                   |
+  | C-c @ C-c                          | *za* | hs-toggle-hiding                                |
+  | C-c @ C-M-h                        | *zm* | hs-hide-all                                     |
+  | C-c @ C-M-s                        | *zr* | hs-show-all                                     |
+  | C-u N C-c @ C-l                    |      | hs-hide-level                                   |
+  | 'hs-hide-comments-when-hiding-all' |      | if non-nill, hs-hide-all hides comments         |
+  | 'hs-isearch-open'                  |      | during isearch if match occurs in hidden block: |
+  |                                    |      | code - unhide only code blocks                  |
+  |                                    |      | comment - unhide only comment                   |
+  |                                    |      | t - unhide both                                 |
+  |                                    |      | nil - don't unhide                              |
+  |------------------------------------+------+-------------------------------------------------|
+  #+begin_src emacs-lisp
+   (hs-minor-mode 1)
+  #+end_src
 ** Completion
    |---------+---------------------|
    | *C-M-i* | completion-at-point |
@@ -2617,131 +2645,131 @@
 * Dired
   - Dired creates an Emacs buffer containing directory listing which
     can be used for file and directory operations
-  |---------------------------------+---------------------------------------------------------------------------|
-  | *C-x d*                         | dired                                                                     |
-  |                                 | prompt directory and lists its contents in Dired buffer                   |
-  |                                 | shell wild-card may be passed in the prompt                               |
-  |                                 | with prefix, prompt switches for ls command                               |
-  | *M-n*                           | show next history dired prompt                                            |
-  | *M-p*                           | show previous history in dired prompt                                     |
-  | *C-x C-f*                       | find-file (opens dired if directory name is passed)                       |
-  | 'dired-listing-switches'        | options passed to ls command when Dired is invoked                        |
-  | 'dired-use-ls-dired'            | whether to pass --dired option to ls command                              |
-  | *C-x 4 d*                       | dired-other-window                                                        |
-  | C-x 5 d                         | dired-other-frame                                                         |
-  | *q*                             | quit-window                                                               |
-  | *j*                             | dired-goto-file (prompt file-name and move point to it)                   |
-  | *d*                             | dired-flag-file-deletion (mark file or empty folder for deletion)         |
-  |                                 | files marked for deletion show D in buffer                                |
-  |                                 | with prefix, mark that many files for deletion                            |
-  | *u*                             | dired-unmark                                                              |
-  | *x*                             | dired-do-flagged-delete                                                   |
-  | 'dired-recursive-deletes'       | allow Dired to delete nonempty directories                                |
-  | *#*                             | dired-flag-auto-save-files (mark all auto save files for deletion)        |
-  |                                 | files start and end with #                                                |
-  | *~*                             | dired-flag-backup-files (files end with ~)                                |
-  | *f or RET*                      | dired-find-file (visit file on current line)                              |
-  | *o*                             | dired-find-file-other-window                                              |
-  | *C-o*                           | dired-display-file (open file in other window but stay in current window) |
-  | *v*                             | dired-view-file (open file in view mode)                                  |
-  | *^*                             | dired-up-directory (go up one directory)                                  |
-  | *m*                             | dired-mark (mark current file or files in active region)                  |
-  |                                 | if prefix, mark that many files                                           |
-  |                                 | if sub-directory, mark all files in sub-directory                         |
-  | **N*                            | dired-number-of-marked-files (number and size of marked files)            |
-  | **@*                            | dired-mark-symlinks                                                       |
-  | **/*                            | dired-mark-directories                                                    |
-  | *u*                             | dired-unmark                                                              |
-  | *U*                             | dired-unmark-all-marks                                                    |
-  | *t*                             | dired-toggle-marks (mark unmarked files and vice-verse                    |
-  | *C-/*                           | dired-undo (does not revert file operations)                              |
-  | 'dired-dwim-target'             | non-nil - try to guess default target directory for copy, link etc        |
-  |                                 | nil - use dired default directory                                         |
-  | *C*                             | dired-do-copy (copy file with new name if single file or to different     |
-  |                                 | directory if multiple files)                                              |
-  | 'dired-create-destination-dirs' | create non existent directories when copying/renaming                     |
-  | 'dired-copy-preserve-time'      | preserve modification time                                                |
-  | 'dired-recursive-copies'        | like cp -r                                                                |
-  | *D*                             | dired-do-delete                                                           |
-  | *R*                             | dired-do-rename (like mv)                                                 |
-  | 'dired-vc-rename-file'          | rename using vc-rename-file if file is under version control              |
-  | *H*                             | dired-do-hardlink (if multiple files, then directory to create link in)   |
-  | *S*                             | dired-do-symlink (like ln -s)                                             |
-  | *M*                             | dired-do-chmod (can be octal or symbolic permission)                      |
-  | *G*                             | dired-do-chgrp (change group)                                             |
-  | *O*                             | dired-do-chown (change owner)                                             |
-  | *T*                             | dired-do-touch                                                            |
-  | *P*                             | dired-do-print (print file using 'lpr-comand')                            |
-  | *Z*                             | dired-do-compress (each file is compressed separately)                    |
-  |                                 | decompress if already compressed                                          |
-  |                                 | if directory, create .tar.gz                                              |
-  | *c*                             | dired-do-compress-to (compress marked files into single archive)          |
-  |                                 | 'dired-compress-files-alist' to decide algorithm based on extension       |
-  | *:d*                            | epa-dired-do-decrypt                                                      |
-  | *:v*                            | epa-dired-do-verify                                                       |
-  | *:s*                            | epa-dired-do-sign                                                         |
-  | *:e*                            | epa-dired-do-encrypt                                                      |
-  | *L*                             | dired-do-load (load Elisp files)                                          |
-  | *A*                             | dired-do-find-regexp (search files for regexp)                            |
-  |                                 | like xref-find-references, displays in xref buffer                        |
-  |                                 | recursively searches in directories                                       |
-  |                                 | ignores grep-find-ignored-files and grep-find-ignored-directories         |
-  | *Q*                             | dired-do-find-regexp-and-replace                                          |
-  |                                 | like xref-query-replace-in-results                                        |
-  | *!*                             | dired-do-shell-command (run shell command on marked files)                |
-  | *&*                             | dired-to-async-shell-command (like appending & to end of command)         |
-  |                                 | if multiple files, run the command for each in separate process)          |
-  |                                 | if command ends in ;, then run in sequence for each file                  |
-  |                                 | if * is used with surrounding space, it is replaced by marked files       |
-  |                                 | to use * as wild-card, use *""                                            |
-  | *%u*                            | dired-upcase (rename each file to upper case)                             |
-  | *%l*                            | dired-downcase                                                            |
-  | *%m*                            | dired-mark-files-regexp                                                   |
-  | *%d*                            | dired-flag-files-regexp (for deletion)                                    |
-  | *%R*                            | rename, copy, hardlink and symlink each file using regexp substitution    |
-  | *%C*                            | \& - refer to entire match                                                |
-  | *%H*                            | \DIGIT - part of pattern                                                  |
-  | *%S*                            | \0 - refers entire path                                                   |
-  | *%g*                            | dired-mark-files-containing-regexp                                        |
-  | *=*                             | dired-diff (compare current file with another file given in minibuffer)   |
-  |                                 | file at point is file B, and file given in minibuffer is file A           |
-  | *i*                             | dired-may-be-insert-subdir                                                |
-  |                                 | if point is on sub-directory, list it in the same dired buffer            |
-  |                                 | if sub-directory is already listed, move point to it                      |
-  |                                 | it also sets mark so we can go back using C-u C-SPC                       |
-  | *C-u k*                         | remote sub-directory listing                                              |
-  | *C-M-n*                         | dired-next-subdir                                                         |
-  | *C-M-p*                         | dired-prev-subdir                                                         |
-  | *C-M-u*                         | dired-tree-up (go-to parent directory listing)                            |
-  | *C-M-d*                         | dired-tree-down                                                           |
-  | *$*                             | dired-hide-subdir                                                         |
-  |                                 | hide sub-directory listing showing only header line                       |
-  | *M-$*                           | dired-hide-all                                                            |
-  |                                 | even if the files in hidden directories are marked, they are ignored      |
-  |                                 | when running dired commands                                               |
-  | *g*                             | revert-buffer (refresh dired contents)                                    |
-  | *s*                             | dired-sort-toggle-or-edit (toggle alphabetical or date/time sort)         |
-  | *C-u s*                         | update listing with new switches for ls                                   |
-  | M-x find-name-dired             | like find command                                                         |
-  | M-x find-grep-dired             | like grep -R                                                              |
-  | *C-x C-q*                       | dired-toggle-read-only                                                    |
-  |                                 | allows to rename files including rectangle operations                     |
-  |                                 | can also change link target, delete files etc                             |
-  | *C-c C-c*                       | wdired-finish-edit (switches back to dired mode)                          |
-  | *C-t d*                         | image-dired-display-thumbs                                                |
-  |                                 | mark image files and type C-t d to enter image-dired                      |
-  | RET                             | image-dired-display-thumbnail-original-image                              |
-  |                                 | open image at point to full size window                                   |
-  | SPC                             | image-dired-display-next-thumbnail-original                               |
-  | DEL                             | image-dired-display-previous-thumbnail-original                           |
-  | C-RET                           | image-dired-thumbnail-display-external                                    |
-  |                                 | display in image-dired-external-viewer                                    |
-  | d                               | image-dired-flag-thumb-original-file                                      |
-  | *+*                             | dired-create-directory                                                    |
-  | *w*                             | dired-copy-filename-as-kill                                               |
-  | *W*                             | browse-url-of-dired-file                                                  |
-  | M-x dired-compare-directories   | compare current dired buffer with another directory (only file names)     |
-  |---------------------------------+---------------------------------------------------------------------------|
+  |---------------------------------+-----+---------------------------------------------------------------------------|
+  | *C-x d*                         |     | dired                                                                     |
+  |                                 |     | prompt directory and lists its contents in Dired buffer                   |
+  |                                 |     | shell wild-card may be passed in the prompt                               |
+  |                                 |     | with prefix, prompt switches for ls command                               |
+  | *M-n*                           |     | show next history dired prompt                                            |
+  | *M-p*                           |     | show previous history in dired prompt                                     |
+  | *C-x C-f*                       |     | find-file (opens dired if directory name is passed)                       |
+  | 'dired-listing-switches'        |     | options passed to ls command when Dired is invoked                        |
+  | 'dired-use-ls-dired'            |     | whether to pass --dired option to ls command                              |
+  | *C-x 4 d*                       |     | dired-other-window                                                        |
+  | C-x 5 d                         |     | dired-other-frame                                                         |
+  | *q*                             | *q* | quit-window                                                               |
+  | *j*                             | *J* | dired-goto-file (prompt file-name and move point to it)                   |
+  | *d*                             |     | dired-flag-file-deletion (mark file or empty folder for deletion)         |
+  |                                 |     | files marked for deletion show D in buffer                                |
+  |                                 |     | with prefix, mark that many files for deletion                            |
+  | *u*                             |     | dired-unmark                                                              |
+  | *x*                             |     | dired-do-flagged-delete                                                   |
+  | 'dired-recursive-deletes'       |     | allow Dired to delete nonempty directories                                |
+  | *#*                             |     | dired-flag-auto-save-files (mark all auto save files for deletion)        |
+  |                                 |     | files start and end with #                                                |
+  | *~*                             |     | dired-flag-backup-files (files end with ~)                                |
+  | *f or RET*                      |     | dired-find-file (visit file on current line)                              |
+  | *o*                             |     | dired-find-file-other-window                                              |
+  | *C-o*                           |     | dired-display-file (open file in other window but stay in current window) |
+  | *v*                             |     | dired-view-file (open file in view mode)                                  |
+  | *^*                             |     | dired-up-directory (go up one directory)                                  |
+  | *m*                             |     | dired-mark (mark current file or files in active region)                  |
+  |                                 |     | if prefix, mark that many files                                           |
+  |                                 |     | if sub-directory, mark all files in sub-directory                         |
+  | **N*                            |     | dired-number-of-marked-files (number and size of marked files)            |
+  | **@*                            |     | dired-mark-symlinks                                                       |
+  | **/*                            |     | dired-mark-directories                                                    |
+  | *u*                             |     | dired-unmark                                                              |
+  | *U*                             |     | dired-unmark-all-marks                                                    |
+  | *t*                             |     | dired-toggle-marks (mark unmarked files and vice-verse                    |
+  | *C-/*                           |     | dired-undo (does not revert file operations)                              |
+  | 'dired-dwim-target'             |     | non-nil - try to guess default target directory for copy, link etc        |
+  |                                 |     | nil - use dired default directory                                         |
+  | *C*                             |     | dired-do-copy (copy file with new name if single file or to different     |
+  |                                 |     | directory if multiple files)                                              |
+  | 'dired-create-destination-dirs' |     | create non existent directories when copying/renaming                     |
+  | 'dired-copy-preserve-time'      |     | preserve modification time                                                |
+  | 'dired-recursive-copies'        |     | like cp -r                                                                |
+  | *D*                             |     | dired-do-delete                                                           |
+  | *R*                             |     | dired-do-rename (like mv)                                                 |
+  | 'dired-vc-rename-file'          |     | rename using vc-rename-file if file is under version control              |
+  | *H*                             |     | dired-do-hardlink (if multiple files, then directory to create link in)   |
+  | *S*                             |     | dired-do-symlink (like ln -s)                                             |
+  | *M*                             |     | dired-do-chmod (can be octal or symbolic permission)                      |
+  | *G*                             |     | dired-do-chgrp (change group)                                             |
+  | *O*                             |     | dired-do-chown (change owner)                                             |
+  | *T*                             |     | dired-do-touch                                                            |
+  | *P*                             |     | dired-do-print (print file using 'lpr-comand')                            |
+  | *Z*                             |     | dired-do-compress (each file is compressed separately)                    |
+  |                                 |     | decompress if already compressed                                          |
+  |                                 |     | if directory, create .tar.gz                                              |
+  | *c*                             |     | dired-do-compress-to (compress marked files into single archive)          |
+  |                                 |     | 'dired-compress-files-alist' to decide algorithm based on extension       |
+  | *:d*                            |     | epa-dired-do-decrypt                                                      |
+  | *:v*                            |     | epa-dired-do-verify                                                       |
+  | *:s*                            |     | epa-dired-do-sign                                                         |
+  | *:e*                            |     | epa-dired-do-encrypt                                                      |
+  | *L*                             |     | dired-do-load (load Elisp files)                                          |
+  | *A*                             |     | dired-do-find-regexp (search files for regexp)                            |
+  |                                 |     | like xref-find-references, displays in xref buffer                        |
+  |                                 |     | recursively searches in directories                                       |
+  |                                 |     | ignores grep-find-ignored-files and grep-find-ignored-directories         |
+  | *Q*                             |     | dired-do-find-regexp-and-replace                                          |
+  |                                 |     | like xref-query-replace-in-results                                        |
+  | *!*                             |     | dired-do-shell-command (run shell command on marked files)                |
+  | *&*                             |     | dired-to-async-shell-command (like appending & to end of command)         |
+  |                                 |     | if multiple files, run the command for each in separate process)          |
+  |                                 |     | if command ends in ;, then run in sequence for each file                  |
+  |                                 |     | if * is used with surrounding space, it is replaced by marked files       |
+  |                                 |     | to use * as wild-card, use *""                                            |
+  | *%u*                            |     | dired-upcase (rename each file to upper case)                             |
+  | *%l*                            |     | dired-downcase                                                            |
+  | *%m*                            |     | dired-mark-files-regexp                                                   |
+  | *%d*                            |     | dired-flag-files-regexp (for deletion)                                    |
+  | *%R*                            |     | rename, copy, hardlink and symlink each file using regexp substitution    |
+  | *%C*                            |     | \& - refer to entire match                                                |
+  | *%H*                            |     | \DIGIT - part of pattern                                                  |
+  | *%S*                            |     | \0 - refers entire path                                                   |
+  | *%g*                            |     | dired-mark-files-containing-regexp                                        |
+  | *=*                             |     | dired-diff (compare current file with another file given in minibuffer)   |
+  |                                 |     | file at point is file B, and file given in minibuffer is file A           |
+  | *i*                             |     | dired-may-be-insert-subdir                                                |
+  |                                 |     | if point is on sub-directory, list it in the same dired buffer            |
+  |                                 |     | if sub-directory is already listed, move point to it                      |
+  |                                 |     | it also sets mark so we can go back using C-u C-SPC                       |
+  | *C-u k*                         |     | remote sub-directory listing                                              |
+  | *C-M-n*                         |     | dired-next-subdir                                                         |
+  | *C-M-p*                         |     | dired-prev-subdir                                                         |
+  | *C-M-u*                         |     | dired-tree-up (go-to parent directory listing)                            |
+  | *C-M-d*                         |     | dired-tree-down                                                           |
+  | *$*                             |     | dired-hide-subdir                                                         |
+  |                                 |     | hide sub-directory listing showing only header line                       |
+  | *M-$*                           |     | dired-hide-all                                                            |
+  |                                 |     | even if the files in hidden directories are marked, they are ignored      |
+  |                                 |     | when running dired commands                                               |
+  | *g*                             |     | revert-buffer (refresh dired contents)                                    |
+  | *s*                             |     | dired-sort-toggle-or-edit (toggle alphabetical or date/time sort)         |
+  | *C-u s*                         |     | update listing with new switches for ls                                   |
+  | M-x find-name-dired             |     | like find command                                                         |
+  | M-x find-grep-dired             |     | like grep -R                                                              |
+  | *C-x C-q*                       |     | dired-toggle-read-only                                                    |
+  |                                 |     | allows to rename files including rectangle operations                     |
+  |                                 |     | can also change link target, delete files etc                             |
+  | *C-c C-c*                       |     | wdired-finish-edit (switches back to dired mode)                          |
+  | *C-t d*                         |     | image-dired-display-thumbs                                                |
+  |                                 |     | mark image files and type C-t d to enter image-dired                      |
+  | RET                             |     | image-dired-display-thumbnail-original-image                              |
+  |                                 |     | open image at point to full size window                                   |
+  | SPC                             |     | image-dired-display-next-thumbnail-original                               |
+  | DEL                             |     | image-dired-display-previous-thumbnail-original                           |
+  | C-RET                           |     | image-dired-thumbnail-display-external                                    |
+  |                                 |     | display in image-dired-external-viewer                                    |
+  | d                               |     | image-dired-flag-thumb-original-file                                      |
+  | *+*                             |     | dired-create-directory                                                    |
+  | *w*                             |     | dired-copy-filename-as-kill                                               |
+  | *W*                             |     | browse-url-of-dired-file                                                  |
+  | M-x dired-compare-directories   |     | compare current dired buffer with another directory (only file names)     |
+  |---------------------------------+-----+---------------------------------------------------------------------------|
 
   #+begin_src emacs-lisp
     (setq dired-create-destination-dirs 'ask
@@ -2893,7 +2921,6 @@
   | M-x reverse-region      | reverse the order of lines in region                                       |
   |-------------------------+----------------------------------------------------------------------------|
 
-
 * Saving Emacs Sessions
   |-----------------------------+-------------------------------------------------------------------|
   | 'desktop-restore-frames'    | restore window and frame configs also along with buffers          |
@@ -2935,7 +2962,6 @@
   | M-x top-level | abort all recursive edits returning to top level command                      |
   |---------------+-------------------------------------------------------------------------------|
 
-
 * gnus
   #+begin_src emacs-lisp
     (setq gnus-init-file "~/etc/emacs/gnus.el")
@@ -2964,7 +2990,7 @@
   #+begin_src emacs-lisp
     (require 'org-tempo)
   #+end_src
-
+  
 * Theme
   #+begin_src emacs-lisp
     (unless (package-installed-p 'modus-themes)
@@ -2987,43 +3013,47 @@
   |-------+-------------------------------------------------------------------|
 
   - Settings
-    #+begin_comment
+  #+begin_src emacs-lisp
     (unless (package-installed-p 'evil)
       (package-refresh-contents)
       (package-install 'evil))
-    (require 'evil)
+
+    (unless (package-installed-p 'evil-collection)
+      (package-refresh-contents)
+      (package-install 'evil-collection))
 
     (setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
 	  evil-want-C-u-scroll        t        ; C-u scroll up in normal mode
-	  evil-disable-insert-state-bindings t ; use emacs bindings in insert mode
 	  evil-move-beyond-eol t               ; move one char beyond end of line
 	  evil-cross-lines        t            ; motions like h, l, f can go to next/prev line
 	  evil-respect-visual-line-mode t      ; respect visual-line-mode so that j, k move by visual lines
 	  evil-show-paren-range 1              ; distance from parenthesis to highlight it
 	  evil-want-fine-undo t                ; use Emacs heuristics for undo
-	  ) 
+	  evil-disable-insert-state-bindings t ; use emacs bindings in insert mode
+	  evil-want-keybinding nil             ; required for evil-collection
+	  evil-want-integration t              ; required for evil-collection
+
+	  )
+					    ; load evil
+    (require 'evil)
+    (evil-mode 1)
+    (when (require 'evil-collection nil t)
+      (evil-collection-init))
+
     (if (>= emacs-major-version 28)
-      (setq evil-undo-system 'undo-redo)          ; native to Emacs 28
+	(setq evil-undo-system 'undo-redo)          ; native to Emacs 28
       (progn
 	(unless (package-installed-p 'undo-tree)
 	  (package-refresh-contents)
 	  (package-install 'undo-tree))
 	(add-hook 'evil-local-mode-hook 'undo-tree-mode)
-	(setq undo-tree-visualizer-diff t)
-	(evil-set-undo-system 'undo-tree)))
-					    ; org mode remap
-    (require 'org)
-    (evil-define-key 'normal 'org-mode-map
-      [tab] 'org-cycle
-      [S-tab] 'org-shifttab)
-    (evil-define-key 'motion 'org-mode-map
-      (kbd "{") 'org-backward-paragraph
-      (kbd "}") 'org-forward-paragraph
-      (kbd "(") 'org-backward-sentence
-      (kbd ")") 'org-forward-sentence)
-					    ; load evil
-    (evil-mode 1)
-    #+end_comment
+	(setq undo-tree-visualizer-diff t
+	      undo-tree-visualizer-timestamps t
+	      undo-tree-history-directory-alist '(("." . "~/.cache/emacs/undo/"))
+	      evil-undo-system 'undo-tree)))
+
+  #+end_src
+
 * Ibuffer
 
 * Marginalia
@@ -3192,3 +3222,5 @@
 
 
 
+
+  
