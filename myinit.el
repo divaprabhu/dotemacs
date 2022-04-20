@@ -19,8 +19,6 @@
 (if (< emacs-major-version 28)
     (add-to-list 'package-archives
 		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
-(add-to-list 'package-archives
-	     '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 
 (unless package-archive-contents
   (package-refresh-contents))
@@ -219,6 +217,10 @@
 
 (define-key prog-mode-map (kbd "C-c C-;") 'comment-line)
 
+(add-hook 'prog-mode-hook 'hs-minor-mode)
+(add-hook 'org-mode-hook 'hs-minor-mode)
+(add-hook 'outline-mode-hook 'hs-minor-mode)
+
 (add-hook 'c-mode-hook 'cwarn-mode)
 
 (setq compilation-scroll-output 'first-error)
@@ -283,44 +285,6 @@
   (package-install 'modus-themes))
 
 (load-theme 'modus-vivendi t)
-
-(unless (package-installed-p 'evil)
-  (package-refresh-contents)
-  (package-install 'evil))
-
-(unless (package-installed-p 'evil-collection)
-  (package-refresh-contents)
-  (package-install 'evil-collection))
-
-(setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
-      evil-want-C-u-scroll        t        ; C-u scroll up in normal mode
-      evil-move-beyond-eol t               ; move one char beyond end of line
-      evil-cross-lines        t            ; motions like h, l, f can go to next/prev line
-      evil-respect-visual-line-mode t      ; respect visual-line-mode so that j, k move by visual lines
-      evil-show-paren-range 1              ; distance from parenthesis to highlight it
-      evil-want-fine-undo t                ; use Emacs heuristics for undo
-      evil-disable-insert-state-bindings t ; use emacs bindings in insert mode
-      evil-want-keybinding nil             ; required for evil-collection
-      evil-want-integration t              ; required for evil-collection
-
-      )
-					; load evil
-(require 'evil)
-(evil-mode 1)
-(when (require 'evil-collection nil t)
-  (evil-collection-init))
-
-(if (>= emacs-major-version 28)
-    (setq evil-undo-system 'undo-redo)          ; native to Emacs 28
-  (progn
-    (unless (package-installed-p 'undo-tree)
-      (package-refresh-contents)
-      (package-install 'undo-tree))
-    (add-hook 'evil-local-mode-hook 'undo-tree-mode)
-    (setq undo-tree-visualizer-diff t
-	  undo-tree-visualizer-timestamps t
-	  undo-tree-history-directory-alist '(("." . "~/.cache/emacs/undo/"))
-	  evil-undo-system 'undo-tree)))
 
 (unless (package-installed-p 'marginalia)
   (package-refresh-contents)

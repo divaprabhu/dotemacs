@@ -68,7 +68,8 @@
   |                                  | directly from a package file                                                            |
   | 'package-user-dir'               | location where package files are placed                                                 |
   | 'package-directory-list'         | used for system-wide packages                                                           |
-  |                                  |                                                                                         |
+  |----------------------------------+-----------------------------------------------------------------------------------------|
+
   #+begin_src emacs-lisp
     (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
     (require 'package)
@@ -76,8 +77,6 @@
     (if (< emacs-major-version 28)
 	(add-to-list 'package-archives
 		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
-    (add-to-list 'package-archives
-		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 
     (unless package-archive-contents
       (package-refresh-contents))
@@ -1416,7 +1415,7 @@
      (fido-mode)
      (setq completion-styles '(initials partial-completion flex basic))
      (if (>= emacs-major-version 28)
-	 (progn
+     (progn
 	   (icomplete-vertical-mode 1)
 	   (fido-vertical-mode))
        (progn
@@ -1954,7 +1953,9 @@
   |                                    |      | nil - don't unhide                              |
   |------------------------------------+------+-------------------------------------------------|
   #+begin_src emacs-lisp
-   (hs-minor-mode 1)
+   (add-hook 'prog-mode-hook 'hs-minor-mode)
+   (add-hook 'org-mode-hook 'hs-minor-mode)
+   (add-hook 'outline-mode-hook 'hs-minor-mode)
   #+end_src
 ** Completion
    |---------+---------------------|
@@ -3013,14 +3014,14 @@
   |-------+-------------------------------------------------------------------|
 
   - Settings
-  #+begin_src emacs-lisp
+  #+begin_src
     (unless (package-installed-p 'evil)
       (package-refresh-contents)
       (package-install 'evil))
 
-    (unless (package-installed-p 'evil-collection)
-      (package-refresh-contents)
-      (package-install 'evil-collection))
+    ;;    (unless (package-installed-p 'evil-collection)
+    ;;      (package-refresh-contents)
+    ;;      (package-install 'evil-collection))
 
     (setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
 	  evil-want-C-u-scroll        t        ; C-u scroll up in normal mode
@@ -3037,8 +3038,8 @@
 					    ; load evil
     (require 'evil)
     (evil-mode 1)
-    (when (require 'evil-collection nil t)
-      (evil-collection-init))
+    ;;    (when (require 'evil-collection nil t)
+    ;;     (evil-collection-init))
 
     (if (>= emacs-major-version 28)
 	(setq evil-undo-system 'undo-redo)          ; native to Emacs 28
