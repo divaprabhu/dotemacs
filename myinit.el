@@ -117,6 +117,12 @@
 
 (setq delete-by-moving-to-trash t)
 
+(setq completion-styles '(initials partial-completion flex basic))
+(if (>= emacs-major-version 28)
+    (progn
+      (icomplete-vertical-mode 1)
+      (fido-vertical-mode 1)))
+
 (setq help-window-select t)
 (setq switch-to-buffer-obey-display-actions t)
 (add-hook 'occur-hook
@@ -215,8 +221,6 @@
 (show-paren-mode 1)
 (add-hook 'prog-mode-hook 'electric-pair-local-mode)
 
-(define-key prog-mode-map (kbd "C-c C-;") 'comment-line)
-
 (add-hook 'prog-mode-hook 'hs-minor-mode)
 (add-hook 'org-mode-hook 'hs-minor-mode)
 (add-hook 'outline-mode-hook 'hs-minor-mode)
@@ -303,7 +307,7 @@
     `(orderless-flex . ,(substring pattern 0 -1))))
 
 (defun orderless-initials-dispatcher (pattern index _total)
-  (when (string-suffix-p "," pattern)
+  (when (string-suffix-p "." pattern)
     `(orderless-initialism . ,(substring pattern 0 -1))))
 
 (defun orderless-literal-dispatcher (pattern _index _total)
@@ -324,18 +328,16 @@
 	(info-menu (styles basic partial-completion orderless))
 	))
 
-(let ((map minibuffer-local-completion-map))
-  (define-key map (kbd "SPC") nil)
-  (define-key map (kbd "?") nil))
+(if (< emacs-major-version 28)
+    (progn
+      (unless (package-installed-p 'vertico)
+	(package-refresh-contents)
+	(package-install 'vertico))
+      (require 'vertico)
 
-(unless (package-installed-p 'vertico)
-  (package-refresh-contents)
-  (package-install 'vertico))
-(require 'vertico)
-
-(vertico-mode 1)
-(setq vertico-resize t
-      vertico-cycle t)
+      (vertico-mode 1)
+      (setq vertico-resize t
+	    vertico-cycle t)))
 
 (unless (package-installed-p 'which-key)
   (package-refresh-contents)
@@ -346,8 +348,6 @@
   (package-refresh-contents)
   (package-install 'embark))
 (require 'embark)
-(global-set-key (kbd "<f9>") 'embark-act)
-(define-key minibuffer-local-map (kbd "M-,") 'embark-become)
 
 (unless (package-installed-p 'corfu)
   (package-refresh-contents)
@@ -378,9 +378,23 @@
   (package-install 'eglot))
 (require 'eglot)
 
-(define-key eglot-mode-map (kbd "C-c e r") 'eglot-rename)
-(define-key eglot-mode-map (kbd "C-c e a") 'eglot-code-actions)
-(define-key eglot-mode-map (kbd "C-c e f") 'eglot-format)
-(define-key eglot-mode-map (kbd "C-c e e") 'eglot-events-buffer)
 (setq eglot-autoreconnect t
       eglot-send-changes-idle-time 5)
+
+(add-hook 'python-mode 'eglot-ensure)
+
+(defvar my-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
+    (define-key map (kbd "i") 'imenu)
+    (define-key map (kbd "b") 'ibuffer)
+    (define-key map (kbd "l r") 'eglot-rename)
+    (define-key map (kbd "l a") 'eglot-code-actions)
+    (define-key map (kbd "l f") 'eglot-format)
+    (define-key map (kbd "l e") 'eglot-events-buffer)
+    (define-key map (kbd ";") 'comment-line)
+    (define-key map (kbd "e a") 'embark-act)
+    (define-key map (kbd "e b") 'embark-become)
+  map))
+
+(global-set-key (kbd "M-<SPC>") my-mode-map)

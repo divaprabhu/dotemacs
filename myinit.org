@@ -830,6 +830,7 @@
    | M-s h l | isearch-highlight-lines-matching-regexp                                 |
    | M-s h u | unhighlight-regexp                                                      |
    | C-h C-h | isearch-help-map                                                        |
+   | *M-e*   | isearch-edit-string (edit search string)                                |
    |---------+-------------------------------------------------------------------------|
 
 ** Word search
@@ -1411,19 +1412,13 @@
    | *C-k* | kill buffer first in the list           |
    |-------+-----------------------------------------|
 
-   #+begin_comment
-     (fido-mode)
+   #+begin_src emacs-lisp
      (setq completion-styles '(initials partial-completion flex basic))
      (if (>= emacs-major-version 28)
-     (progn
+	 (progn
 	   (icomplete-vertical-mode 1)
-	   (fido-vertical-mode))
-       (progn
-	 (unless (package-installed-p 'icomplete-vertical)
-	   (package-refresh-contents)
-	   (package-install 'icomplete-vertical))
-	 (icomplete-vertical-mode 1)))
-    #+end_comment
+	   (fido-vertical-mode 1)))
+   #+end_src
 
 * Windows
 ** Concepts
@@ -1922,9 +1917,6 @@
    | *C-c C-c* | comment-region                                            |
    |-----------+-----------------------------------------------------------|
 
-   #+begin_src emacs-lisp
-     (define-key prog-mode-map (kbd "C-c C-;") 'comment-line)
-   #+end_src
 ** Documentation
    |-----------+---------------------------------------|
    | C-h S     | info-lookup-symbol                    |
@@ -2437,26 +2429,28 @@
    | *C-M-.*             | xref-find-apropos (find all identifiers whose name matches pattern) |
    |                     | always pops a new xref buffer                                       |
    | C-x 4 .             | xref-find-definitions-other-window                                  |
-   | *M-,*               | xref-pop-marker-stack (go back to where you invoked M-.)            |
+   | *M-,*               | xref-go-back (go back to where you invoked M-.)                     |
+   | *C-M-,*             | xref-go-forward                                                     |
    | M-x xref-etags-mode | switch to etags mode. make sure to run etags in source directory    |
    |---------------------+---------------------------------------------------------------------|
 
    - xref buffer commands
-   |-------+-------------------------------------------------------------------------|
-   | *RET* | xref-goto-xref (goto buffer referenced by current line)                 |
-   |       | with prefix, also close xref window                                     |
-   | *n*   | xref-next-line (move to next reference and display it in other window)  |
-   | *p*   | xref-prev-line                                                          |
-   | *N*   | xref-next-group (there can be matches in a source file and there can be |
-   |       | many source file. each source file is a group in this case)             |
-   | *P*   | xref-prev-group                                                         |
-   | r     | xref-query-replace-in-results                                           |
-   |       | perform interactive query replace on references that match pattern      |
-   | g     | xref-revert-buffer (refresh xref contents)                              |
-   | *M-,* | xref-quit-and-pop-marker-stack                                          |
-   |       | quit xref window and jump to previous xref stack location               |
-   | q     | xref-quit                                                               |
-   |-------+-------------------------------------------------------------------------|
+   |---------+-------------------------------------------------------------------------|
+   | *RET*   | xref-goto-xref (goto buffer referenced by current line)                 |
+   |         | with prefix, also close xref window                                     |
+   | *n*     | xref-next-line (move to next reference and display it in other window)  |
+   | *p*     | xref-prev-line                                                          |
+   | *N*     | xref-next-group (there can be matches in a source file and there can be |
+   |         | many source file. each source file is a group in this case)             |
+   | *P*     | xref-prev-group                                                         |
+   | r       | xref-query-replace-in-results                                           |
+   |         | perform interactive query replace on references that match pattern      |
+   | g       | xref-revert-buffer (refresh xref contents)                              |
+   | *M-,*   | xref-go-back                                                            |
+   | *C-M-,* | xref-go-forward                                                         |
+   |         | quit xref window and jump to previous xref stack location               |
+   | q       | xref-quit                                                               |
+   |---------+-------------------------------------------------------------------------|
 
    - Identifier search
    |-----------------------------------+-------------------------------------------------------------|
@@ -3091,7 +3085,7 @@
 	`(orderless-flex . ,(substring pattern 0 -1))))
 
     (defun orderless-initials-dispatcher (pattern index _total)
-      (when (string-suffix-p "," pattern)
+      (when (string-suffix-p "." pattern)
 	`(orderless-initialism . ,(substring pattern 0 -1))))
 
     (defun orderless-literal-dispatcher (pattern _index _total)
@@ -3112,9 +3106,6 @@
 	    (info-menu (styles basic partial-completion orderless))
 	    ))
 
-    (let ((map minibuffer-local-completion-map))
-      (define-key map (kbd "SPC") nil)
-      (define-key map (kbd "?") nil))
   #+end_src
 
 * Vertico
@@ -3128,15 +3119,16 @@
     modular.
 
   #+begin_src emacs-lisp
-    (unless (package-installed-p 'vertico)
-      (package-refresh-contents)
-      (package-install 'vertico))
-    (require 'vertico)
+    (if (< emacs-major-version 29)
+	(progn
+	  (unless (package-installed-p 'vertico)
+	    (package-refresh-contents)
+	    (package-install 'vertico))
+	  (require 'vertico)
 
-    (vertico-mode 1)
-    (setq vertico-resize t
-	  vertico-cycle t)
-
+	  (vertico-mode 1)
+	  (setq vertico-resize t
+		vertico-cycle t)))
   #+end_src
 
 * Which Key
@@ -3163,8 +3155,6 @@
       (package-refresh-contents)
       (package-install 'embark))
     (require 'embark)
-    (global-set-key (kbd "<f9>") 'embark-act)
-    (define-key minibuffer-local-map (kbd "M-,") 'embark-become)
   #+end_src
 
 * Corfu
@@ -3206,10 +3196,6 @@
       (package-install 'eglot))
     (require 'eglot)
 
-    (define-key eglot-mode-map (kbd "C-c e r") 'eglot-rename)
-    (define-key eglot-mode-map (kbd "C-c e a") 'eglot-code-actions)
-    (define-key eglot-mode-map (kbd "C-c e f") 'eglot-format)
-    (define-key eglot-mode-map (kbd "C-c e e") 'eglot-events-buffer)
     (setq eglot-autoreconnect t
 	  eglot-send-changes-idle-time 5)
 #+end_src
@@ -3218,10 +3204,30 @@
 
   #+begin_src emacs-lisp
     (add-hook 'python-mode 'eglot-ensure)
-  #+end_
+  #+end_src
 
 
 
 
 
   
+
+* Keybindings
+  [[http://xahlee.info/emacs/emacs/emacs_keybinding_power_of_keys_sequence.html][Define Key Sequence]]
+  #+begin_src emacs-lisp
+    (defvar my-mode-map
+      (let ((map (make-sparse-keymap)))
+	(define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
+	(define-key map (kbd "i") 'imenu)
+	(define-key map (kbd "b") 'ibuffer)
+	(define-key map (kbd "l r") 'eglot-rename)
+	(define-key map (kbd "l a") 'eglot-code-actions)
+	(define-key map (kbd "l f") 'eglot-format)
+	(define-key map (kbd "l e") 'eglot-events-buffer)
+	(define-key map (kbd ";") 'comment-line)
+	(define-key map (kbd "e a") 'embark-act)
+	(define-key map (kbd "e b") 'embark-become)
+      map))
+
+    (global-set-key (kbd "M-<SPC>") my-mode-map)
+  #+end_src
