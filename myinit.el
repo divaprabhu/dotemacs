@@ -155,7 +155,7 @@
 	 (side . bottom)
 	 (window-height . 0.4)
 	 (slot . 0))
-	("\\*\\(Open Recent\\).*"
+	("\\*\\(Open Recent\\|Ibuffer\\).*"
 	 (display-buffer-in-side-window)
 	 (side . bottom)
 	 (window-height . 0.4)
@@ -175,6 +175,8 @@
 	 (side . bottom)
 	 (window-height . 0.4)
 	 (slot . 0))
+	("\\*\\(log-edit-files\\).*"
+	 (display-buffer-no-window))
 	("\\*\\(compilation\\|Occur\\|grep\\).*"
 	 (display-buffer-in-side-window)
 	 (side . bottom)
@@ -328,7 +330,7 @@
 	(info-menu (styles basic partial-completion orderless))
 	))
 
-(if (< emacs-major-version 28)
+(if (< emacs-major-version 29)
     (progn
       (unless (package-installed-p 'vertico)
 	(package-refresh-contents)
@@ -387,7 +389,9 @@
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
     (define-key map (kbd "i") 'imenu)
-    (define-key map (kbd "b") 'ibuffer)
+    (define-key map (kbd "b i") 'ibuffer)
+    (define-key map (kbd "b p") 'previous-buffer)
+    (define-key map (kbd "b n") 'next-buffer)
     (define-key map (kbd "l r") 'eglot-rename)
     (define-key map (kbd "l a") 'eglot-code-actions)
     (define-key map (kbd "l f") 'eglot-format)

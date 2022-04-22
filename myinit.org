@@ -1522,6 +1522,8 @@
 	      (side . bottom)
 	      (window-height . 0.4)
 	      (slot . 0))
+	     ("\\*\\(log-edit-files\\).*"
+	      (display-buffer-no-window))
 	     ("\\*\\(compilation\\|Occur\\|grep\\).*"
 	      (display-buffer-in-side-window)
 	      (side . bottom)
@@ -1674,8 +1676,8 @@
   | *C-q TAB* | *C-v TAB* | insert tab character in buffer                                                      |
   | C-M-o     |           | split-line (split at point and text after point aligns with where point was before) |
   | *M-m*     | *^*       | back-to-indentation (move to first non whitespace char on line)                     |
-  | *M-i*     | *kJ*      | tab-to-tab-stop (indent at point up to next tabstop)                                |
-  | *M-^*     |           | delete-indentation (merge current and previous line)                                |
+  | *M-i*     |           | tab-to-tab-stop (indent at point up to next tabstop)                                |
+  | *M-^*     | *kJ*      | delete-indentation (merge current and previous line)                                |
   |           |           | with prefix, join current line to next line                                         |
   | *C-M-\*   | *>*       | indent-region                                                                       |
   | *C-x TAB* |           | indent-rigidly                                                                      |
@@ -3206,12 +3208,6 @@
     (add-hook 'python-mode 'eglot-ensure)
   #+end_src
 
-
-
-
-
-  
-
 * Keybindings
   [[http://xahlee.info/emacs/emacs/emacs_keybinding_power_of_keys_sequence.html][Define Key Sequence]]
   #+begin_src emacs-lisp
@@ -3219,7 +3215,9 @@
       (let ((map (make-sparse-keymap)))
 	(define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
 	(define-key map (kbd "i") 'imenu)
-	(define-key map (kbd "b") 'ibuffer)
+	(define-key map (kbd "b i") 'ibuffer)
+	(define-key map (kbd "b p") 'previous-buffer)
+	(define-key map (kbd "b n") 'next-buffer)
 	(define-key map (kbd "l r") 'eglot-rename)
 	(define-key map (kbd "l a") 'eglot-code-actions)
 	(define-key map (kbd "l f") 'eglot-format)
