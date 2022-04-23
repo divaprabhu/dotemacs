@@ -3202,10 +3202,22 @@
 	  eglot-send-changes-idle-time 5)
 #+end_src
 
-* Python Mode
-
+* Eldoc
   #+begin_src emacs-lisp
-    (add-hook 'python-mode 'eglot-ensure)
+    (setq eldoc-echo-area-display-truncation-message t
+	  eldoc-echo-area-use-multiline-p t
+	  eldoc-echo-area-prefer-doc-buffer nil)
+  #+end_src
+* Python Mode
+  #+begin_src emacs-lisp
+    (add-hook 'python-mode-hook 'eglot-ensure)
+    (with-eval-after-load 'eglot
+      (push '(python-mode "~/venv/bin/pyls" "--verbose") eglot-server-programs))
+  #+end_src
+
+* C mode
+  #+begin_src emacs-lisp
+    (add-hook 'c-mode-hook 'eglot-ensure)
   #+end_src
 
 * Keybindings
@@ -3215,14 +3227,23 @@
       (let ((map (make-sparse-keymap)))
 	(define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
 	(define-key map (kbd "i") 'imenu)
-	(define-key map (kbd "b i") 'ibuffer)
-	(define-key map (kbd "b p") 'previous-buffer)
-	(define-key map (kbd "b n") 'next-buffer)
-	(define-key map (kbd "l r") 'eglot-rename)
-	(define-key map (kbd "l a") 'eglot-code-actions)
-	(define-key map (kbd "l f") 'eglot-format)
-	(define-key map (kbd "l e") 'eglot-events-buffer)
 	(define-key map (kbd ";") 'comment-line)
+
+	(define-key map (kbd "b b") 'switch-to-buffer)
+	(define-key map (kbd "b i") 'ibuffer)
+	(define-key map (kbd "b k") 'kill-this-buffer)
+	(define-key map (kbd "b n") 'next-buffer)
+	(define-key map (kbd "b p") 'previous-buffer)
+	(define-key map (kbd "b s") 'save-buffer)
+
+	(define-key map (kbd "f f") 'find-file)
+	(define-key map (kbd "f o") 'find-file-other-window)
+
+	(define-key map (kbd "l a") 'eglot-code-actions)
+	(define-key map (kbd "l e") 'eglot-events-buffer)
+	(define-key map (kbd "l f") 'eglot-format)
+	(define-key map (kbd "l r") 'eglot-rename)
+
 	(define-key map (kbd "e a") 'embark-act)
 	(define-key map (kbd "e b") 'embark-become)
       map))
