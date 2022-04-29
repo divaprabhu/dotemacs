@@ -812,11 +812,10 @@
 		    mode-line-client
 		    mode-line-remote
 		    mode-line-frame-identification
-		    " ["
 		    "(%l, %c)"
 		    "/"
 		    (:eval (number-to-string (count-lines (point-min) (point-max))))
-		    "] "
+		    " %b(%f)"
 		    vc-mode
 		    " "
 		    mode-line-modes
@@ -3268,7 +3267,6 @@
   #+begin_src emacs-lisp
     (require 'recentf)
     (recentf-mode)
-    (global-set-key (kbd "C-x C-r") 'recentf-open-files)
   #+end_src
 
 * Eglot
@@ -3319,6 +3317,7 @@
 
 	(define-key map (kbd "f f") 'find-file)
 	(define-key map (kbd "f o") 'find-file-other-window)
+	(define-key map (kbd "f r") 'recentf-open-files)
 
 	(define-key map (kbd "l a") 'eglot-code-actions)
 	(define-key map (kbd "l e") 'eglot-events-buffer)
