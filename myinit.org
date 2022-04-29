@@ -3309,6 +3309,7 @@
 	(define-key map (kbd ";") 'comment-line)
 
 	(define-key map (kbd "b b") 'switch-to-buffer)
+	(define-key map (kbd "b c") 'clean-buffer-list)
 	(define-key map (kbd "b i") 'ibuffer)
 	(define-key map (kbd "b k") 'kill-this-buffer)
 	(define-key map (kbd "b n") 'next-buffer)

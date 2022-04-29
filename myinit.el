@@ -90,6 +90,44 @@
 
 (setq line-number-display-limit nil)
 
+(setq-default mode-line-format
+	      '("%e"
+		mode-line-front-space
+		"["
+		(:eval (if (buffer-modified-p)
+			   (format "%s" "MD")
+			 (format "%s" "")))
+		":"
+		(:eval (if (eql buffer-read-only t)
+			   (format "%s" "RD")
+			 (format "%s" "")))
+		"] "
+		"["
+		(:eval (let ((sys (coding-system-plist buffer-file-coding-system)))
+			 (cond ((memq (plist-get sys :category) '(coding-category-undecided coding-category-utf-8))
+				(format "%s" "UTF-8"))
+			       (t (upcase (symbol-name (plist-get sys :name)))))))
+		":"
+		(:eval (pcase (coding-system-eol-type buffer-file-coding-system)
+			 (0 "LF")
+			 (1 "CRLF")
+			 (2 "CR")))
+		":"
+		current-input-method-title
+		"] "
+		mode-line-client
+		mode-line-remote
+		mode-line-frame-identification
+		"(%l, %c)"
+		"/"
+		(:eval (number-to-string (count-lines (point-min) (point-max))))
+		" %b(%f)"
+		vc-mode
+		" "
+		mode-line-modes
+		mode-line-misc-info
+		mode-line-end-spaces))
+
 (setq blink-cursor-blink -1)
 
 (setq-default display-line-numbers 'relative)
@@ -118,7 +156,7 @@
 (setq delete-by-moving-to-trash t)
 
 (setq completion-styles '(initials partial-completion flex basic))
-(if (>= emacs-major-version 28)
+(if (>= emacs-major-version 29)
     (progn
       (icomplete-vertical-mode 1)
       (fido-vertical-mode 1)))
@@ -215,7 +253,7 @@
 
 (setq imenu-auto-rescan t)
 
-;; (which-function-mode 1)
+(which-function-mode 1)
 
 (setq blink-matching-paren t)
 (setq show-paren-style 'mixed)
@@ -373,7 +411,6 @@
 
 (require 'recentf)
 (recentf-mode)
-(global-set-key (kbd "C-x C-r") 'recentf-open-files)
 
 (unless (package-installed-p 'eglot)
   (package-refresh-contents)
@@ -383,20 +420,39 @@
 (setq eglot-autoreconnect t
       eglot-send-changes-idle-time 5)
 
-(add-hook 'python-mode 'eglot-ensure)
+(setq eldoc-echo-area-display-truncation-message t
+      eldoc-echo-area-use-multiline-p t
+      eldoc-echo-area-prefer-doc-buffer nil)
+
+(add-hook 'python-mode-hook 'eglot-ensure)
+(with-eval-after-load 'eglot
+  (push '(python-mode "~/venv/bin/pyls" "--verbose") eglot-server-programs))
+
+(add-hook 'c-mode-hook 'eglot-ensure)
 
 (defvar my-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
     (define-key map (kbd "i") 'imenu)
-    (define-key map (kbd "b i") 'ibuffer)
-    (define-key map (kbd "b p") 'previous-buffer)
-    (define-key map (kbd "b n") 'next-buffer)
-    (define-key map (kbd "l r") 'eglot-rename)
-    (define-key map (kbd "l a") 'eglot-code-actions)
-    (define-key map (kbd "l f") 'eglot-format)
-    (define-key map (kbd "l e") 'eglot-events-buffer)
     (define-key map (kbd ";") 'comment-line)
+
+    (define-key map (kbd "b b") 'switch-to-buffer)
+    (define-key map (kbd "b c") 'clean-buffer-list)
+    (define-key map (kbd "b i") 'ibuffer)
+    (define-key map (kbd "b k") 'kill-this-buffer)
+    (define-key map (kbd "b n") 'next-buffer)
+    (define-key map (kbd "b p") 'previous-buffer)
+    (define-key map (kbd "b s") 'save-buffer)
+
+    (define-key map (kbd "f f") 'find-file)
+    (define-key map (kbd "f o") 'find-file-other-window)
+    (define-key map (kbd "f r") 'recentf-open-files)
+
+    (define-key map (kbd "l a") 'eglot-code-actions)
+    (define-key map (kbd "l e") 'eglot-events-buffer)
+    (define-key map (kbd "l f") 'eglot-format)
+    (define-key map (kbd "l r") 'eglot-rename)
+
     (define-key map (kbd "e a") 'embark-act)
     (define-key map (kbd "e b") 'embark-become)
   map))
