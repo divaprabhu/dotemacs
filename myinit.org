@@ -743,6 +743,87 @@
      (setq line-number-display-limit nil)
    #+end_src
 
+** Modeline Format
+  - Formatting to the right and left
+    [[https://emacs.stackexchange.com/questions/5529/how-to-right-align-some-items-in-the-modeline][StackExchange]]
+  #+begin_src
+     (setq battery-mode-line-format "[%L %p%%%% %t]"
+	   display-time-format "[%Y-%b-%d %a, %R]"
+	   display-time-default-load-average nil)
+
+       (defun simple-mode-line-render (left right)
+	 "Return a string of `window-width' length containing LEFT, and RIGHT
+	aligned respectively."
+	 (let* ((available-width (- (window-width) (length left) 1)))
+	   (format (format " %%s %%%ds " available-width) left right)))
+
+       (setq mode-line-right-format
+	     '(" "
+	       mode-line-misc-info))
+
+       (setq mode-line-left-format
+	     '("%e"
+	       mode-line-front-space
+	       (:eval (if (buffer-modified-p)
+		   (format "%s" "MD")
+		 (format "%s" "  ")))
+	       ":"
+	       (:eval (if (eql buffer-read-only t)
+		   (format "%s" "RD")
+		   (format "%s" "  ")))
+	       ))
+
+     (setq mode-line-format
+		   '(:eval (simple-mode-line-render
+			    ;; left
+			    (format-mode-line mode-line-left-format)
+			    ;; right
+			    (format-mode-line mode-line-right-format))))
+
+  #+end_src
+
+  [[https://github.com/dbordak/telephone-line][telephone-line]]
+  #+begin_src emacs-lisp
+    (setq-default mode-line-format
+		  '("%e"
+		    mode-line-front-space
+		    "["
+		    (:eval (if (buffer-modified-p)
+			       (format "%s" "MD")
+			     (format "%s" "")))
+		    ":"
+		    (:eval (if (eql buffer-read-only t)
+			       (format "%s" "RD")
+			     (format "%s" "")))
+		    "] "
+		    "["
+		    (:eval (let ((sys (coding-system-plist buffer-file-coding-system)))
+			     (cond ((memq (plist-get sys :category) '(coding-category-undecided coding-category-utf-8))
+				    (format "%s" "UTF-8"))
+				   (t (upcase (symbol-name (plist-get sys :name)))))))
+		    ":"
+		    (:eval (pcase (coding-system-eol-type buffer-file-coding-system)
+			     (0 "LF")
+			     (1 "CRLF")
+			     (2 "CR")))
+		    ":"
+		    current-input-method-title
+		    "] "
+		    mode-line-client
+		    mode-line-remote
+		    mode-line-frame-identification
+		    " ["
+		    "(%l, %c)"
+		    "/"
+		    (:eval (number-to-string (count-lines (point-min) (point-max))))
+		    "] "
+		    vc-mode
+		    " "
+		    mode-line-modes
+		    mode-line-misc-info
+		    mode-line-end-spaces))
+  #+end_src
+
 ** Cursor
    |-----------------------+-----------------------------------------------|
    | 'cursor-type'         | change cursor shape                           |
@@ -1414,7 +1495,7 @@
 
    #+begin_src emacs-lisp
      (setq completion-styles '(initials partial-completion flex basic))
-     (if (>= emacs-major-version 28)
+     (if (>= emacs-major-version 29)
 	 (progn
 	   (icomplete-vertical-mode 1)
 	   (fido-vertical-mode 1)))
@@ -1844,7 +1925,7 @@
    - It is a global minor mode that displays current function name in
      mode line
    #+begin_src emacs-lisp
-     ;; (which-function-mode 1)
+     (which-function-mode 1)
    #+end_src
 
 ** Indentation
