@@ -426,7 +426,7 @@
 
 (add-hook 'python-mode-hook 'eglot-ensure)
 (with-eval-after-load 'eglot
-  (push '(python-mode "~/venv/bin/pyls" "--verbose") eglot-server-programs))
+  (push '(python-mode "~/venv/bin/pylsp" "--verbose") eglot-server-programs))
 
 (add-hook 'c-mode-hook 'eglot-ensure)
 
