@@ -93,7 +93,10 @@
 (setq-default mode-line-format
 	      '("%e"
 		mode-line-front-space
-		"["
+		(:propertize mode-name face mode-line-highlight)
+		" (%l, %c)["
+		(:eval (number-to-string (count-lines (point-min) (point-max))))
+		"] ["
 		(:eval (if (buffer-modified-p)
 			   (format "%s" "MD")
 			 (format "%s" "")))
@@ -101,8 +104,8 @@
 		(:eval (if (eql buffer-read-only t)
 			   (format "%s" "RD")
 			 (format "%s" "")))
-		"] "
-		"["
+		"]"
+		" ["
 		(:eval (let ((sys (coding-system-plist buffer-file-coding-system)))
 			 (cond ((memq (plist-get sys :category) '(coding-category-undecided coding-category-utf-8))
 				(format "%s" "UTF-8"))
@@ -115,18 +118,90 @@
 		":"
 		current-input-method-title
 		"] "
+		(:propertize mode-line-buffer-identification
+			 face modus-themes-intense-red
+			 help-echo (buffer-file-name))
+		(:propertize vc-mode face mode-line-highlight)
+		" "
+		minor-mode-alist
 		mode-line-client
 		mode-line-remote
 		mode-line-frame-identification
-		"(%l, %c)"
-		"/"
-		(:eval (number-to-string (count-lines (point-min) (point-max))))
-		" %b(%f)"
-		vc-mode
-		" "
-		mode-line-modes
-		mode-line-misc-info
-		mode-line-end-spaces))
+		mode-line-end-spaces
+		mode-line-misc-info))
+
+(unless (package-installed-p 'minibuffer-line)
+  (package-refresh-contents)
+  (package-install 'minibuffer-line))
+
+(setq battery-mode-line-format "[%L %p%%%% %t]"
+      display-time-format "[%Y-%b-%d %a, %R]"
+      display-time-default-load-average nil)
+
+(defun simple-mode-line-render (left right)
+  "Return a string of `window-width' length containing LEFT, and RIGHT
+	   aligned respectively."
+  (let* ((available-width (- (window-width) (length left) 1)))
+    (format (format " %%s %%%ds " available-width) left right)))
+
+(setq mode-line-right-format
+      '(" "
+	mode-line-misc-info))
+
+(setq mode-line-left-format
+      '("%e"
+	mode-line-front-space
+	(:propertize mode-name face mode-line-highlight)
+	" (%l, %c)["
+	(:eval (number-to-string (count-lines (point-min) (point-max))))
+	"] ["
+	(:eval (if (buffer-modified-p)
+		   (format "%s" "MD")
+		 (format "%s" "")))
+	":"
+	(:eval (if (eql buffer-read-only t)
+		   (format "%s" "RD")
+		 (format "%s" "")))
+	"]"
+	" ["
+	(:eval (let ((sys (coding-system-plist buffer-file-coding-system)))
+		 (cond ((memq (plist-get sys :category) '(coding-category-undecided coding-category-utf-8))
+			(format "%s" "UTF-8"))
+		       (t (upcase (symbol-name (plist-get sys :name)))))))
+	":"
+	(:eval (pcase (coding-system-eol-type buffer-file-coding-system)
+		 (0 "LF")
+		 (1 "CRLF")
+		 (2 "CR")))
+	":"
+	current-input-method-title
+	"] "
+	(:propertize mode-line-buffer-identification
+		     face modus-themes-intense-red
+		     help-echo (buffer-file-name))
+	(:propertize vc-mode face mode-line-highlight)
+	" "
+	minor-mode-alist
+	mode-line-client
+	mode-line-remote
+	mode-line-frame-identification
+	mode-line-end-spaces))
+
+(setq minibuffer-line 'mode-line)
+(setq minibuffer-line-refresh-interval 1)
+
+(setq minibuffer-line-format
+      '(:eval (simple-mode-line-render
+	       ;; left
+	       (format-mode-line mode-line-left-format)
+	       ;; right
+	       (format-mode-line mode-line-right-format))))
+
+(setq window-divider-default-right-width 2
+      window-divider-default-bottom-width 2)
+
+(window-divider-mode 1)
+(minibuffer-line-mode 1)
 
 (setq blink-cursor-blink -1)
 
