@@ -3217,6 +3217,10 @@
       (package-refresh-contents)
       (package-install 'evil))
 
+    (unless (package-installed-p 'goto-chg)
+      (package-refresh-contents)
+      (package-install 'goto-chg))
+
     (unless (package-installed-p 'evil-collection)
       (package-refresh-contents)
       (package-install 'evil-collection))
