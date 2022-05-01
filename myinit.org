@@ -3250,7 +3250,7 @@
 	(add-hook 'evil-local-mode-hook 'undo-tree-mode)
 	(setq undo-tree-visualizer-diff t
 	      undo-tree-visualizer-timestamps t
-	      undo-tree-history-directory-alist '(("." . "cache/emacs/undo/"))
+	      undo-tree-history-directory-alist '(("." . "~/cache/emacs/undo/"))
 	      evil-undo-system 'undo-tree)))
 
   #+end_src

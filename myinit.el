@@ -20,6 +20,8 @@
     (add-to-list 'package-archives
 		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
+(add-to-list 'package-archives
+	     '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (unless package-archive-contents
   (package-refresh-contents))
 
@@ -35,6 +37,8 @@
 
 (setq enable-recursive-minibuffer t)
 (setq minibuffer-depth-indicate-mode t)
+
+(setq completion-cycle-threshold t)
 
 (setq minibuffer-eldef-shorten-default t)
 
@@ -93,6 +97,7 @@
 (setq-default mode-line-format
 	      '("%e"
 		mode-line-front-space
+		(:propertize evil-mode-line-tag face modus-themes-intense-magenta)
 		(:propertize mode-name face mode-line-highlight)
 		" (%l, %c)["
 		(:eval (number-to-string (count-lines (point-min) (point-max))))
@@ -129,79 +134,6 @@
 		mode-line-frame-identification
 		mode-line-end-spaces
 		mode-line-misc-info))
-
-(unless (package-installed-p 'minibuffer-line)
-  (package-refresh-contents)
-  (package-install 'minibuffer-line))
-
-(setq battery-mode-line-format "[%L %p%%%% %t]"
-      display-time-format "[%Y-%b-%d %a, %R]"
-      display-time-default-load-average nil)
-
-(defun simple-mode-line-render (left right)
-  "Return a string of `window-width' length containing LEFT, and RIGHT
-	   aligned respectively."
-  (let* ((available-width (- (window-width) (length left) 1)))
-    (format (format " %%s %%%ds " available-width) left right)))
-
-(setq mode-line-right-format
-      '(" "
-	mode-line-misc-info))
-
-(setq mode-line-left-format
-      '("%e"
-	mode-line-front-space
-	(:propertize mode-name face mode-line-highlight)
-	" (%l, %c)["
-	(:eval (number-to-string (count-lines (point-min) (point-max))))
-	"] ["
-	(:eval (if (buffer-modified-p)
-		   (format "%s" "MD")
-		 (format "%s" "")))
-	":"
-	(:eval (if (eql buffer-read-only t)
-		   (format "%s" "RD")
-		 (format "%s" "")))
-	"]"
-	" ["
-	(:eval (let ((sys (coding-system-plist buffer-file-coding-system)))
-		 (cond ((memq (plist-get sys :category) '(coding-category-undecided coding-category-utf-8))
-			(format "%s" "UTF-8"))
-		       (t (upcase (symbol-name (plist-get sys :name)))))))
-	":"
-	(:eval (pcase (coding-system-eol-type buffer-file-coding-system)
-		 (0 "LF")
-		 (1 "CRLF")
-		 (2 "CR")))
-	":"
-	current-input-method-title
-	"] "
-	(:propertize mode-line-buffer-identification
-		     face modus-themes-intense-red
-		     help-echo (buffer-file-name))
-	(:propertize vc-mode face mode-line-highlight)
-	" "
-	minor-mode-alist
-	mode-line-client
-	mode-line-remote
-	mode-line-frame-identification
-	mode-line-end-spaces))
-
-(setq minibuffer-line 'mode-line)
-(setq minibuffer-line-refresh-interval 1)
-
-(setq minibuffer-line-format
-      '(:eval (simple-mode-line-render
-	       ;; left
-	       (format-mode-line mode-line-left-format)
-	       ;; right
-	       (format-mode-line mode-line-right-format))))
-
-(setq window-divider-default-right-width 2
-      window-divider-default-bottom-width 2)
-
-(window-divider-mode 1)
-(minibuffer-line-mode 1)
 
 (setq blink-cursor-blink -1)
 
@@ -376,6 +308,8 @@
     (file-exists-p abbrev-file-name)
     (quietly-read-abbrev-file))
 
+(global-set-key (kbd "M-/") 'hippie-expand)
+
 (setq dired-create-destination-dirs 'ask
       dired-dwim-target t)
 
@@ -393,6 +327,11 @@
 
 (setq epg-pinentry-mode 'loopback)
 
+(unless (package-installed-p 'keepass-mode)
+  (package-refresh-contents)
+  (package-install 'keepass-mode))
+(require 'keepass-mode)
+
 (setq url-configuration-directory "~/.cache/emacs/")
 (setq browse-url-browser-function 'eww-browse-url)
 (add-hook 'eww-mode-hook 'visual-line-mode)
@@ -404,6 +343,46 @@
   (package-install 'modus-themes))
 
 (load-theme 'modus-vivendi t)
+
+(unless (package-installed-p 'evil)
+  (package-refresh-contents)
+  (package-install 'evil))
+
+(unless (package-installed-p 'goto-chg)
+  (package-refresh-contents)
+  (package-install 'goto-chg))
+
+(unless (package-installed-p 'evil-collection)
+  (package-refresh-contents)
+  (package-install 'evil-collection))
+
+(setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
+      evil-want-C-u-scroll        t        ; C-u scroll up in normal mode
+      evil-move-beyond-eol t               ; move one char beyond end of line
+      evil-cross-lines        t            ; motions like h, l, f can go to next/prev line
+      evil-respect-visual-line-mode t      ; respect visual-line-mode so that j, k move by visual lines
+      evil-show-paren-range 1              ; distance from parenthesis to highlight it
+      evil-want-fine-undo t                ; use Emacs heuristics for undo
+      evil-disable-insert-state-bindings t ; use emacs bindings in insert mode
+      evil-want-keybinding nil             ; required for evil-collection
+      evil-want-integration t              ; required for evil-collection
+      )
+					; load evil
+(require 'evil)
+(evil-mode 1)
+(evil-collection-init)
+
+(if (>= emacs-major-version 28)
+    (setq evil-undo-system 'undo-redo)          ; native to Emacs 28
+  (progn
+    (unless (package-installed-p 'undo-tree)
+      (package-refresh-contents)
+      (package-install 'undo-tree))
+    (add-hook 'evil-local-mode-hook 'undo-tree-mode)
+    (setq undo-tree-visualizer-diff t
+	  undo-tree-visualizer-timestamps t
+	  undo-tree-history-directory-alist '(("." . "~/cache/emacs/undo/"))
+	  evil-undo-system 'undo-tree)))
 
 (unless (package-installed-p 'marginalia)
   (package-refresh-contents)
@@ -429,7 +408,14 @@
   (when (string-suffix-p "=" pattern)
     `(orderless-literal . ,(substring pattern 0 -1))))
 
-(setq completion-styles '(orderless basic))
+;; The orderless completion style does not support completion of a
+;; common prefix substring, as you may be familiar with from shells or
+;; the basic default completion system. The reason is that the
+;; Orderless input string is usually not a prefix. In order to support
+;; completing prefixes you may want to combine orderless with
+;; substring in your completion-styles configuration.
+
+(setq completion-styles '(substring orderless basic))
 (setq orderless-matching-styles
       '(orderless-prefixes orderless-initialism orderless-flex orderless-regexp)
       orderless-style-dispatchers
@@ -453,6 +439,15 @@
       (vertico-mode 1)
       (setq vertico-resize t
 	    vertico-cycle t)))
+
+;; If you prefer to have the default completion commands a key press
+;; away you can add new bindings or even replace the Vertico
+;; bindings. Then the default completion commands behave as usual. For
+;; example you can use TAB to cycle between candidates if you have
+;; set completion-cycle-threshold.
+(define-key vertico-map "?" #'minibuffer-completion-help)
+(define-key vertico-map (kbd "RET") #'minibuffer-force-complete-and-exit)
+(define-key vertico-map (kbd "TAB") #'minibuffer-complete)
 
 (unless (package-installed-p 'which-key)
   (package-refresh-contents)
@@ -478,11 +473,11 @@
       corfu-echo-documentation t
       corfu-cycle t)
 
-;;    (define-key corfu-map "?" #'minibuffer-completion-help)
-;;    (define-key corfu-map (kbd "TAB") 'corfu-next)
-;;    (define-key corfu-map (kbd "<tab>") 'corfu-next)
-;;    (define-key corfu-map (kbd "<backtab>") 'corfu-previous)
-;;    (define-key corfu-map (kbd "S-TAB") 'corfu-previous)
+(define-key corfu-map "?" #'minibuffer-completion-help)
+(define-key corfu-map (kbd "TAB") 'corfu-next)
+(define-key corfu-map (kbd "<tab>") 'corfu-next)
+(define-key corfu-map (kbd "<backtab>") 'corfu-previous)
+(define-key corfu-map (kbd "S-TAB") 'corfu-previous)
 
 (require 'recentf)
 (recentf-mode)
@@ -493,17 +488,19 @@
 (require 'eglot)
 
 (setq eglot-autoreconnect t
-      eglot-send-changes-idle-time 5)
-
-(setq eldoc-echo-area-display-truncation-message t
-      eldoc-echo-area-use-multiline-p t
-      eldoc-echo-area-prefer-doc-buffer nil)
+      eglot-send-changes-idle-time 1
+      eglot-confirm-server-initiated-edits nil
+      eglot-extend-to-xref t)
 
 (add-hook 'python-mode-hook 'eglot-ensure)
 (with-eval-after-load 'eglot
   (push '(python-mode "~/venv/bin/pylsp" "--verbose") eglot-server-programs))
 
 (add-hook 'c-mode-hook 'eglot-ensure)
+
+(setq eldoc-echo-area-display-truncation-message t
+      eldoc-echo-area-use-multiline-p t
+      eldoc-echo-area-prefer-doc-buffer nil)
 
 (defvar my-mode-map
   (let ((map (make-sparse-keymap)))
