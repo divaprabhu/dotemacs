@@ -238,18 +238,29 @@
   #+end_src
 
 ** Completion
-   |--------------+-------+----------------------------------------------------------------------------------|
-   | *TAB* or C-i | *TAB* | minibuffer-complete (complete text in mini buffer as much as possible)           |
-   | SPC          |       | minibuffer-complete-word (complete in minibuffer upto end of of word)            |
-   | RET          |       | minibuffer-complete-and-exit (like tab if many match else like execute command)  |
-   | ?            |       | minibuffer-completion-help (show list of possible completion in new window)      |
-   | *M-v*        |       | switch-to-completions (select window showing completion list)                    |
-   | RET          |       | choose-completion (in completion list buffer, select completion at point)        |
-   | TAB          |       | next-completion (cycle through completion in completion list buffer)             |
-   | s-TAB        |       | previous-completion (reverse cycle through completion in completion list buffer) |
-   | q            |       | quit-window (quit completion list buffer and switch to minibuffer)               |
-   | z            |       | kill-current-buffer (close completion list buffer and window)                    |
-   |--------------+-------+----------------------------------------------------------------------------------|
+   |----------------------------------------+-------+----------------------------------------------------------------------------------|
+   | *TAB* or C-i                           | *TAB* | minibuffer-complete (complete text in mini buffer as much as possible)           |
+   | SPC                                    |       | minibuffer-complete-word (complete in minibuffer upto end of of word)            |
+   | RET                                    |       | minibuffer-complete-and-exit (like tab if many match else like execute command)  |
+   | ?                                      |       | minibuffer-completion-help (show list of possible completion in new window)      |
+   | *M-v*                                  |       | switch-to-completions (select window showing completion list)                    |
+   | RET                                    |       | choose-completion (in completion list buffer, select completion at point)        |
+   | TAB                                    |       | next-completion (cycle through completion in completion list buffer)             |
+   | s-TAB                                  |       | previous-completion (reverse cycle through completion in completion list buffer) |
+   | q                                      |       | quit-window (quit completion list buffer and switch to minibuffer)               |
+   | z                                      |       | kill-current-buffer (close completion list buffer and window)                    |
+   | 'read-filename-completion-ignore-case' |       | Ignore case while completing file names                                          |
+   | 'read-buffer-completion-ignore-case'   |       | Ignore case while completing buffer names                                        |
+   | 'completion-ignored-extensions'        |       | Ignore some extensions in completion like .o .elc etc                            |
+   | 'completion-auto-help'                 |       | nil - never display completion list buffer. Type ? explicitly to see it          |
+   |                                        |       | lazy - show completion list on second tab                                        |
+   | 'completion-cycle-threshold'           |       | t - cycle through completion alternatives by completing first alternative        |
+   |                                        |       | each invocation replaces it with next alternative                                |
+   |                                        |       | N - switch to this behavior only when number of alternatives is less than N      |
+   |----------------------------------------+-------+----------------------------------------------------------------------------------|
+   #+begin_src emacs-lisp
+     (setq completion-cycle-threshold t)
+   #+end_src
 
 ** History
    |----------------+-------+----------------------------------------------------------------------------|
@@ -2826,6 +2837,9 @@
     |         | instead of trying possible expansions one by one complete till common chars |
     |         | if they have nothing in common, display a list of completions               |
     |---------+-----------------------------------------------------------------------------|
+    #+begin_src emacs-lisp
+      (global-set-key (kbd "M-/") 'hippie-expand)
+    #+end_src
 * Dired
   - Dired creates an Emacs buffer containing directory listing which
     can be used for file and directory operations
@@ -3280,7 +3294,14 @@
       (when (string-suffix-p "=" pattern)
 	`(orderless-literal . ,(substring pattern 0 -1))))
 
-    (setq completion-styles '(orderless basic))
+    ;; The orderless completion style does not support completion of a
+    ;; common prefix substring, as you may be familiar with from shells or
+    ;; the basic default completion system. The reason is that the
+    ;; Orderless input string is usually not a prefix. In order to support
+    ;; completing prefixes you may want to combine orderless with
+    ;; substring in your completion-styles configuration.
+
+    (setq completion-styles '(substring orderless basic))
     (setq orderless-matching-styles
 	  '(orderless-prefixes orderless-initialism orderless-flex orderless-regexp)
 	  orderless-style-dispatchers
@@ -3317,6 +3338,15 @@
 	  (vertico-mode 1)
 	  (setq vertico-resize t
 		vertico-cycle t)))
+
+    ;; If you prefer to have the default completion commands a key press
+    ;; away you can add new bindings or even replace the Vertico
+    ;; bindings. Then the default completion commands behave as usual. For
+    ;; example you can use TAB to cycle between candidates if you have
+    ;; set completion-cycle-threshold.
+    (define-key vertico-map "?" #'minibuffer-completion-help)
+    (define-key vertico-map (kbd "RET") #'minibuffer-force-complete-and-exit)
+    (define-key vertico-map (kbd "TAB") #'minibuffer-complete)
   #+end_src
 
 * Which Key
@@ -3361,11 +3391,11 @@
 	  corfu-echo-documentation t
 	  corfu-cycle t)
 
-    ;;    (define-key corfu-map "?" #'minibuffer-completion-help)
-    ;;    (define-key corfu-map (kbd "TAB") 'corfu-next)
-    ;;    (define-key corfu-map (kbd "<tab>") 'corfu-next)
-    ;;    (define-key corfu-map (kbd "<backtab>") 'corfu-previous)
-    ;;    (define-key corfu-map (kbd "S-TAB") 'corfu-previous)
+    (define-key corfu-map "?" #'minibuffer-completion-help)
+    (define-key corfu-map (kbd "TAB") 'corfu-next)
+    (define-key corfu-map (kbd "<tab>") 'corfu-next)
+    (define-key corfu-map (kbd "<backtab>") 'corfu-previous)
+    (define-key corfu-map (kbd "S-TAB") 'corfu-previous)
 
 #+end_src
 
@@ -3384,7 +3414,7 @@
     (require 'eglot)
 
     (setq eglot-autoreconnect t
-	  eglot-send-changes-idle-time 5
+	  eglot-send-changes-idle-time 1
 	  eglot-confirm-server-initiated-edits nil
 	  eglot-extend-to-xref t)
 
@@ -3435,3 +3465,4 @@
 
     (global-set-key (kbd "M-<SPC>") my-mode-map)
   #+end_src
+  
