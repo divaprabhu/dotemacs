@@ -78,6 +78,8 @@
 	(add-to-list 'package-archives
 		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
+    (add-to-list 'package-archives
+		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
     (unless package-archive-contents
       (package-refresh-contents))
   #+end_src
@@ -815,6 +817,7 @@
     (setq-default mode-line-format
 		  '("%e"
 		    mode-line-front-space
+		    (:propertize evil-mode-line-tag face modus-themes-intense-magenta)
 		    (:propertize mode-name face mode-line-highlight)
 		    " (%l, %c)["
 		    (:eval (number-to-string (count-lines (point-min) (point-max))))
@@ -853,7 +856,7 @@
 		    mode-line-misc-info))
   #+end_src
 ** Minibuffer-line
-   #+begin_src emacs-lisp
+   #+begin_src
      (unless (package-installed-p 'minibuffer-line)
        (package-refresh-contents)
        (package-install 'minibuffer-line))
@@ -3154,12 +3157,13 @@
   #+end_src
 
 * Keepass mode
-  #+begin_comment
-  (unless (package-installed-p 'keepass-mode)
-  (package-refresh-contents)
-  (package-install 'keepass-mode))
-    (keepass-mode)
-  #+end_comment
+  #+begin_src emacs-lisp
+    (unless (package-installed-p 'keepass-mode)
+      (package-refresh-contents)
+      (package-install 'keepass-mode))
+    (require 'keepass-mode)
+  #+end_src
+
 * EWW
   #+begin_src emacs-lisp
     (setq url-configuration-directory "~/.cache/emacs/")
@@ -3194,14 +3198,14 @@
   |-------+-------------------------------------------------------------------|
 
   - Settings
-  #+begin_src
+  #+begin_src emacs-lisp
     (unless (package-installed-p 'evil)
       (package-refresh-contents)
       (package-install 'evil))
 
-    ;;    (unless (package-installed-p 'evil-collection)
-    ;;      (package-refresh-contents)
-    ;;      (package-install 'evil-collection))
+    (unless (package-installed-p 'evil-collection)
+      (package-refresh-contents)
+      (package-install 'evil-collection))
 
     (setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
 	  evil-want-C-u-scroll        t        ; C-u scroll up in normal mode
@@ -3213,13 +3217,11 @@
 	  evil-disable-insert-state-bindings t ; use emacs bindings in insert mode
 	  evil-want-keybinding nil             ; required for evil-collection
 	  evil-want-integration t              ; required for evil-collection
-
 	  )
 					    ; load evil
     (require 'evil)
     (evil-mode 1)
-    ;;    (when (require 'evil-collection nil t)
-    ;;     (evil-collection-init))
+    (evil-collection-init)
 
     (if (>= emacs-major-version 28)
 	(setq evil-undo-system 'undo-redo)          ; native to Emacs 28
@@ -3230,7 +3232,7 @@
 	(add-hook 'evil-local-mode-hook 'undo-tree-mode)
 	(setq undo-tree-visualizer-diff t
 	      undo-tree-visualizer-timestamps t
-	      undo-tree-history-directory-alist '(("." . "~/.cache/emacs/undo/"))
+	      undo-tree-history-directory-alist '(("." . "cache/emacs/undo/"))
 	      evil-undo-system 'undo-tree)))
 
   #+end_src
@@ -3382,25 +3384,23 @@
     (require 'eglot)
 
     (setq eglot-autoreconnect t
-	  eglot-send-changes-idle-time 5)
-#+end_src
+	  eglot-send-changes-idle-time 5
+	  eglot-confirm-server-initiated-edits nil
+	  eglot-extend-to-xref t)
+
+    (add-hook 'python-mode-hook 'eglot-ensure)
+    (with-eval-after-load 'eglot
+      (push '(python-mode "~/venv/bin/pylsp" "--verbose") eglot-server-programs))
+
+    (add-hook 'c-mode-hook 'eglot-ensure)
+
+  #+end_src
 
 * Eldoc
   #+begin_src emacs-lisp
     (setq eldoc-echo-area-display-truncation-message t
 	  eldoc-echo-area-use-multiline-p t
 	  eldoc-echo-area-prefer-doc-buffer nil)
-  #+end_src
-* Python Mode
-  #+begin_src emacs-lisp
-    (add-hook 'python-mode-hook 'eglot-ensure)
-    (with-eval-after-load 'eglot
-      (push '(python-mode "~/venv/bin/pylsp" "--verbose") eglot-server-programs))
-  #+end_src
-
-* C mode
-  #+begin_src emacs-lisp
-    (add-hook 'c-mode-hook 'eglot-ensure)
   #+end_src
 
 * Keybindings
