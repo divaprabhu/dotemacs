@@ -3188,6 +3188,11 @@
 * Org mode
   #+begin_src emacs-lisp
     (require 'org-tempo)
+
+    (org-babel-do-load-languages 'org-babel-load-languages
+				 '((emacs-lisp . t)
+				   (python . t)))
+    (setq org-confirm-babel-evaluate nil)
   #+end_src
   
 * Theme
@@ -3422,7 +3427,11 @@
 	  eglot-confirm-server-initiated-edits nil
 	  eglot-extend-to-xref t)
 
-    (add-hook 'python-mode-hook 'eglot-ensure)
+    (add-hook 'python-mode-hook
+	      (lambda()
+		(setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/venv/bin"))
+		(setq exec-path (split-string (getenv "PATH") path-separator))
+		'eglot-ensure))
     (with-eval-after-load 'eglot
       (push '(python-mode "~/venv/bin/pylsp" "--verbose") eglot-server-programs))
 
