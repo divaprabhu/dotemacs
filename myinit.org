@@ -3171,7 +3171,7 @@
   #+end_src
 
 * Keepass mode
-  #+begin_src emacs-lisp
+  #+begin_src
     (unless (package-installed-p 'keepass-mode)
       (package-refresh-contents)
       (package-install 'keepass-mode))
