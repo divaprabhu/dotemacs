@@ -327,12 +327,7 @@
 
 (setq epg-pinentry-mode 'loopback)
 
-(unless (package-installed-p 'keepass-mode)
-  (package-refresh-contents)
-  (package-install 'keepass-mode))
-(require 'keepass-mode)
-
-(setq url-configuration-directory "~/.cache/emacs/")
+(setq url-configuration-directory user-emacs-directory)
 (setq browse-url-browser-function 'eww-browse-url)
 (add-hook 'eww-mode-hook 'visual-line-mode)
 
@@ -381,7 +376,7 @@
     (add-hook 'evil-local-mode-hook 'undo-tree-mode)
     (setq undo-tree-visualizer-diff t
 	  undo-tree-visualizer-timestamps t
-	  undo-tree-history-directory-alist '(("." . "~/cache/emacs/undo/"))
+	  undo-tree-history-directory-alist '(("." . "~/.cache/emacs/undo/"))
 	  evil-undo-system 'undo-tree)))
 
 (unless (package-installed-p 'marginalia)
