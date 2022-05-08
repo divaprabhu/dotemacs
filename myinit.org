@@ -26,6 +26,12 @@
     (global-set-key (kbd "M-o") 'other-window)
   #+end_src
 
+  - Performance improvement
+  #+begin_src emacs-lisp
+    (setq gc-cons-threshold 100000000)
+    (setq read-process-output-max (* 1024 1024)) ;; 1mb
+  #+end_src
+
 * Packages
   - Packages are Emacs Lisp libraries. For a package to be available
     in future sessions, compile it and put it in path of lisp
@@ -3431,7 +3437,7 @@
 
 * Eglot
   - Refer [[*Xref][Xref]]
-  #+begin_src
+  #+begin_src emacs-lisp
     (unless (package-installed-p 'eglot)
       (package-refresh-contents)
       (package-install 'eglot))
@@ -3462,9 +3468,46 @@
 		(setq exec-path (split-string (getenv "PATH") path-separator))
 		'eglot-ensure)
 	      (with-eval-after-load 'eglot
-		(push '(python-mode "~/go/bin/pylsp" "-verbose") eglot-server-programs)))
+		(push '(go-mode "~/go/bin/gopls" "-verbose") eglot-server-programs)))
   #+end_src
 
+* LSP Mode
+  #+begin_src
+    (unless (package-installed-p 'lsp-mode)
+      (package-refresh-contents)
+      (package-install 'lsp-mode))
+
+    (setq lsp-keymap-prefix "C-c l"
+	  lsp-idle-delay 0.5
+	  lsp-log-io nil
+	  lsp-modeline-diagnostics-mode t
+	  lsp-modeline-code-actions-segments '(count icon name))
+    (require 'lsp-mode)
+    (add-hook 'lsp-mode-hook 'lsp-enable-which-key-integration)
+
+    (unless (package-installed-p 'lsp-ui)
+      (package-refresh-contents)
+      (package-install 'lsp-ui))
+    (require 'lsp-ui)
+
+    (setq lsp-ui-sideline-show-diagnostics t
+	  lsp-ui-sideline-show-hover t
+	  lsp-ui-sideline-update-mode 'line
+	  lsp-ui-sideline-delay 0.5
+	  lsp-ui-doc-enable t
+	  lsp-ui-doc-delay 0.5
+	  lsp-ui-doc-show-with-cursor t
+	  lsp-ui-doc-show-with-mouse t)
+    (lsp-ui-mode 1)
+  #+end_src
+
+** Python
+  #+begin_src
+    (unless (package-installed-p 'pyvenv)
+      (package-refresh-contents)
+      (package-install 'pyvenv))
+    (add-hook 'python-mode-hook #'lsp)
+  #+end_src
 * Eldoc
   #+begin_src emacs-lisp
     (setq eldoc-echo-area-display-truncation-message t
@@ -3483,7 +3526,7 @@
 
 	(define-key map (kbd "b b") 'switch-to-buffer)
 	(define-key map (kbd "b c") 'clean-buffer-list)
-	(define-key map (kbd "b i") 'ibuffer)
+ 	(define-key map (kbd "b i") 'ibuffer)
 	(define-key map (kbd "b k") 'kill-this-buffer)
 	(define-key map (kbd "b n") 'next-buffer)
 	(define-key map (kbd "b p") 'previous-buffer)
