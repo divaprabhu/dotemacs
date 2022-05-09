@@ -2281,27 +2281,31 @@
    - collects problems with current buffer called 'diagnostic' using
      back-ends and annotates problematic regions. It also highlights
      overall status in modeline
-   |--------------------------------------+------------------------------------------------------------------|
-   | M-x flymake-mode                     | start flymake mode                                               |
-   | M-x flymake-start                    | start syntax check manually                                      |
-   | *C-h .*                              | display-local-help                                               |
-   |                                      | on regions that are highlighted for error                        |
-   | flymake-goto-next-error              | go to next error region                                          |
-   | flymake-goto-prev-error              | go to previous error region                                      |
-   | 'flymake-wrap-around'                | wrap around during next and prev error if on last or first error |
-   | M-x flymake-show-buffer-diagnostics  | bring a separate buffer containing detailed structured           |
-   | M-x flymake-show-project-diagnostics | listing of diagnostics of current buffer or project              |
-   |                                      | list is dynamically as the source is edited                      |
-   | 'flymake-no-changes-timeout'         | time to wait after last change before checking buffer            |
-   |                                      | nil - never start                                                |
-   |                                      | integer - wait for that many seconds                             |
-   |--------------------------------------+------------------------------------------------------------------|
+   |--------------------------------------+-----------------------------------------------------------------------|
+   | M-x flymake-mode                     | start flymake mode                                                    |
+   | M-x flymake-start                    | start syntax check manually                                           |
+   | *C-h .*                              | display-local-help                                                    |
+   |                                      | on regions that are highlighted for error                             |
+   | flymake-goto-next-error              | go to next error region                                               |
+   | flymake-goto-prev-error              | go to previous error region                                           |
+   | 'flymake-wrap-around'                | wrap around during next and prev error if on last or first error      |
+   | M-x flymake-show-buffer-diagnostics  | bring a separate buffer containing detailed structured                |
+   | M-x flymake-show-project-diagnostics | listing of diagnostics of current buffer or project                   |
+   |                                      | list is dynamically as the source is edited                           |
+   | 'flymake-no-changes-timeout'         | time to wait after last change before checking buffer                 |
+   |                                      | nil - never start                                                     |
+   |                                      | integer - wait for that many seconds                                  |
+   | 'help-at-pt-display-when-idle'       | Automatically show local help on point-over (like display-local-help) |
+   | 'help-at-pt-timer-delay'             | seconds to wait before displaying local help                          |
+   |--------------------------------------+-----------------------------------------------------------------------|
 
    #+begin_src emacs-lisp
      (require 'flymake)
      (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
      (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)
-     (setq flymake-no-changes-timeout nil)
+     (setq flymake-no-changes-timeout nil
+	   help-at-pt-display-when-idle t
+	   help-at-pt-timer-delay 1)
    #+end_src
    - following messages are displayed on modeline
    |-------------------+-----------------------------------------------------------------|
@@ -3210,7 +3214,7 @@
 
     (setq solarized-distinct-fringe-background t ; make the fringe stand out from the background
 	  solarized-use-variable-pitch nil       ; Don't change the font for some headings and titles
-	  solarized-high-contrast-mode-line t    ; make the modeline high contrast
+	  solarized-high-contrast-mode-line nil  ; make the modeline high contrast
 	  solarized-use-less-bold t              ; Use less bolding
 	  solarized-use-more-italic t            ; Use more italics
 	  solarized-emphasize-indicators nil     ; Use less colors for indicators like flycheck
@@ -3452,9 +3456,9 @@
 	      (lambda()
 		(setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/venv/bin"))
 		(setq exec-path (split-string (getenv "PATH") path-separator))
-		'eglot-ensure)
-	      (with-eval-after-load 'eglot
-		(push '(python-mode "~/venv/bin/pylsp" "--verbose") eglot-server-programs)))
+		(with-eval-after-load 'eglot
+		  (push '(python-mode "~/venv/bin/pylsp" "--verbose") eglot-server-programs))
+		'eglot-ensure))
 
     (add-hook 'c-mode-hook 'eglot-ensure)
 
@@ -3466,9 +3470,9 @@
 	      (lambda()
 		(setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/go/bin"))
 		(setq exec-path (split-string (getenv "PATH") path-separator))
-		'eglot-ensure)
-	      (with-eval-after-load 'eglot
-		(push '(go-mode "~/go/bin/gopls" "-verbose") eglot-server-programs)))
+		(with-eval-after-load 'eglot
+		  (push '(go-mode "~/go/bin/gopls" "-verbose") eglot-server-programs))
+		'eglot-ensure))
   #+end_src
 
 * LSP Mode
@@ -3547,4 +3551,4 @@
 
     (global-set-key (kbd "M-<SPC>") my-mode-map)
   #+end_src
-  
+ 
