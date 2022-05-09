@@ -13,6 +13,9 @@
 
 (global-set-key (kbd "M-o") 'other-window)
 
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024)) ;; 1mb
+
 (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
 (require 'package)
 (package-initialize)
@@ -22,6 +25,7 @@
 
 (add-to-list 'package-archives
 	     '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+
 (unless package-archive-contents
   (package-refresh-contents))
 
@@ -94,46 +98,29 @@
 
 (setq line-number-display-limit nil)
 
-(setq-default mode-line-format
-	      '("%e"
-		mode-line-front-space
-		(:propertize evil-mode-line-tag face modus-themes-intense-magenta)
-		(:propertize mode-name face mode-line-highlight)
-		" (%l, %c)["
-		(:eval (number-to-string (count-lines (point-min) (point-max))))
-		"] ["
-		(:eval (if (buffer-modified-p)
-			   (format "%s" "MD")
-			 (format "%s" "")))
-		":"
-		(:eval (if (eql buffer-read-only t)
-			   (format "%s" "RD")
-			 (format "%s" "")))
-		"]"
-		" ["
-		(:eval (let ((sys (coding-system-plist buffer-file-coding-system)))
-			 (cond ((memq (plist-get sys :category) '(coding-category-undecided coding-category-utf-8))
-				(format "%s" "UTF-8"))
-			       (t (upcase (symbol-name (plist-get sys :name)))))))
-		":"
-		(:eval (pcase (coding-system-eol-type buffer-file-coding-system)
-			 (0 "LF")
-			 (1 "CRLF")
-			 (2 "CR")))
-		":"
-		current-input-method-title
-		"] "
-		(:propertize mode-line-buffer-identification
-			 face modus-themes-intense-red
-			 help-echo (buffer-file-name))
-		(:propertize vc-mode face mode-line-highlight)
-		" "
-		minor-mode-alist
-		mode-line-client
-		mode-line-remote
-		mode-line-frame-identification
-		mode-line-end-spaces
-		mode-line-misc-info))
+(unless (package-installed-p 'doom-modeline)
+  (package-refresh-contents)
+  (package-install 'doom-modeline))
+(require 'doom-modeline)
+(setq doom-modeline-support-imenu t
+      doom-modeline-height 20
+      doom-modeline-bar-width 5   ; used to show HUD
+      doom-modeline-hud t         ; small graphical indicator showing position in current buffer
+      doom-modeline-window-width-limit 0.25
+      doom-modeline-project-detection 'auto
+      doom-modeline-buffer-file-name-style 'truncate-with-project
+      doom-modeline-icon nil
+      doom-modeline-unicode-fallback nil
+      doom-modeline-minor-modes nil
+      doom-modeline-enable-word-count t
+      doom-modeline-buffer-encoding t
+      doom-modeline-indent-info t
+      doom-modeline-vcs-max-length 8
+      doom-modeline-lsp t
+      doom-modeline-gnus t
+      doom-modeline-gnus-timer 60
+      doom-modeline-env-version t)
+(doom-modeline-mode 1)
 
 (setq blink-cursor-blink -1)
 
@@ -212,8 +199,8 @@
 	 (slot . 0))
 	("\\*\\(eldoc\\|xref\\|Flymake\\).*"
 	 (display-buffer-in-side-window)
-	 (side . top)
-	 (window-height . 0.1)
+	 (side . bottom)
+	 (window-height . 0.4)
 	 (slot . 0))
 	("\\*\\(Python\\).*"
 	 (display-buffer-in-side-window)
@@ -287,7 +274,9 @@
 (require 'flymake)
 (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
 (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)
-(setq flymake-no-changes-timeout nil)
+(setq flymake-no-changes-timeout nil
+      help-at-pt-display-when-idle t
+      help-at-pt-timer-delay 1)
 
 (setq gud-tooltip-echo-area t)
 
@@ -333,11 +322,20 @@
 
 (require 'org-tempo)
 
-(unless (package-installed-p 'modus-themes)
-  (package-refresh-contents)
-  (package-install 'modus-themes))
+(org-babel-do-load-languages 'org-babel-load-languages
+			     '((emacs-lisp . t)
+			       (python . t)))
+(setq org-confirm-babel-evaluate nil)
 
-(load-theme 'modus-vivendi t)
+(unless (package-installed-p 'doom-themes)
+  (package-refresh-contents)
+  (package-install 'doom-themes))
+(require 'doom-themes)
+(setq doom-themes-enable-bold t
+      doom-themes-enable-italic t)
+(load-theme 'doom-dracula t)
+(doom-themes-visual-bell-config)
+(doom-themes-org-config)
 
 (unless (package-installed-p 'evil)
   (package-refresh-contents)
@@ -347,9 +345,9 @@
   (package-refresh-contents)
   (package-install 'goto-chg))
 
-(unless (package-installed-p 'evil-collection)
-  (package-refresh-contents)
-  (package-install 'evil-collection))
+;; (unless (package-installed-p 'evil-collection)
+;;   (package-refresh-contents)
+;;   (package-install 'evil-collection))
 
 (setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
       evil-want-C-u-scroll        t        ; C-u scroll up in normal mode
@@ -364,8 +362,8 @@
       )
 					; load evil
 (require 'evil)
-(evil-mode 1)
-(evil-collection-init)
+;; (evil-mode 1)
+;; (evil-collection-init)
 
 (if (>= emacs-major-version 28)
     (setq evil-undo-system 'undo-redo)          ; native to Emacs 28
@@ -459,7 +457,7 @@
   (package-install 'corfu))
 (require 'corfu)
 
-(corfu-global-mode 1)
+(global-corfu-mode 1)
 (setq corfu-preselct-first nil
       corfu-auto t
       corfu-quit-no-match 'separator
@@ -487,15 +485,31 @@
       eglot-confirm-server-initiated-edits nil
       eglot-extend-to-xref t)
 
-(add-hook 'python-mode-hook 'eglot-ensure)
-(with-eval-after-load 'eglot
-  (push '(python-mode "~/venv/bin/pylsp" "--verbose") eglot-server-programs))
+(add-hook 'python-mode-hook
+	  (lambda()
+	    (setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/venv/bin"))
+	    (setq exec-path (split-string (getenv "PATH") path-separator))
+	    (with-eval-after-load 'eglot
+	      (push '(python-mode "~/venv/bin/pylsp" "--verbose") eglot-server-programs))
+	    'eglot-ensure))
 
 (add-hook 'c-mode-hook 'eglot-ensure)
 
+(unless (package-installed-p 'go-mode)
+  (package-refresh-contents)
+  (package-install 'go-mode))
+
+(add-hook 'go-mode-hook
+	  (lambda()
+	    (setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/go/bin"))
+	    (setq exec-path (split-string (getenv "PATH") path-separator))
+	    (with-eval-after-load 'eglot
+	      (push '(go-mode "~/go/bin/gopls" "-verbose") eglot-server-programs))
+	    'eglot-ensure))
+
 (setq eldoc-echo-area-display-truncation-message t
       eldoc-echo-area-use-multiline-p t
-      eldoc-echo-area-prefer-doc-buffer nil)
+      eldoc-echo-area-prefer-doc-buffer t)
 
 (defvar my-mode-map
   (let ((map (make-sparse-keymap)))

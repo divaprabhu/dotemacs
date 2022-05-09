@@ -764,7 +764,7 @@
      (setq line-number-display-limit nil)
    #+end_src
 
-** Modeline Format
+*** Modeline Format
   - Formatting to the right and left
     [[https://emacs.stackexchange.com/questions/5529/how-to-right-align-some-items-in-the-modeline][StackExchange]]
   #+begin_src
@@ -873,7 +873,7 @@
 		    mode-line-end-spaces
 		    mode-line-misc-info))
   #+end_src
-** Minibuffer-line
+*** Minibuffer-line
    #+begin_src
      (unless (package-installed-p 'minibuffer-line)
        (package-refresh-contents)
@@ -948,6 +948,47 @@
      (window-divider-mode 1)
      (minibuffer-line-mode 1)
    #+end_src
+*** Telephone Line
+    #+begin_src
+      (unless (package-installed-p 'telephone-line)
+	(package-refresh-contents)
+	(package-install 'telephone-line))
+      (require 'telephone-line)
+      (setq telephone-line-primary-left-separator 'telephone-line-cubed-left
+	    telephone-line-secondary-left-separator 'telephone-line-cubed-hollow-left
+	    telephone-line-primary-right-separator 'telephone-line-cubed-right
+	    telephone-line-secondary-right-separator 'telephone-line-cubed-hollow-right
+	    telephone-line-height 20
+	    telephone-line-evil-use-short-tag t)
+      (telephone-line-mode t)
+    #+end_src
+*** DOOM Modeline
+    #+begin_src emacs-lisp
+      (unless (package-installed-p 'doom-modeline)
+	(package-refresh-contents)
+	(package-install 'doom-modeline))
+      (require 'doom-modeline)
+      (setq doom-modeline-support-imenu t
+	    doom-modeline-height 20
+	    doom-modeline-bar-width 5   ; used to show HUD
+	    doom-modeline-hud t         ; small graphical indicator showing position in current buffer
+	    doom-modeline-window-width-limit 0.25
+	    doom-modeline-project-detection 'auto
+	    doom-modeline-buffer-file-name-style 'truncate-with-project
+	    doom-modeline-icon nil
+	    doom-modeline-unicode-fallback nil
+	    doom-modeline-minor-modes nil
+	    doom-modeline-enable-word-count t
+	    doom-modeline-buffer-encoding t
+	    doom-modeline-indent-info t
+	    doom-modeline-vcs-max-length 8
+	    doom-modeline-lsp t
+	    doom-modeline-gnus t
+	    doom-modeline-gnus-timer 60
+	    doom-modeline-env-version t)
+      (doom-modeline-mode 1)
+
+    #+end_src
 ** Cursor
    |-----------------------+-----------------------------------------------|
    | 'cursor-type'         | change cursor shape                           |
@@ -1719,8 +1760,8 @@
 	      (slot . 0))
 	     ("\\*\\(eldoc\\|xref\\|Flymake\\).*"
 	      (display-buffer-in-side-window)
-	      (side . top)
-	      (window-height . 0.1)
+	      (side . bottom)
+	      (window-height . 0.4)
 	      (slot . 0))
 	     ("\\*\\(Python\\).*"
 	      (display-buffer-in-side-window)
@@ -3207,7 +3248,8 @@
   #+end_src
   
 * Theme
-  #+begin_src emacs-lisp
+** Solarized
+  #+begin_src
     (unless (package-installed-p 'solarized-theme)
       (package-refresh-contents)
       (package-install 'solarized-theme))
@@ -3229,6 +3271,18 @@
     (load-theme 'solarized-dark t)
   #+end_src
 
+** DOOM
+   #+begin_src emacs-lisp
+     (unless (package-installed-p 'doom-themes)
+       (package-refresh-contents)
+       (package-install 'doom-themes))
+     (require 'doom-themes)
+     (setq doom-themes-enable-bold t
+	   doom-themes-enable-italic t)
+     (load-theme 'doom-dracula t)
+     (doom-themes-visual-bell-config)
+     (doom-themes-org-config)
+   #+end_src
 * Evil
   - VIM emulation in Emacs
   |-------+-------------------------------------------------------------------|
@@ -3516,7 +3570,7 @@
   #+begin_src emacs-lisp
     (setq eldoc-echo-area-display-truncation-message t
 	  eldoc-echo-area-use-multiline-p t
-	  eldoc-echo-area-prefer-doc-buffer nil)
+	  eldoc-echo-area-prefer-doc-buffer t)
   #+end_src
 
 * Keybindings
