@@ -313,8 +313,8 @@
  (setq savehist-file (expand-file-name "savehist" user-emacs-directory))
 
 ;; don't create newsrc file that other clients may use
-;;   (setq gnus-save-newsrc-file nil)
-;;   (setq gnus-read-newsrc-file nil)
+(setq gnus-save-newsrc-file nil)
+(setq gnus-read-newsrc-file nil)
 
 ;; save emacs specific newsrc file in cache
 (setq gnus-startup-file (expand-file-name "newsrc" user-emacs-directory))
@@ -335,6 +335,8 @@
 (setq gnus-secondary-select-methods
       '((nntp   "gwene"
 		(nntp-address "news.gwene.org"))))
+(if (file-exists-p "~/etc/gnupg/authinfo.gpg")
+    (load-file "~/etc/gnus_mail.el"))
 
 (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
 

@@ -3248,8 +3248,8 @@
   [[eww:https://www.bounga.org/tips/2020/05/03/multiple-smtp-accounts-in-gnus-without-external-tools/][Source]]
   #+begin_src emacs-lisp
     ;; don't create newsrc file that other clients may use
-    ;;   (setq gnus-save-newsrc-file nil)
-    ;;   (setq gnus-read-newsrc-file nil)
+    (setq gnus-save-newsrc-file nil)
+    (setq gnus-read-newsrc-file nil)
 
     ;; save emacs specific newsrc file in cache
     (setq gnus-startup-file (expand-file-name "newsrc" user-emacs-directory))
@@ -3273,7 +3273,8 @@
     (setq gnus-secondary-select-methods
 	  '((nntp   "gwene"
 		    (nntp-address "news.gwene.org"))))
-
+    (if (file-exists-p "~/etc/gnupg/authinfo.gpg")
+	(load-file "~/etc/gnus_mail.el"))
   #+end_src
 
 ** Group buffer
