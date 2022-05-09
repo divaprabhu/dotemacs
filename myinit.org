@@ -3212,9 +3212,259 @@
   | M-x top-level | abort all recursive edits returning to top level command                      |
   |---------------+-------------------------------------------------------------------------------|
 
-* gnus
+* Gnus
+  - Gnus is Emacs package for reading and posting Usenet news and
+    emacs
+  - Gnus has group buffer, summary buffer and article buffer
+  - The “group buffer” contains a list of article sources (e.g.,
+    newsgroups and email inboxes), which are collectively referred to
+    as “groups”.  This is the first buffer Gnus displays when it
+    starts up. It normally displays only the groups to which you
+    subscribe and that contain unread articles.  From this buffer, you
+    can select a group to read.
+  - The “summary buffer” lists the articles in a single group, showing
+    one article per line.  By default, it displays each article’s
+    author, subject, and line number, but this is customizable The
+    summary buffer is created when you select a group in the group
+    buffer, and is killed when you exit the group.
+  - From the summary buffer, you can choose an article to view.  The
+    article is displayed in the “article buffer”.  In normal Gnus
+    usage, you view this buffer but do not select it—all useful Gnus
+    commands can be invoked from the summary buffer.  But you can
+    select the article buffer, and execute Gnus commands from it, if
+    you wish.
+
+    |---------------------------------+-------------------------------------------------------|
+    | *M-x gnus*                      | start Gnus                                            |
+    |                                 | reads .newsrc file in home directory.                 |
+    |                                 | this is a common file used by many newsreaders        |
+    |                                 | this file lists all the news groups and subscriptions |
+    | 'gnus-select-method'            | primary method of selecting newsgroups                |
+    | 'gnus-secondary-select-methods' | additional methods for reading news                   |
+    | *q*                             | quit group buffer updating .newsrc and .newsrc.eld    |
+    |---------------------------------+-------------------------------------------------------|
+
+** Basic Settings
+  [[eww:https://www.bounga.org/tips/2020/05/03/multiple-smtp-accounts-in-gnus-without-external-tools/][Source]]
   #+begin_src emacs-lisp
-    (setq gnus-init-file "~/etc/emacs/gnus.el")
+    ;; don't create newsrc file that other clients may use
+    ;;   (setq gnus-save-newsrc-file nil)
+    ;;   (setq gnus-read-newsrc-file nil)
+
+    ;; save emacs specific newsrc file in cache
+    (setq gnus-startup-file (expand-file-name "newsrc" user-emacs-directory))
+
+    ;;save dribble file in cache and read on start up without prompt if exists
+    (setq gnus-dribble-directory user-emacs-directory)
+    (setq gnus-always-read-dribble-file t)
+
+    ;; about you
+    (setq user-mail-address "name@domain.com"
+	  user-full-name "Divakar V Prabhu")
+
+    (setq gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\”]\”[#’()]")
+  #+end_src
+
+** Accounts
+  #+begin_src emacs-lisp
+    ;; define everything via secondary method
+    ;; read credentials from authinfo.gpg
+    (setq gnus-select-method '(nnnil nil))
+    (setq gnus-secondary-select-methods
+	  '((nntp   "gwene"
+		    (nntp-address "news.gwene.org"))))
+
+  #+end_src
+
+** Group buffer
+  Buffer where all the mail folders like inbox from all servers will be shown
+  |-----------+-----------------------------------------------------------------------------|
+  | *SPC*     | gnus-group-read-group                                                       |
+  |           | switch to summary buffer for group on current line                          |
+  | *l (ell)* | gnus-group-list-groups                                                      |
+  |           | show only groups with unread articles                                       |
+  | *L*       | gnus-group-list-all-groups                                                  |
+  |           | show all subscribed and unsubscribed groups but not killed or zombie groups |
+  | *A A*     | gnus-group-list-active                                                      |
+  |           | list all groups available from server including killed and zombie           |
+  | *u*       | gnus-group-unsubscribe-current-group                                        |
+  |           | toggle subscription status of group on current line                         |
+  | *C-k*     | gnus-group-kill-group (kill group which won't show in l or L listing)       |
+  | *p*       | gnus-group-prev-unread-group                                                |
+  | *n*       | gnus-group-next-unread-group                                                |
+  | *q*       | gnus-group-exit                                                             |
+  | *g*       | refresh to check new news and mail                                          |
+  | *c*       | mark all unread article in group as read                                    |
+  | *m*       | create new email                                                            |
+  | *^*       | enter server buffer (list all configured servers                            |
+  | #         | mark a group                                                                |
+  |-----------+-----------------------------------------------------------------------------|
+
+** Topic mode
+  Categorize multiple groups based on topic
+
+  |---------+---------------------|
+  | t       | Enter topic mode    |
+  | T n     | Create new topic    |
+  | T <DEL> | delete topic        |
+  | T m     | move group to topic |
+  |---------+---------------------|
+  #+begin_src emacs-lisp
+    (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
+  #+end_src
+
+** Summary and article buffer
+  When a group is entered, a summary buffer showing all article is entered
+  |---------+-------------------------------------------------------------------------------|
+  | *SPC*   | gnus-summary-next-page                                                        |
+  |         | if no article is selected, select article on current line and                 |
+  |         | display in article buffer.                                                    |
+  |         | Else scroll down article and on reaching end of article buffer                |
+  |         | select next unread article                                                    |
+  | *DEL*   | gnus-summary-prev-page (opposite of SPC)                                      |
+  | *n*     | gnus-summary-next-unread-article                                              |
+  | *p*     | gnus-summary-prev-unread-article                                              |
+  | *s*     | gnus-summary-isearch-article                                                  |
+  |         | incremental search on article buffer (like running C-s in article buffer)     |
+  | M-s     | gnus-summary-search-article-forward                                           |
+  |         | search articles containing match for regexp                                   |
+  | M-r     | gnus-summary-search-article-backward                                          |
+  | *q*     | gnus-summary-exit                                                             |
+  | *R*     | gnus-summary-reply-with-original (Reply by email and cite article)            |
+  | *r*     | gnus-summary-reply (Reply by email and don't cite article)                    |
+  | *m*     | gnus-summary-mail-other-window *new email)                                    |
+  | *c*     | gnus-summary-catchup-and-exit (mark all article in the current group as read) |
+  | C-u / t | show only articles younger than given days                                    |
+  | / t     | show only articles older than given days                                      |
+  | T T     | toggle threading                                                              |
+  | t       | show all headers                                                              |
+  | W w     | wordwrap current article                                                      |
+  | ^       | fetch parent article                                                          |
+  |---------+-------------------------------------------------------------------------------|
+** Message buffer
+  Write body after the line "--text follows this line--"
+  Linebreaks
+  #+begin_src emacs-lisp
+    (defun my-message-mode-setup ()
+      (setq fill-column 72)
+      (turn-on-auto-fill))
+    (add-hook 'message-mode-hook 'my-message-mode-setup)
+  #+end_src
+  |-----------+--------------------|
+  | C-c C-c   | send message       |
+  | C-c C-d   | save as draft      |
+  | C-c C-k   | kill message       |
+  | C-c C-m f | attach file        |
+  | M-q       | reformat paragraph |
+  |-----------+--------------------|
+
+** Terminology
+  - select method - another term for server
+  - primary server is specified using gnus-select-method
+  - secondary servers are specified using gnus-secondary-select-methods
+  - groups from news server are called news groups and folders from mail server are called mail groups
+  - A character indicates the mark
+    |-------+------------+--------------------------------------------------------|
+    | space | M-u        | there is no mark or the message is unmarked.           |
+    |       |            | Marking message with space actually removes all marks  |
+    | !     | ! or u     | Ticked message or mark important.                      |
+    |       |            | Ticked messages are always shown when group is entered |
+    | ?     | ?          | Dormant mark                                           |
+    |       |            | They are not shown by default                          |
+    | R     | <SPC> or g | Message has been read                                  |
+    | r     | d or M-r   | Mark message as read without actually reading it       |
+    | 0     |            | Message was read in previous session                   |
+    |-------+------------+--------------------------------------------------------|
+
+** Mail
+  - Mail is fetched from mail sources whereas mail backend tells how to store them
+  - For imap - mail is not fetched
+
+  ** Expiry
+    - On news servers, as messages grow disk usage increases.
+    - News servers are configured per group to tell after how many days the message should be deleted
+    - In case of mail server, the expiry should be in your control
+    |-----------+---------------------------------------------------|
+    | E         | Expire a message                                  |
+    | C-u M-g   | Show read messages                                |
+    | C-u <RET> | From group buffer, show read message when entered |
+    | / D       | Show dormant messages                             |
+    |-----------+---------------------------------------------------|
+
+    - When a new followup comes in a thread, also show previous message from that thread
+    #+begin_src emacs-lisp
+      (setq gnus-fetch-old-headers t)
+    #+end_src
+    |-------+--------------------------------+---------------------|
+    | n     | next group with unread article | next unread article |
+    | p     | prev group with unread article | prev unread article |
+    | N     | next group                     | next article        |
+    | P     | prev group                     | prev article        |
+    | C-n   | next line                      | next line           |
+    | C-p   | prev line                      | prev line           |
+    | <SPC> |                                | scroll article down |
+    | <DEL> |                                | scroll article up   |
+    |-------+--------------------------------+---------------------|
+    
+    - Article and summary buffer have similar keybindings
+
+** Format
+  #+begin_src emacs-lisp
+    (setq-default
+     gnus-summary-line-format "%U%R%z%I%(%&user-date; [%4L: %-23,23f%]%) %s\n"
+     gnus-user-date-format-alist '((t . "%Y-%m-%d %H:%M"))
+     gnus-summary-thread-gathering-function 'gnus-gather-threads-by-references
+     gnus-thread-sort-functions '(gnus-thread-sort-by-date)
+     gnus-sum-thread-tree-false-root ""
+     gnus-sum-thread-tree-indent " "
+     gnus-sum-thread-tree-leaf-with-other "├► "
+     gnus-sum-thread-tree-root ""
+     gnus-sum-thread-tree-single-leaf "╰► "
+     gnus-sum-thread-tree-vertical "│")
+  #+end_src
+
+** Custom keybinding
+  - Press e to mark expired and then go to next article
+  #+begin_src emacs-lisp
+    (add-hook 'gnus-summary-mode-hook 'my-summary-mode-map)
+    (add-hook 'gnus-article-prepare-hook 'my-summary-mode-map)
+    (defun my-summary-mode-map ()
+      (local-set-key "e" "MMen")
+      (local-set-key "E" 'gnus-summary-edit-article))
+  #+end_src
+  |-----+-----------------------------------------|
+  | Key | Description                             |
+  |-----+-----------------------------------------|
+  | e   | expire article and move to next article |
+  | E   | edit article                            |
+  |-----+-----------------------------------------|
+
+  - Expire immediately
+  #+begin_src emacs-lisp
+    (setq nnmail-expiry-wait 'immediate)
+  #+end_src
+
+** Windows
+  [[eww:https://www.emacswiki.org/emacs/GnusWindowLayout][GnusWindowLayout]]
+  #+begin_src emacs-lisp
+    (gnus-add-configuration
+     '(article
+       (horizontal 1.0
+	       (vertical 0.25
+		     (group 1.0))
+	       (vertical 1.0
+		     (summary 0.25 point)
+		     (article 1.0)))))
+
+    (gnus-add-configuration
+     '(summary
+       (horizontal 1.0
+	       (vertical 0.25
+		     (group 1.0))
+	       (vertical 1.0
+		     (summary 1.0 point)))))
+
+
   #+end_src
 
 * EPG

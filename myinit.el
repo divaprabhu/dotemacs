@@ -312,7 +312,75 @@
  (savehist-mode 1)
  (setq savehist-file (expand-file-name "savehist" user-emacs-directory))
 
-(setq gnus-init-file "~/etc/emacs/gnus.el")
+;; don't create newsrc file that other clients may use
+;;   (setq gnus-save-newsrc-file nil)
+;;   (setq gnus-read-newsrc-file nil)
+
+;; save emacs specific newsrc file in cache
+(setq gnus-startup-file (expand-file-name "newsrc" user-emacs-directory))
+
+;;save dribble file in cache and read on start up without prompt if exists
+(setq gnus-dribble-directory user-emacs-directory)
+(setq gnus-always-read-dribble-file t)
+
+;; about you
+(setq user-mail-address "name@domain.com"
+      user-full-name "Divakar V Prabhu")
+
+(setq gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\”]\”[#’()]")
+
+;; define everything via secondary method
+;; read credentials from authinfo.gpg
+(setq gnus-select-method '(nnnil nil))
+(setq gnus-secondary-select-methods
+      '((nntp   "gwene"
+		(nntp-address "news.gwene.org"))))
+
+(add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
+
+(defun my-message-mode-setup ()
+  (setq fill-column 72)
+  (turn-on-auto-fill))
+(add-hook 'message-mode-hook 'my-message-mode-setup)
+
+(setq gnus-fetch-old-headers t)
+
+(setq-default
+ gnus-summary-line-format "%U%R%z%I%(%&user-date; [%4L: %-23,23f%]%) %s\n"
+ gnus-user-date-format-alist '((t . "%Y-%m-%d %H:%M"))
+ gnus-summary-thread-gathering-function 'gnus-gather-threads-by-references
+ gnus-thread-sort-functions '(gnus-thread-sort-by-date)
+ gnus-sum-thread-tree-false-root ""
+ gnus-sum-thread-tree-indent " "
+ gnus-sum-thread-tree-leaf-with-other "├► "
+ gnus-sum-thread-tree-root ""
+ gnus-sum-thread-tree-single-leaf "╰► "
+ gnus-sum-thread-tree-vertical "│")
+
+(add-hook 'gnus-summary-mode-hook 'my-summary-mode-map)
+(add-hook 'gnus-article-prepare-hook 'my-summary-mode-map)
+(defun my-summary-mode-map ()
+  (local-set-key "e" "MMen")
+  (local-set-key "E" 'gnus-summary-edit-article))
+
+(setq nnmail-expiry-wait 'immediate)
+
+(gnus-add-configuration
+ '(article
+   (horizontal 1.0
+	   (vertical 0.25
+		 (group 1.0))
+	   (vertical 1.0
+		 (summary 0.25 point)
+		 (article 1.0)))))
+
+(gnus-add-configuration
+ '(summary
+   (horizontal 1.0
+	   (vertical 0.25
+		 (group 1.0))
+	   (vertical 1.0
+		 (summary 1.0 point)))))
 
 (setq epg-pinentry-mode 'loopback)
 
