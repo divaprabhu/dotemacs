@@ -1201,6 +1201,11 @@
    | M-- M-u | *gUb* | upcase-word previous word     |
    | M-- M-c |       | capitalize-word previous word |
    |---------+-------+-------------------------------|
+   #+begin_src emacs-lisp
+     (global-set-key (kbd "M-l") 'downcase-dwim)
+     (global-set-key (kbd "M-u") 'upcase-dwim)
+     (global-set-key (kbd "M-l") 'capitalize-dwim)
+   #+end_src
 
 ** Spelling
 
@@ -3626,24 +3631,52 @@
 
 * Ibuffer
    [[https://www.youtube.com/watch?v=6KN_oSLFf-k][Youtube]]
-   |------+------------------------------------------------------------------------|
-   | */n* | filter buffer list by buffer Name                                      |
-   | */m* | filter buffer mode                                                     |
-   | */f* | filter by file path                                                    |
-   | */!* | invert the last filter                                                 |
-   | *//* | clear filter                                                           |
-   | *g*  | refresh buffer                                                         |
-   | *m*  | mark buffer                                                            |
-   | *k*  | remove marked items from list (don't actually kill buffers)            |
-   | *t*  | toggle mark (marked items become unmarked and unmarked becomes marked) |
-   | **n* | mark by name using regexp                                              |
-   | **m* | mark by mode using regexp                                              |
-   | **f* | mark by file path using regexp                                         |
-   | *u*  | unmark buffer at point                                                 |
-   | *U*  | unmark all marks                                                       |
-   | *O*  | search regexp in all marked buffer in occur mode                       |
-   | *s*  | sort buffer                                                            |
-   |------+------------------------------------------------------------------------|
+   |---------+------------------------------------------------------------------------|
+   | *RET*   | open buffer at point                                                   |
+   | *o*     | open buffer at point in other window                                   |
+   | *C-o*   | open buffer at point in other window but don't select it               |
+   |---------+------------------------------------------------------------------------|
+   | */n*    | filter buffer list by buffer name                                      |
+   | */m*    | filter buffer by major mode                                            |
+   | */f*    | filter by file path                                                    |
+   | */c*    | filter by buffer content                                               |
+   | */<*    | filter by buffer size                                                  |
+   | */>*    | filter by buffer size                                                  |
+   | */!*    | invert the last filter                                                 |
+   | *//*    | clear filter                                                           |
+   |---------+------------------------------------------------------------------------|
+   | */g*    | create a filter group from active filters                              |
+   | */\*    | remove all active filters                                              |
+   | *TAB*   | move to next filter group                                              |
+   | *S-TAB* | move to previous filter group                                          |
+   | */S*    | save current group with name (goes to custom.el)                       |
+   | */R*    | restore previously saved group                                         |
+   | */X*    | delete previous saved group                                            |
+   |---------+------------------------------------------------------------------------|
+   | *s f*   | sort by filename                                                       |
+   | *s v*   | sort by last viewed time                                               |
+   | *s m*   | sort by major mode                                                     |
+   | *s s*   | sort by size                                                           |
+   | *s i*   | sort in inverse                                                        |
+   | *,*     | rotate between different sorting                                       |
+   |---------+------------------------------------------------------------------------|
+   | *g*     | refresh buffer                                                         |
+   | *m*     | mark buffer                                                            |
+   | *k*     | remove marked items from list (don't actually kill buffers)            |
+   | *t*     | toggle mark (marked items become unmarked and unmarked becomes marked) |
+   | **n*    | mark by name using regexp                                              |
+   | **m*    | mark by mode using regexp                                              |
+   | **f*    | mark by file path using regexp                                         |
+   | *u*     | unmark buffer at point                                                 |
+   | *U*     | unmark all marks                                                       |
+   | *O*     | search regexp in all marked buffer in occur mode                       |
+   | *s*     | sort buffer                                                            |
+   |---------+------------------------------------------------------------------------|
+   | *A*     | view marked buffers                                                    |
+   | *S*     | save marked buffers                                                    |
+   | *D*     | kill marked buffers                                                    |
+   | *V*     | revert marked buffers                                                  |
+   |---------+------------------------------------------------------------------------|
 
    #+begin_src emacs-lisp
      (require 'ibuffer)

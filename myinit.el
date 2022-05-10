@@ -105,6 +105,10 @@
 
 (setq isearch-lazy-count t)
 
+(global-set-key (kbd "M-l") 'downcase-dwim)
+(global-set-key (kbd "M-u") 'upcase-dwim)
+(global-set-key (kbd "M-l") 'capitalize-dwim)
+
 (add-hook 'text-mode-hook 'flyspell-mode)
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
 (add-hook 'flyspell-mode-hook
