@@ -23,8 +23,8 @@
     (add-to-list 'package-archives
 		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
-(add-to-list 'package-archives
-	     '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+;; (add-to-list 'package-archives
+;;		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 
 (unless package-archive-contents
   (package-refresh-contents))
@@ -33,7 +33,7 @@
 
 (line-number-mode 1)
 (column-number-mode 1)
-(hl-line-mode 1)
+(global-hl-line-mode 1)
 (size-indication-mode 1)
 (setq what-cursor-show-names t)
 
@@ -97,30 +97,6 @@
 (setq what-cursor-show-names t)
 
 (setq line-number-display-limit nil)
-
-(unless (package-installed-p 'doom-modeline)
-  (package-refresh-contents)
-  (package-install 'doom-modeline))
-(require 'doom-modeline)
-(setq doom-modeline-support-imenu t
-      doom-modeline-height 20
-      doom-modeline-bar-width 5   ; used to show HUD
-      doom-modeline-hud t         ; small graphical indicator showing position in current buffer
-      doom-modeline-window-width-limit 0.25
-      doom-modeline-project-detection 'auto
-      doom-modeline-buffer-file-name-style 'truncate-with-project
-      doom-modeline-icon nil
-      doom-modeline-unicode-fallback nil
-      doom-modeline-minor-modes nil
-      doom-modeline-enable-word-count t
-      doom-modeline-buffer-encoding t
-      doom-modeline-indent-info t
-      doom-modeline-vcs-max-length 8
-      doom-modeline-lsp t
-      doom-modeline-gnus t
-      doom-modeline-gnus-timer 60
-      doom-modeline-env-version t)
-(doom-modeline-mode 1)
 
 (setq blink-cursor-blink -1)
 
@@ -397,55 +373,21 @@
 			       (python . t)))
 (setq org-confirm-babel-evaluate nil)
 
-(unless (package-installed-p 'doom-themes)
+(unless (package-installed-p 'modus-themes)
   (package-refresh-contents)
-  (package-install 'doom-themes))
-(require 'doom-themes)
-(setq doom-themes-enable-bold t
-      doom-themes-enable-italic t)
-(load-theme 'doom-dracula t)
-(doom-themes-visual-bell-config)
-(doom-themes-org-config)
-
-(unless (package-installed-p 'evil)
-  (package-refresh-contents)
-  (package-install 'evil))
-
-(unless (package-installed-p 'goto-chg)
-  (package-refresh-contents)
-  (package-install 'goto-chg))
-
-;; (unless (package-installed-p 'evil-collection)
-;;   (package-refresh-contents)
-;;   (package-install 'evil-collection))
-
-(setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
-      evil-want-C-u-scroll        t        ; C-u scroll up in normal mode
-      evil-move-beyond-eol t               ; move one char beyond end of line
-      evil-cross-lines        t            ; motions like h, l, f can go to next/prev line
-      evil-respect-visual-line-mode t      ; respect visual-line-mode so that j, k move by visual lines
-      evil-show-paren-range 1              ; distance from parenthesis to highlight it
-      evil-want-fine-undo t                ; use Emacs heuristics for undo
-      evil-disable-insert-state-bindings t ; use emacs bindings in insert mode
-      evil-want-keybinding nil             ; required for evil-collection
-      evil-want-integration t              ; required for evil-collection
-      )
-					; load evil
-(require 'evil)
-;; (evil-mode 1)
-;; (evil-collection-init)
-
-(if (>= emacs-major-version 28)
-    (setq evil-undo-system 'undo-redo)          ; native to Emacs 28
-  (progn
-    (unless (package-installed-p 'undo-tree)
-      (package-refresh-contents)
-      (package-install 'undo-tree))
-    (add-hook 'evil-local-mode-hook 'undo-tree-mode)
-    (setq undo-tree-visualizer-diff t
-	  undo-tree-visualizer-timestamps t
-	  undo-tree-history-directory-alist '(("." . "~/.cache/emacs/undo/"))
-	  evil-undo-system 'undo-tree)))
+  (package-install 'modus-themes))
+(require 'modus-themes)
+(setq modus-themes-inhibit-reload nil   ; reload active theme when an option is changed through the Customize UI
+      modus-themes-bold-constructs t    ; Use bold for code syntax highlighting and related
+      modus-themes-italic-constructs t  ; Use bold for code syntax highlighting and related
+      modus-themes-mode-line '(accented borderless (padding 4) (height 0.9))
+      modus-themes-hl-line '(intense)   ; amplify color in use for hl-line-mode
+					; heading sizes and colors
+      modus-themes-headings '((1 . (bold rainbow 1.5))
+			      (2 . (bold rainbow 1.4))
+			      (3 . (bold rainbow 1.2))
+			      (t . (monochrome ))))
+(load-theme 'modus-vivendi t)
 
 (unless (package-installed-p 'marginalia)
   (package-refresh-contents)
@@ -508,9 +450,9 @@
 ;; bindings. Then the default completion commands behave as usual. For
 ;; example you can use TAB to cycle between candidates if you have
 ;; set completion-cycle-threshold.
-(define-key vertico-map "?" #'minibuffer-completion-help)
-(define-key vertico-map (kbd "RET") #'minibuffer-force-complete-and-exit)
-(define-key vertico-map (kbd "TAB") #'minibuffer-complete)
+;;(define-key vertico-map "?" #'minibuffer-completion-help)
+;;(define-key vertico-map (kbd "RET") #'minibuffer-force-complete-and-exit)
+;;(define-key vertico-map (kbd "TAB") #'minibuffer-complete)
 
 (unless (package-installed-p 'which-key)
   (package-refresh-contents)
@@ -556,7 +498,7 @@
       eglot-extend-to-xref t)
 
 (add-hook 'python-mode-hook
-	  (lambda()
+	  (progn
 	    (setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/venv/bin"))
 	    (setq exec-path (split-string (getenv "PATH") path-separator))
 	    (with-eval-after-load 'eglot
@@ -570,7 +512,7 @@
   (package-install 'go-mode))
 
 (add-hook 'go-mode-hook
-	  (lambda()
+	  (progn
 	    (setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/go/bin"))
 	    (setq exec-path (split-string (getenv "PATH") path-separator))
 	    (with-eval-after-load 'eglot

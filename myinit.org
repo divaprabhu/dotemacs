@@ -84,8 +84,8 @@
 	(add-to-list 'package-archives
 		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
-    (add-to-list 'package-archives
-		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+    ;; (add-to-list 'package-archives
+    ;;		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 
     (unless package-archive-contents
       (package-refresh-contents))
@@ -205,7 +205,7 @@
    #+begin_src emacs-lisp
      (line-number-mode 1)
      (column-number-mode 1)
-     (hl-line-mode 1)
+     (global-hl-line-mode 1)
      (size-indication-mode 1)
      (setq what-cursor-show-names t)
    #+end_src
@@ -963,7 +963,7 @@
       (telephone-line-mode t)
     #+end_src
 *** DOOM Modeline
-    #+begin_src emacs-lisp
+    #+begin_src
       (unless (package-installed-p 'doom-modeline)
 	(package-refresh-contents)
 	(package-install 'doom-modeline))
@@ -3523,7 +3523,7 @@
   #+end_src
 
 ** DOOM
-   #+begin_src emacs-lisp
+   #+begin_src
      (unless (package-installed-p 'doom-themes)
        (package-refresh-contents)
        (package-install 'doom-themes))
@@ -3534,6 +3534,25 @@
      (doom-themes-visual-bell-config)
      (doom-themes-org-config)
    #+end_src
+** Modus
+   #+begin_src emacs-lisp
+     (unless (package-installed-p 'modus-themes)
+       (package-refresh-contents)
+       (package-install 'modus-themes))
+     (require 'modus-themes)
+     (setq modus-themes-inhibit-reload nil   ; reload active theme when an option is changed through the Customize UI
+	   modus-themes-bold-constructs t    ; Use bold for code syntax highlighting and related
+	   modus-themes-italic-constructs t  ; Use bold for code syntax highlighting and related
+	   modus-themes-mode-line '(accented borderless (padding 4) (height 0.9))
+	   modus-themes-hl-line '(intense)   ; amplify color in use for hl-line-mode
+					     ; heading sizes and colors
+	   modus-themes-headings '((1 . (bold rainbow 1.5))
+				   (2 . (bold rainbow 1.4))
+				   (3 . (bold rainbow 1.2))
+				   (t . (monochrome ))))
+     (load-theme 'modus-vivendi t)
+   #+end_src
+
 * Evil
   - VIM emulation in Emacs
   |-------+-------------------------------------------------------------------|
@@ -3547,7 +3566,7 @@
   |-------+-------------------------------------------------------------------|
 
   - Settings
-  #+begin_src emacs-lisp
+  #+begin_src
     (unless (package-installed-p 'evil)
       (package-refresh-contents)
       (package-install 'evil))
@@ -3683,9 +3702,9 @@
     ;; bindings. Then the default completion commands behave as usual. For
     ;; example you can use TAB to cycle between candidates if you have
     ;; set completion-cycle-threshold.
-    (define-key vertico-map "?" #'minibuffer-completion-help)
-    (define-key vertico-map (kbd "RET") #'minibuffer-force-complete-and-exit)
-    (define-key vertico-map (kbd "TAB") #'minibuffer-complete)
+    ;;(define-key vertico-map "?" #'minibuffer-completion-help)
+    ;;(define-key vertico-map (kbd "RET") #'minibuffer-force-complete-and-exit)
+    ;;(define-key vertico-map (kbd "TAB") #'minibuffer-complete)
   #+end_src
 
 * Which Key
@@ -3758,7 +3777,7 @@
 	  eglot-extend-to-xref t)
 
     (add-hook 'python-mode-hook
-	      (lambda()
+	      (progn
 		(setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/venv/bin"))
 		(setq exec-path (split-string (getenv "PATH") path-separator))
 		(with-eval-after-load 'eglot
@@ -3772,7 +3791,7 @@
       (package-install 'go-mode))
 
     (add-hook 'go-mode-hook
-	      (lambda()
+	      (progn
 		(setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/go/bin"))
 		(setq exec-path (split-string (getenv "PATH") path-separator))
 		(with-eval-after-load 'eglot
