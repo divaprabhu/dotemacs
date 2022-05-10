@@ -11,8 +11,6 @@
   (remq 'process-kill-buffer-query-function
 	 kill-buffer-query-functions))
 
-(global-set-key (kbd "M-o") 'other-window)
-
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
 
@@ -389,6 +387,61 @@
 			      (t . (monochrome ))))
 (load-theme 'modus-vivendi t)
 
+(require 'ibuffer)
+(setq ibuffer-expert t
+      ibuffer-display-summary nil
+      ibuffer-use-other-window nil
+      ibuffer-show-empty-filter-groups nil
+      ibuffer-movement-cycle nil
+      ibuffer-default-sorting-mode 'filename/process
+      ibuffer-use-header-line t
+      ibuffer-default-shrink-to-minimum-size nil
+      ibuffer-formats
+      '((mark modified read-only locked " "
+	      (name 40 40 :left :elide)
+	      " "
+	      (size 9 -1 :right)
+	      " "
+	      (mode 16 16 :left :elide)
+	      " " filename-and-process)
+	(mark " "
+	      (name 16 -1)
+	      " " filename))
+      ibuffer-saved-filter-groups nil
+      ibuffer-old-time 48)
+  (define-key ibuffer-mode-map (kbd "* f") #'ibuffer-mark-by-file-name-regexp)
+  (define-key ibuffer-mode-map (kbd "* g") #'ibuffer-mark-by-content-regexp) ; "g" is for "grep"
+  (define-key ibuffer-mode-map (kbd "* n") #'ibuffer-mark-by-name-regexp)
+  (define-key ibuffer-mode-map (kbd "s n") #'ibuffer-do-sort-by-alphabetic)  ; "sort name" mnemonic
+  (define-key ibuffer-mode-map (kbd "/ g") #'ibuffer-filter-by-content)
+
+(setq ibuffer-saved-filter-groups
+      '(("default"
+	 ("dired" (mode . dired-mode))
+	 ("perl" (mode . cperl-mode))
+	 ("c" (mode . c-mode))
+	 ("python" (mode . python-mode))
+	 ("org" (mode . org-mode))
+	 ("vc" (or
+		(name . "vc-.*")
+		(name . "^\\*log-edit-files\\*$")))
+	 ("emacs" (or
+		   (name . "^\\*scratch\\*$")
+		   (name . "^\\*Messages\\*$")))
+	 ("svg" (name . "\\.svg")) ; group by file extension
+	 ("gnus" (or
+		  (mode . message-mode)
+		  (mode . bbdb-mode)
+		  (mode . mail-mode)
+		  (mode . gnus-group-mode)
+		  (mode . gnus-summary-mode)
+		  (mode . gnus-article-mode)
+		  (name . "^\\.bbdb$")
+		  (name . "^\\.newsrc-dribble"))))))
+(add-hook 'ibuffer-mode-hook
+	  (lambda ()
+	    (ibuffer-switch-to-saved-filter-groups "default")))
+
 (unless (package-installed-p 'marginalia)
   (package-refresh-contents)
   (package-install 'marginalia))
@@ -523,6 +576,19 @@
       eldoc-echo-area-use-multiline-p t
       eldoc-echo-area-prefer-doc-buffer t)
 
+(defun my-repeat-command (command)
+  "Repeat COMMAND."
+  (require 'repeat)
+  (let ((repeat-previous-repeated-command  command)
+	(repeat-message-function           #'ignore)
+	(last-repeatable-command           'repeat))
+    (repeat nil)))
+(defun my-other-window (&optional arg)
+  "Repeatable version of other-window"
+  (interactive "P")
+  (my-repeat-command 'other-window))
+
+
 (defvar my-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
@@ -548,6 +614,8 @@
 
     (define-key map (kbd "e a") 'embark-act)
     (define-key map (kbd "e b") 'embark-become)
-  map))
 
-(global-set-key (kbd "M-<SPC>") my-mode-map)
+    (define-key map (kbd "o")   'my-other-window)
+      map))
+
+  (global-set-key (kbd "M-<SPC>") my-mode-map)

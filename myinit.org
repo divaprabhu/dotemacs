@@ -21,11 +21,6 @@
 	     kill-buffer-query-functions))
   #+end_src
 
-  - easy window switching
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "M-o") 'other-window)
-  #+end_src
-
   - Performance improvement
   #+begin_src emacs-lisp
     (setq gc-cons-threshold 100000000)
@@ -3610,7 +3605,85 @@
   #+end_src
 
 * Ibuffer
+   [[https://www.youtube.com/watch?v=6KN_oSLFf-k][Youtube]]
+   |------+------------------------------------------------------------------------|
+   | */n* | filter buffer list by buffer Name                                      |
+   | */m* | filter buffer mode                                                     |
+   | */f* | filter by file path                                                    |
+   | */!* | invert the last filter                                                 |
+   | *//* | clear filter                                                           |
+   | *g*  | refresh buffer                                                         |
+   | *m*  | mark buffer                                                            |
+   | *k*  | remove marked items from list (don't actually kill buffers)            |
+   | *t*  | toggle mark (marked items become unmarked and unmarked becomes marked) |
+   | **n* | mark by name using regexp                                              |
+   | **m* | mark by mode using regexp                                              |
+   | **f* | mark by file path using regexp                                         |
+   | *u*  | unmark buffer at point                                                 |
+   | *U*  | unmark all marks                                                       |
+   | *O*  | search regexp in all marked buffer in occur mode                       |
+   | *s*  | sort buffer                                                            |
+   |------+------------------------------------------------------------------------|
 
+   #+begin_src emacs-lisp
+     (require 'ibuffer)
+     (setq ibuffer-expert t
+	   ibuffer-display-summary nil
+	   ibuffer-use-other-window nil
+	   ibuffer-show-empty-filter-groups nil
+	   ibuffer-movement-cycle nil
+	   ibuffer-default-sorting-mode 'filename/process
+	   ibuffer-use-header-line t
+	   ibuffer-default-shrink-to-minimum-size nil
+	   ibuffer-formats
+	   '((mark modified read-only locked " "
+		   (name 40 40 :left :elide)
+		   " "
+		   (size 9 -1 :right)
+		   " "
+		   (mode 16 16 :left :elide)
+		   " " filename-and-process)
+	     (mark " "
+		   (name 16 -1)
+		   " " filename))
+	   ibuffer-saved-filter-groups nil
+	   ibuffer-old-time 48)
+       (define-key ibuffer-mode-map (kbd "* f") #'ibuffer-mark-by-file-name-regexp)
+       (define-key ibuffer-mode-map (kbd "* g") #'ibuffer-mark-by-content-regexp) ; "g" is for "grep"
+       (define-key ibuffer-mode-map (kbd "* n") #'ibuffer-mark-by-name-regexp)
+       (define-key ibuffer-mode-map (kbd "s n") #'ibuffer-do-sort-by-alphabetic)  ; "sort name" mnemonic
+       (define-key ibuffer-mode-map (kbd "/ g") #'ibuffer-filter-by-content)
+   #+end_src
+** Grouping
+   [[https://www.emacswiki.org/emacs/IbufferMode][emacswiki]]
+   #+begin_src emacs-lisp
+     (setq ibuffer-saved-filter-groups
+	   '(("default"
+	      ("dired" (mode . dired-mode))
+	      ("perl" (mode . cperl-mode))
+	      ("c" (mode . c-mode))
+	      ("python" (mode . python-mode))
+	      ("org" (mode . org-mode))
+	      ("vc" (or
+		     (name . "vc-.*")
+		     (name . "^\\*log-edit-files\\*$")))
+	      ("emacs" (or
+			(name . "^\\*scratch\\*$")
+			(name . "^\\*Messages\\*$")))
+	      ("svg" (name . "\\.svg")) ; group by file extension
+	      ("gnus" (or
+		       (mode . message-mode)
+		       (mode . bbdb-mode)
+		       (mode . mail-mode)
+		       (mode . gnus-group-mode)
+		       (mode . gnus-summary-mode)
+		       (mode . gnus-article-mode)
+		       (name . "^\\.bbdb$")
+		       (name . "^\\.newsrc-dribble"))))))
+     (add-hook 'ibuffer-mode-hook
+	       (lambda ()
+		 (ibuffer-switch-to-saved-filter-groups "default")))
+   #+end_src
 * Marginalia
   - Marginalia adds annotations like type of completion, short
     documentation etc to the completion candidates
@@ -3628,7 +3701,7 @@
     component can be of different type like literal, string, initials
     etc. The components can appear in any order
   - Below setting behave as follows:
-    - if component ends with ., it is treated as initials
+    - If component ends with ., it is treated as initials
     - if it ends with =, it is treated literal
     - if it ends with ~, it is treated as flex
     - otherwise treat as regexp
@@ -3846,6 +3919,19 @@
 * Keybindings
   [[http://xahlee.info/emacs/emacs/emacs_keybinding_power_of_keys_sequence.html][Define Key Sequence]]
   #+begin_src emacs-lisp
+    (defun my-repeat-command (command)
+      "Repeat COMMAND."
+      (require 'repeat)
+      (let ((repeat-previous-repeated-command  command)
+	    (repeat-message-function           #'ignore)
+	    (last-repeatable-command           'repeat))
+	(repeat nil)))
+    (defun my-other-window (&optional arg)
+      "Repeatable version of other-window"
+      (interactive "P")
+      (my-repeat-command 'other-window))
+
+
     (defvar my-mode-map
       (let ((map (make-sparse-keymap)))
 	(define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
@@ -3854,7 +3940,7 @@
 
 	(define-key map (kbd "b b") 'switch-to-buffer)
 	(define-key map (kbd "b c") 'clean-buffer-list)
- 	(define-key map (kbd "b i") 'ibuffer)
+	(define-key map (kbd "b i") 'ibuffer)
 	(define-key map (kbd "b k") 'kill-this-buffer)
 	(define-key map (kbd "b n") 'next-buffer)
 	(define-key map (kbd "b p") 'previous-buffer)
@@ -3871,8 +3957,10 @@
 
 	(define-key map (kbd "e a") 'embark-act)
 	(define-key map (kbd "e b") 'embark-become)
-      map))
 
-    (global-set-key (kbd "M-<SPC>") my-mode-map)
+	(define-key map (kbd "o")   'my-other-window)
+	  map))
+
+      (global-set-key (kbd "M-<SPC>") my-mode-map)
   #+end_src
  
