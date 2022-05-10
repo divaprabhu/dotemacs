@@ -3207,6 +3207,26 @@
   | M-x top-level | abort all recursive edits returning to top level command                      |
   |---------------+-------------------------------------------------------------------------------|
 
+* Hyperlinking
+** FFAP
+    - FFAP package remaps certain commands with ffap variants such
+      that it provides better defaults
+    - We can still run non ffap version by passing a prefix
+    - If point is on filename or url, default filename or url is set
+      to it
+    #+begin_src emacs-lisp
+      (ffap-bindings)
+    #+end_src
+    |---------------+-----------------------------------------------------------|
+    | C-x C-f       | find-file-at-point (guess default from text around point) |
+    | C-x C-r       | ffap-read-only                                            |
+    | C-x C-v       | ffap-alternate-file                                       |
+    | C-x d         | dired-at-point                                            |
+    | C-x C-d       | ffap-list-directory                                       |
+    | M-x ffap-next | search buffer for next file name or url                   |
+    | M-x ffap-menu | display a menu of files and URLs in current buffer        |
+    |---------------+-----------------------------------------------------------|
+
 * Gnus
   - Gnus is Emacs package for reading and posting Usenet news and
     emacs

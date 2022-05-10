@@ -286,6 +286,8 @@
  (savehist-mode 1)
  (setq savehist-file (expand-file-name "savehist" user-emacs-directory))
 
+(ffap-bindings)
+
 ;; don't create newsrc file that other clients may use
 (setq gnus-save-newsrc-file nil)
 (setq gnus-read-newsrc-file nil)
