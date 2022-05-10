@@ -516,6 +516,7 @@
   (package-refresh-contents)
   (package-install 'embark))
 (require 'embark)
+(setq prefix-help-command #'embark-prefix-help-command)
 
 (unless (package-installed-p 'corfu)
   (package-refresh-contents)
