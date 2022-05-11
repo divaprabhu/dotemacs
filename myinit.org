@@ -280,8 +280,17 @@
    #+end_src
    - Max length of minibuffer history and remove duplicate entries from history
    #+begin_src emacs-lisp
-     (setq history-length 100)
-     (setq history-delete-duplicates t)
+     (setq history-length 100
+	   history-delete-duplicates t
+	   savehist-minibuffer-history-variables '(minibuffer-history
+						   query-replace-history
+						   file-name-history
+						   buffer-name-history
+						   regexp-history
+						   extended-command-history
+						   shell-command-history
+						   read-expression-history
+						   command-history))
    #+end_src
 
 ** Repeating
@@ -1430,7 +1439,8 @@
    |---------------------------------------+----------------------------------------------------------------------------------------|
 
    #+begin_src emacs-lisp
-     (global-auto-revert-mode t)
+     (setq global-auto-revert-non-file-buffers t)
+     (global-auto-revert-mode 1)
    #+end_src
 
 ** Auto save
@@ -3195,6 +3205,14 @@
      (setq savehist-file (expand-file-name "savehist" user-emacs-directory))
   #+end_src
 
+  [[https://www.emacswiki.org/emacs/SavePlace][Emacs Wiki]]
+  - When you visit a file, point goes to the last place where it was when you previously visited the same file.
+  #+begin_src emacs-lisp
+    (save-place-mode 1)
+    (setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
+    (setq save-place-forget-unreadable-files t) ; set to nil if emacs is slow to exit
+  #+end_src
+
 * Recursive Editing
   - A “recursive edit” is a situation in which you are using Emacs
     commands to perform arbitrary editing while in the middle of
@@ -3887,7 +3905,7 @@
 * Recentf
   #+begin_src emacs-lisp
     (require 'recentf)
-    (recentf-mode)
+    (recentf-mode 1)			; keybinding in keybindings section toward the end
   #+end_src
 
 * Eglot

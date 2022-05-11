@@ -44,8 +44,17 @@
 
 (setq minibuffer-eldef-shorten-default t)
 
-(setq history-length 100)
-(setq history-delete-duplicates t)
+(setq history-length 100
+      history-delete-duplicates t
+      savehist-minibuffer-history-variables '(minibuffer-history
+					      query-replace-history
+					      file-name-history
+					      buffer-name-history
+					      regexp-history
+					      extended-command-history
+					      shell-command-history
+					      read-expression-history
+					      command-history))
 
 (setq isearch-resume-in-command-history t)
 
@@ -119,7 +128,8 @@
 (setq make-backup-files nil)
 (setq backup-directory-alist `(("." . ,(expand-file-name "backups/" user-emacs-directory))))
 
-(global-auto-revert-mode t)
+(setq global-auto-revert-non-file-buffers t)
+(global-auto-revert-mode 1)
 
 (make-directory (expand-file-name "autosave/" user-emacs-directory) t)
 (setq auto-save-list-file-prefix (expand-file-name "autosave/sessions/" user-emacs-directory)
@@ -289,6 +299,10 @@
  (setq desktop-restore-eager 2)
  (savehist-mode 1)
  (setq savehist-file (expand-file-name "savehist" user-emacs-directory))
+
+(save-place-mode 1)
+(setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
+(setq save-place-forget-unreadable-files t) ; set to nil if emacs is slow to exit
 
 (ffap-bindings)
 
@@ -545,7 +559,7 @@
 (define-key corfu-map (kbd "S-TAB") 'corfu-previous)
 
 (require 'recentf)
-(recentf-mode)
+(recentf-mode 1)			; keybinding in keybindings section toward the end
 
 (unless (package-installed-p 'eglot)
   (package-refresh-contents)
