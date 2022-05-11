@@ -164,7 +164,7 @@
 	 (side . bottom)
 	 (window-height . 0.4)
 	 (slot . 0))
-	("\\*\\(shell\\|ansi-term\\|eshell\\|terminal\\|Async Shell\\).*"
+	("\\*\\(.*shell\\|ansi-term\\|\.*eshell\\|.*terminal\\|Async Shell\\).*"
 	 (display-buffer-in-side-window)
 	 (side . bottom)
 	 (window-height . 0.4)
@@ -608,6 +608,90 @@
       eldoc-echo-area-use-multiline-p t
       eldoc-echo-area-prefer-doc-buffer t)
 
+(defun my-move-line-down ()
+  (interactive)
+  (let ((col (current-column)))
+    (save-excursion
+      (forward-line)
+      (transpose-lines 1))
+    (forward-line)
+    (move-to-column col)))
+(defun my-move-line-up ()
+  (interactive)
+  (let ((col (current-column)))
+    (save-excursion
+      (forward-line)
+      (transpose-lines -1))
+    (move-to-column col)))
+(global-set-key (kbd "<C-M-down>") 'my-move-line-down)
+(global-set-key (kbd "<C-M-up>") 'my-move-line-up)
+
+(defun my-rename-current-buffer-file ()
+  "Renames current buffer and file it is visiting."
+  (interactive)
+  (let ((name (buffer-name))
+	(filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+	(error "Buffer '%s' is not visiting a file!" name)
+      (let ((new-name (read-file-name "New name: " filename)))
+	(if (get-buffer new-name)
+	    (error "A buffer named '%s' already exists!" new-name)
+	  (rename-file filename new-name 1)
+	  (rename-buffer new-name)
+	  (set-visited-file-name new-name)
+	  (set-buffer-modified-p nil)
+	  (message "File '%s' successfully renamed to '%s'"
+		   name (file-name-nondirectory new-name)))))))
+
+(defun my-rotate-windows ()
+  "Rotate your windows"
+  (interactive)
+  (cond ((not (> (count-windows)1))
+	 (message "You can't rotate a single window!"))
+	(t
+	 (setq i 1)
+	 (setq numWindows (count-windows))
+	 (while  (< i numWindows)
+	   (let* (
+		  (w1 (elt (window-list) i))
+		  (w2 (elt (window-list) (+ (% i numWindows) 1)))
+
+		  (b1 (window-buffer w1))
+		  (b2 (window-buffer w2))
+
+		  (s1 (window-start w1))
+		  (s2 (window-start w2))
+		  )
+	     (set-window-buffer w1  b2)
+	     (set-window-buffer w2 b1)
+	     (set-window-start w1 s2)
+	     (set-window-start w2 s1)
+	     (setq i (1+ i)))))))
+(defun my-toggle-window-split ()
+  (interactive)
+  (if (= (count-windows) 2)
+      (let* ((this-win-buffer (window-buffer))
+	     (next-win-buffer (window-buffer (next-window)))
+	     (this-win-edges (window-edges (selected-window)))
+	     (next-win-edges (window-edges (next-window)))
+	     (this-win-2nd (not (and (<= (car this-win-edges)
+					 (car next-win-edges))
+				     (<= (cadr this-win-edges)
+					 (cadr next-win-edges)))))
+	     (splitter
+	      (if (= (car this-win-edges)
+		     (car (window-edges (next-window))))
+		  'split-window-horizontally
+		'split-window-vertically)))
+	(delete-other-windows)
+	(let ((first-win (selected-window)))
+	  (funcall splitter)
+	  (if this-win-2nd (other-window 1))
+	  (set-window-buffer (selected-window) this-win-buffer)
+	  (set-window-buffer (next-window) next-win-buffer)
+	  (select-window first-win)
+	  (if this-win-2nd (other-window 1))))))
+
 (defun my-repeat-command (command)
   "Repeat COMMAND."
   (require 'repeat)
@@ -626,13 +710,16 @@
     (define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
     (define-key map (kbd "i") 'imenu)
     (define-key map (kbd ";") 'comment-line)
+    (define-key map (kbd "o") 'my-other-window)
 
+    (define-key map (kbd "b 0") 'kill-buffer-and-window)
     (define-key map (kbd "b b") 'switch-to-buffer)
     (define-key map (kbd "b c") 'clean-buffer-list)
     (define-key map (kbd "b i") 'ibuffer)
     (define-key map (kbd "b k") 'kill-this-buffer)
     (define-key map (kbd "b n") 'next-buffer)
     (define-key map (kbd "b p") 'previous-buffer)
+    (define-key map (kbd "b r") 'my-rename-current-buffer-file)
     (define-key map (kbd "b s") 'save-buffer)
 
     (define-key map (kbd "f f") 'find-file)
@@ -647,7 +734,8 @@
     (define-key map (kbd "e a") 'embark-act)
     (define-key map (kbd "e b") 'embark-become)
 
-    (define-key map (kbd "o")   'my-other-window)
-      map))
+    (define-key map (kbd "w r") 'my-rotate-windows)
+    (define-key map (kbd "w t") 'my-toggle-window-split)
+    map))
 
-  (global-set-key (kbd "M-<SPC>") my-mode-map)
+(global-set-key (kbd "M-<SPC>") my-mode-map)
