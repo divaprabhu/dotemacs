@@ -524,11 +524,11 @@
    |---------------------------+---+---------------------------------------------------------------|
    | *M-x view-register RET R* |   | display what is in register R                                 |
    | *C-x r SPC R*             |   | point-to-register (save position of point and current buffer) |
+   | *C-x r j R*               |   | jump-to-register (jump to position and buffer saved in reg)   |
    |---------------------------+---+---------------------------------------------------------------|
 
 ** Save text
    |-------------------------------+-------+-------------------------------------------------------|
-   | *C-x r j R*                   |       | jump-to-register (jump to position saved in register) |
    | *C-x r s R*                   | *"Ry* | copy-to-register (copy region to register)            |
    | *C-u C-x r s R*               | *"Rd* | move region to register                               |
    | *C-x r i R*                   | *"Rp* | insert-register (insert text from register)           |
@@ -542,13 +542,36 @@
    | *C-x r i R* | *"Rp* | insert-register            |
    |-------------+-------+----------------------------|
 
+** Window configs
+   |-------------+---------------------------------------|
+   | *C-x r w R* | window-configuration-to-register      |
+   | C-x r f R   | frameset-to-register                  |
+   | *C-x r j R* | restore window or frame configuration |
+   |-------------+---------------------------------------|
+
 ** Numbers
-   |-------------------+--------------------------------------------|
-   | C-u NUM C-x r n R | number-to-register                         |
-   | C-u NUM C-x r + R | increment-register (add NUM to value in R) |
-   |-------------------+--------------------------------------------|
+   |---------------------+--------------------------------------------|
+   | *C-u NUM C-x r n R* | number-to-register                         |
+   | *C-u NUM C-x r + R* | increment-register (add NUM to value in R) |
+   | *C-x r i R*         | insert number from register into buffer    |
+   |---------------------+--------------------------------------------|
+** File Names
+   |---------------------------------+----------------------------------------------------|
+   | (set-register R '(file . NAME)) | put a file Name into register (NAME can be a path) |
+   | C-x r j R                       | visit file whose name/path is in register          |
+   |---------------------------------+----------------------------------------------------|
+
+** Macros
+   |-------------+------------------------|
+   | C-x C-k x r | kmacro-to-register     |
+   | C-x r j R   | execute keyboard macro |
+   |-------------+------------------------|
 
 ** Bookmarks
+   - “Bookmarks” are somewhat like registers in that they record
+     positions you can jump to.  Unlike registers, they have long
+     names, and they persist automatically from one Emacs session to
+     the next.
    |--------------------------+---------------------------------------------------------------------|
    | *C-x r m RET*            | bookmark-set                                                        |
    | *C-X r m BOOKMARK <RET>* | bookmarks can be named so that you visit them with C-x r b BOOKMARK |
@@ -1328,6 +1351,11 @@
    |                      | C-x C-k 0 to 9 and C-x C-k A to Z are reserved for users      |
    | M-x insert-kbd-macro | insert macro definition in current buffer as lisp code        |
    |----------------------+---------------------------------------------------------------|
+   [[https://tuhdo.github.io/emacs-tutor.html#orgheadline70][Emacs Mini Manual]]
+   #+begin_src emacs-lisp
+     (if (file-exists-p (expand-file-name "macros" user-emacs-directory))
+	 (load-file (expand-file-name "macros" user-emacs-directory)))
+   #+end_src
 
 ** Editing Macro
    |--------------------+---------------------------------------------------------|
@@ -1335,6 +1363,7 @@
    | C-x C-k e NAME RET | edit-kbd-macro (edit a named macro)                     |
    | C-x C-k l          | kmacro-edit-lossage (edit last 300 keystrokes as macro) |
    |                    | interactively execute and edit macro                    |
+   | C-x C-k SPC        | kmacro-step-edit-macro                                  |
    | C-c C-c            | save and exit editing                                   |
    |--------------------+---------------------------------------------------------|
 
@@ -3047,6 +3076,7 @@
   |---------------------------------+-----+---------------------------------------------------------------------------|
 
   #+begin_src emacs-lisp
+    (require 'dired)
     (setq dired-create-destination-dirs 'ask
 	  dired-dwim-target t)
     (define-key dired-mode-map (kbd "M-+") 'dired-create-empty-file)

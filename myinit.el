@@ -131,6 +131,9 @@
 	     (define-key flyspell-mode-map (kbd "C-M-i") nil)))
 (setq ispell-personal-dictionary (expand-file-name "dictionary" user-emacs-directory))
 
+(if (file-exists-p (expand-file-name "macros" user-emacs-directory))
+    (load-file (expand-file-name "macros" user-emacs-directory)))
+
 (setq make-backup-files nil)
 (setq backup-directory-alist `(("." . ,(expand-file-name "backups/" user-emacs-directory))))
 
@@ -293,6 +296,7 @@
 
 (global-set-key (kbd "M-/") 'hippie-expand)
 
+(require 'dired)
 (setq dired-create-destination-dirs 'ask
       dired-dwim-target t)
 (define-key dired-mode-map (kbd "M-+") 'dired-create-empty-file)
