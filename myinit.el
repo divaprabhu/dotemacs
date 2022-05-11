@@ -40,6 +40,8 @@
 (setq enable-recursive-minibuffer t)
 (setq minibuffer-depth-indicate-mode t)
 
+;; (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
 (setq completion-cycle-threshold t)
 
 (setq minibuffer-eldef-shorten-default t)
@@ -114,6 +116,7 @@
 
 (global-set-key (kbd "C-s") 'isearch-forward-regexp)
 (global-set-key (kbd "C-r") 'isearch-backward-regexp)
+(global-set-key (kbd "M-%") 'query-replace-regexp)
 
 (setq isearch-lazy-count t)
 
@@ -292,6 +295,7 @@
 
 (setq dired-create-destination-dirs 'ask
       dired-dwim-target t)
+(define-key dired-mode-map (kbd "M-+") 'dired-create-empty-file)
 
 (setq async-shell-command-display-buffer nil
       shell-command-prompt-show-cwd t)

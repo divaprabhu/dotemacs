@@ -238,6 +238,10 @@
     (setq enable-recursive-minibuffer t)
     (setq minibuffer-depth-indicate-mode t)
   #+end_src
+  - Single escape to quit
+    #+begin_src emacs-lisp
+      ;; (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+    #+end_src
 
 ** Completion
    |----------------------------------------+-------+----------------------------------------------------------------------------------|
@@ -1119,6 +1123,7 @@
    #+begin_src emacs-lisp
      (global-set-key (kbd "C-s") 'isearch-forward-regexp)
      (global-set-key (kbd "C-r") 'isearch-backward-regexp)
+     (global-set-key (kbd "M-%") 'query-replace-regexp)
    #+end_src
 
 ** Regexp syntax
@@ -2909,6 +2914,12 @@
 * Dired
   - Dired creates an Emacs buffer containing directory listing which
     can be used for file and directory operations
+  - You flag files for deletion. You mark files for everything else
+    (i.e. copy, move, link files…). There are many marking commands
+    for specialized file types. Except for m, % m and % g, all marking
+    commands have prefix *
+  - Command that use regexp have % as prefix
+
   |---------------------------------+-----+---------------------------------------------------------------------------|
   | *C-x d*                         |     | dired                                                                     |
   |                                 |     | prompt directory and lists its contents in Dired buffer                   |
@@ -3038,6 +3049,7 @@
   #+begin_src emacs-lisp
     (setq dired-create-destination-dirs 'ask
 	  dired-dwim-target t)
+    (define-key dired-mode-map (kbd "M-+") 'dired-create-empty-file)
   #+end_src
 
 * Document Viewing
