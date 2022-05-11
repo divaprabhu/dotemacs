@@ -112,6 +112,9 @@
 (setq display-raw-bytes-as-hex t)
 (setq visible-bell t)
 
+(global-set-key (kbd "C-s") 'isearch-forward-regexp)
+(global-set-key (kbd "C-r") 'isearch-backward-regexp)
+
 (setq isearch-lazy-count t)
 
 (global-set-key (kbd "M-l") 'downcase-dwim)

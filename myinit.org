@@ -1104,10 +1104,10 @@
    - Meaning of symbol depends on the major mode
    - In Lisp Mode, symbol 'forward-word' does not match 'isearch-forward-word'
    - Good for source code search
-   |-------+--------------------------------------------------------------|
-   | M-s _ | isearch-toggle-symbol (toggle symbol search mode in isearch) |
-   | M-s . | start symbol search with symbol near                         |
-   |-------+--------------------------------------------------------------|
+   |---------+--------------------------------------------------------------|
+   | M-s _   | isearch-toggle-symbol (toggle symbol search mode in isearch) |
+   | *M-s .* | start symbol search with symbol near                         |
+   |---------+--------------------------------------------------------------|
 
 ** Regexp search
    - regexp and noregexp searches have separate search rings
@@ -1116,6 +1116,10 @@
    | *C-M-s* | isearch-forward-regexp  |
    | *C-M-r* | isearch-backward-regexp |
    |---------+-------------------------|
+   #+begin_src emacs-lisp
+     (global-set-key (kbd "C-s") 'isearch-forward-regexp)
+     (global-set-key (kbd "C-r") 'isearch-backward-regexp)
+   #+end_src
 
 ** Regexp syntax
    [[info:emacs#Regexps][info:emacs#Regexps]]
