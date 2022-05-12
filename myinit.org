@@ -3934,6 +3934,7 @@
     (global-corfu-mode 1)
     (setq corfu-preselct-first nil
 	  corfu-auto t
+	  corfu-auto-delay 2
 	  corfu-quit-no-match 'separator
 	  corfu-quit-at-boundary nil
 	  corfu-preview-current t
@@ -4034,6 +4035,24 @@
 	  eldoc-echo-area-prefer-doc-buffer t)
   #+end_src
 
+* Yasnippet
+  - Use tab key for snippet completion
+  |-----------+--------------------------------------------------|
+  | TAB       | yas-next-field-or-maybe-expand                   |
+  | C-c & C-n | yas-new-snippet (allows to write new snippet)    |
+  | C-c & C-s | yas-insert-snippet (chose a snippet to expand)   |
+  | C-c & C-v | yas-visit-snippet-file (chose a snippet to edit) |
+  |           |                                                  |
+  #+TBLFM: 
+#+begin_src emacs-lisp
+    (unless (package-installed-p 'yasnippet)
+      (package-refresh-contents)
+      (package-install 'yasnippet)
+      (package-install 'yasnippet-snippets))
+    (require 'yasnippet)
+    (yas-reload-all)
+    (add-hook 'prog-mode-hook #'yas-minor-mode)
+  #+end_src
 * Useful functions
   [[http://whattheemacsd.com/][Move Lines]]
   #+begin_src emacs-lisp

@@ -557,6 +557,7 @@
 (global-corfu-mode 1)
 (setq corfu-preselct-first nil
       corfu-auto t
+      corfu-auto-delay 2
       corfu-quit-no-match 'separator
       corfu-quit-at-boundary nil
       corfu-preview-current t
@@ -607,6 +608,14 @@
 (setq eldoc-echo-area-display-truncation-message t
       eldoc-echo-area-use-multiline-p t
       eldoc-echo-area-prefer-doc-buffer t)
+
+(unless (package-installed-p 'yasnippet)
+  (package-refresh-contents)
+  (package-install 'yasnippet)
+  (package-install 'yasnippet-snippets))
+(require 'yasnippet)
+(yas-reload-all)
+(add-hook 'prog-mode-hook #'yas-minor-mode)
 
 (defun my-move-line-down ()
   (interactive)
