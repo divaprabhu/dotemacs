@@ -74,6 +74,7 @@
   (package-install 'expand-region))
 
 (global-set-key (kbd "C-+") 'er/expand-region)
+(global-set-key (kbd "C-_") 'er/contract-region)
 
 (defun kill-region-or-backward-word ()
    (interactive)
@@ -293,6 +294,7 @@
 (if
     (file-exists-p abbrev-file-name)
     (quietly-read-abbrev-file))
+(abbrev-mode -1)			; don't expand automatically on space or punctuation
 
 (global-set-key (kbd "M-/") 'hippie-expand)
 
@@ -713,6 +715,8 @@
   "Repeatable version of other-window"
   (interactive "P")
   (my-repeat-command 'other-window))
+
+;; (global-set-key (kbd "M-<SPC>") ctl-x-map)
 
 (defvar my-mode-map
   (let ((map (make-sparse-keymap)))

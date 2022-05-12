@@ -417,6 +417,7 @@
        (package-install 'expand-region))
 
      (global-set-key (kbd "C-+") 'er/expand-region)
+     (global-set-key (kbd "C-_") 'er/contract-region)
    #+end_src
 
 * Killing and Moving text
@@ -2271,21 +2272,33 @@
    |-------------------+-----------------------------------------------------------------------------|
 
 ** C Mode
-   |-------------------------+--------------------------------------------------------------------|
-   | *C-M-a*                 | beginning-of-defun                                                 |
-   | *C-M-e*                 | end-of-defun                                                       |
-   | *M-a*                   | c-beginning-of-statement                                           |
-   |                         | move point to beginning of innermost statement                     |
-   | *M-e*                   | c-end-of-statement                                                 |
-   | *C-M-h*                 | c-mark-function                                                    |
-   | *M-q*                   | c-fill-paragraph                                                   |
-   | *C-c C-e*               | c-macro-expand                                                     |
-   |                         | run c pre-processor on region and display result in new buffer     |
-   | *C-c C-\*               | c-backslash-region (insert or align backslash at the end of lines) |
-   | *M-x cwarn-mode*        |                                                                    |
-   | *M-x global-cwarn-mode* | highlight suspicious code like assignment inside expression,       |
-   |                         | semicolon after if etc                                             |
-   |-------------------------+--------------------------------------------------------------------|
+   |-------------------------+---------------------------------------------------------------------------|
+   | *C-M-a*                 | beginning-of-defun                                                        |
+   | *C-M-e*                 | end-of-defun                                                              |
+   | *M-a*                   | c-beginning-of-statement                                                  |
+   |                         | move point to beginning of innermost statement                            |
+   | *M-e*                   | c-end-of-statement                                                        |
+   | *C-M-h*                 | c-mark-function                                                           |
+   | *M-q*                   | c-fill-paragraph                                                          |
+   | *C-c C-e*               | c-macro-expand                                                            |
+   |                         | run c pre-processor on region and display result in new buffer            |
+   | *C-c C-\*               | c-backslash-region (insert or align backslash at the end of lines)        |
+   | *M-x cwarn-mode*        |                                                                           |
+   | *M-x global-cwarn-mode* | highlight suspicious code like assignment inside expression,              |
+   |                         | semicolon after if etc                                                    |
+   | C-c C-k                 | toggle comment style to block or line                                     |
+   |                         | mode line show * for block and / for line                                 |
+   | C-c C-l                 | c-toggle-electric-state (positive or negative prefix enables or disables) |
+   |                         | In electric action mode, insert certain characters like '{', ';' etc.     |
+   |                         | also re-indents current line and optionally inserts newline               |
+   |                         | Modeline shows l                                                          |
+   | C-c C-a                 | c-toggle-auto-newline                                                     |
+   |                         | In electric action mode, newline are inserted only if auto-newline        |
+   |                         | is also enabled. Modline shows a                                          |
+   | C-c DEL                 | c-hungry-delete-backwards (delete all whitespace surrounding point)       |
+   | C-c C-d                 | c-hungry-delete-forward                                                   |
+   |                         |                                                                           |
+   |-------------------------+---------------------------------------------------------------------------|
 
    #+begin_src emacs-lisp
      (add-hook 'c-mode-hook 'cwarn-mode)
@@ -2927,16 +2940,35 @@
     (if
 	(file-exists-p abbrev-file-name)
 	(quietly-read-abbrev-file))
+    (abbrev-mode -1)			; don't expand automatically on space or punctuation
   #+end_src
 
   - dynamic abbrevs determines meaning of abbrevs from contents of
     buffer
-    |---------+-----------------------------------------------------------------------------|
-    | *M-/*   | dabbrev-expand                                                              |
-    | *C-M-/* | dabbrev-completion                                                          |
-    |         | instead of trying possible expansions one by one complete till common chars |
-    |         | if they have nothing in common, display a list of completions               |
-    |---------+-----------------------------------------------------------------------------|
+  - A numeric argument to ‘M-/’ says to take the second, third,
+    etc. distinct expansion found looking backward from point.
+    Repeating ‘M-/’ searches for an alternative expansion by looking
+    farther back.  After scanning all the text before point, it
+    searches the text after point.  The variable ‘dabbrev-limit’, if
+    non-‘nil’, specifies how far away in the buffer to search for an
+    expansion.
+
+    |---------------------------------+----------------------------------------------------------------|
+    | *M-/*                           | dabbrev-expand                                                 |
+    |                                 | Negative prefix searches buffer after point first              |
+    | *C-M-/*                         | dabbrev-completion                                             |
+    |                                 | instead of trying possible expansions one by one complete till |
+    |                                 | common chars                                                   |
+    | *SPC M-/*                       | after expansion of a word, copy next word that follows         |
+    |                                 | if they have nothing in common, display a list of completions  |
+    | 'dabbrev-limit'                 | number of chars in buffer to search for expansion              |
+    | 'dabbrev-check-other-buffers'   | search for abbrevs in other buffers pointed by                 |
+    |                                 | dabbrev-select-buffers-function                                |
+    | dabbrev-select-buffers-function | function that selects buffers that should be searched          |
+    | 'dabbrev-check-all-buffers'     | search all buffers for expansion except buffer named in        |
+    |                                 | dabbrev-ignored-buffer-names or dabbrev-ignored-buffer-regexps |
+    |                                 |                                                                |
+    |---------------------------------+----------------------------------------------------------------|
     #+begin_src emacs-lisp
       (global-set-key (kbd "M-/") 'hippie-expand)
     #+end_src
@@ -4160,6 +4192,8 @@
       "Repeatable version of other-window"
       (interactive "P")
       (my-repeat-command 'other-window))
+
+    ;; (global-set-key (kbd "M-<SPC>") ctl-x-map)
 
     (defvar my-mode-map
       (let ((map (make-sparse-keymap)))
