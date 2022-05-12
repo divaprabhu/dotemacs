@@ -12,7 +12,7 @@
     (setq inhibit-startup-screen t)
   #+end_src
 
-  - [[always replace yes-or-no prompt with shorter y-or-n][Disabling Prompts]]
+  - [[https://www.masteringemacs.org/article/disabling-prompts-emacs][Disabling Prompts]]
   #+begin_src emacs-lisp
     (fset 'yes-or-no-p 'y-or-n-p)
 	(setq confirm-nonexistent-file-or-buffer nil)
@@ -2225,21 +2225,21 @@
      display portions of a program referred to as blocks 
    - The block disappears from screen to be replaced by an
      ellipsis. What constitutes a block depends on major mode
-  |------------------------------------+------+-------------------------------------------------|
-  | M-x hs-minor-mode                  |      | toggle hideshow mode                            |
-  | C-c @ C-h                          | *zc* | hs-hide-block                                   |
-  | C-c @ C-s                          | *zo* | hs-show-block                                   |
-  | C-c @ C-c                          | *za* | hs-toggle-hiding                                |
-  | C-c @ C-M-h                        | *zm* | hs-hide-all                                     |
-  | C-c @ C-M-s                        | *zr* | hs-show-all                                     |
-  | C-u N C-c @ C-l                    |      | hs-hide-level                                   |
-  | 'hs-hide-comments-when-hiding-all' |      | if non-nill, hs-hide-all hides comments         |
-  | 'hs-isearch-open'                  |      | during isearch if match occurs in hidden block: |
-  |                                    |      | code - unhide only code blocks                  |
-  |                                    |      | comment - unhide only comment                   |
-  |                                    |      | t - unhide both                                 |
-  |                                    |      | nil - don't unhide                              |
-  |------------------------------------+------+-------------------------------------------------|
+   |------------------------------------+------+-------------------------------------------------|
+   | M-x hs-minor-mode                  |      | toggle hideshow mode                            |
+   | C-c @ C-h                          | *zc* | hs-hide-block                                   |
+   | C-c @ C-s                          | *zo* | hs-show-block                                   |
+   | C-c @ C-c                          | *za* | hs-toggle-hiding                                |
+   | C-c @ C-M-h                        | *zm* | hs-hide-all                                     |
+   | C-c @ C-M-s                        | *zr* | hs-show-all                                     |
+   | C-u N C-c @ C-l                    |      | hs-hide-level                                   |
+   | 'hs-hide-comments-when-hiding-all' |      | if non-nill, hs-hide-all hides comments         |
+   | 'hs-isearch-open'                  |      | during isearch if match occurs in hidden block: |
+   |                                    |      | code - unhide only code blocks                  |
+   |                                    |      | comment - unhide only comment                   |
+   |                                    |      | t - unhide both                                 |
+   |                                    |      | nil - don't unhide                              |
+   |------------------------------------+------+-------------------------------------------------|
   #+begin_src emacs-lisp
    (add-hook 'prog-mode-hook 'hs-minor-mode)
    (add-hook 'org-mode-hook 'hs-minor-mode)
@@ -3329,11 +3329,11 @@
     |---------------------------------+-------------------------------------------------------|
 
 ** Basic Settings
-  [[eww:https://www.bounga.org/tips/2020/05/03/multiple-smtp-accounts-in-gnus-without-external-tools/][Source]]
+  [[https://www.bounga.org/tips/2020/05/03/multiple-smtp-accounts-in-gnus-without-external-tools/][Source]]
   #+begin_src emacs-lisp
     ;; don't create newsrc file that other clients may use
-    (setq gnus-save-newsrc-file nil)
-    (setq gnus-read-newsrc-file nil)
+    (setq gnus-save-newsrc-file t)
+    (setq gnus-read-newsrc-file t)
 
     ;; save emacs specific newsrc file in cache
     (setq gnus-startup-file (expand-file-name "newsrc" user-emacs-directory))
@@ -3465,7 +3465,7 @@
   - Mail is fetched from mail sources whereas mail backend tells how to store them
   - For imap - mail is not fetched
 
-  ** Expiry
+** Expiry
     - On news servers, as messages grow disk usage increases.
     - News servers are configured per group to tell after how many days the message should be deleted
     - In case of mail server, the expiry should be in your control
@@ -3530,7 +3530,7 @@
   #+end_src
 
 ** Windows
-  [[eww:https://www.emacswiki.org/emacs/GnusWindowLayout][GnusWindowLayout]]
+  [[https://www.emacswiki.org/emacs/GnusWindowLayout][GnusWindowLayout]]
   #+begin_src emacs-lisp
     (gnus-add-configuration
      '(article
@@ -4052,8 +4052,9 @@
 	  (forward-line)
 	  (transpose-lines -1))
 	(move-to-column col)))
-    (global-set-key (kbd "<C-M-down>") 'my-move-line-down)
-    (global-set-key (kbd "<C-M-up>") 'my-move-line-up)
+    ;; both shortcuts can be emulated with C-x C-t C-x z z z... and C-1 C-x C-t z z z..
+    ;; (global-set-key (kbd "<C-M-down>") 'my-move-line-down)
+    ;; (global-set-key (kbd "<C-M-up>") 'my-move-line-up)
   #+end_src
   [[http://whattheemacsd.com/][Rename file and buffer]]
   #+begin_src emacs-lisp
@@ -4141,7 +4142,6 @@
       (interactive "P")
       (my-repeat-command 'other-window))
 
-
     (defvar my-mode-map
       (let ((map (make-sparse-keymap)))
 	(define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
@@ -4149,6 +4149,7 @@
 	(define-key map (kbd ";") 'comment-line)
 	(define-key map (kbd "o") 'my-other-window)
 
+	;; buffers
 	(define-key map (kbd "b 0") 'kill-buffer-and-window)
 	(define-key map (kbd "b b") 'switch-to-buffer)
 	(define-key map (kbd "b c") 'clean-buffer-list)
@@ -4159,18 +4160,24 @@
 	(define-key map (kbd "b r") 'my-rename-current-buffer-file)
 	(define-key map (kbd "b s") 'save-buffer)
 
+	;; files
 	(define-key map (kbd "f f") 'find-file)
 	(define-key map (kbd "f o") 'find-file-other-window)
 	(define-key map (kbd "f r") 'recentf-open-files)
 
+	;; lsp
 	(define-key map (kbd "l a") 'eglot-code-actions)
 	(define-key map (kbd "l e") 'eglot-events-buffer)
 	(define-key map (kbd "l f") 'eglot-format)
 	(define-key map (kbd "l r") 'eglot-rename)
 
+	;; embark
 	(define-key map (kbd "e a") 'embark-act)
 	(define-key map (kbd "e b") 'embark-become)
 
+	;; windows
+	(define-key map (kbd "w 0") 'delete-window)
+	(define-key map (kbd "w 1") 'delete-other-windows)
 	(define-key map (kbd "w r") 'my-rotate-windows)
 	(define-key map (kbd "w t") 'my-toggle-window-split)
 	map))

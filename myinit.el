@@ -318,8 +318,8 @@
 (ffap-bindings)
 
 ;; don't create newsrc file that other clients may use
-(setq gnus-save-newsrc-file nil)
-(setq gnus-read-newsrc-file nil)
+(setq gnus-save-newsrc-file t)
+(setq gnus-read-newsrc-file t)
 
 ;; save emacs specific newsrc file in cache
 (setq gnus-startup-file (expand-file-name "newsrc" user-emacs-directory))
@@ -623,8 +623,9 @@
       (forward-line)
       (transpose-lines -1))
     (move-to-column col)))
-(global-set-key (kbd "<C-M-down>") 'my-move-line-down)
-(global-set-key (kbd "<C-M-up>") 'my-move-line-up)
+;; both shortcuts can be emulated with C-x C-t C-x z z z... and C-1 C-x C-t z z z..
+;; (global-set-key (kbd "<C-M-down>") 'my-move-line-down)
+;; (global-set-key (kbd "<C-M-up>") 'my-move-line-up)
 
 (defun my-rename-current-buffer-file ()
   "Renames current buffer and file it is visiting."
@@ -704,7 +705,6 @@
   (interactive "P")
   (my-repeat-command 'other-window))
 
-
 (defvar my-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
@@ -712,6 +712,7 @@
     (define-key map (kbd ";") 'comment-line)
     (define-key map (kbd "o") 'my-other-window)
 
+    ;; buffers
     (define-key map (kbd "b 0") 'kill-buffer-and-window)
     (define-key map (kbd "b b") 'switch-to-buffer)
     (define-key map (kbd "b c") 'clean-buffer-list)
@@ -722,18 +723,24 @@
     (define-key map (kbd "b r") 'my-rename-current-buffer-file)
     (define-key map (kbd "b s") 'save-buffer)
 
+    ;; files
     (define-key map (kbd "f f") 'find-file)
     (define-key map (kbd "f o") 'find-file-other-window)
     (define-key map (kbd "f r") 'recentf-open-files)
 
+    ;; lsp
     (define-key map (kbd "l a") 'eglot-code-actions)
     (define-key map (kbd "l e") 'eglot-events-buffer)
     (define-key map (kbd "l f") 'eglot-format)
     (define-key map (kbd "l r") 'eglot-rename)
 
+    ;; embark
     (define-key map (kbd "e a") 'embark-act)
     (define-key map (kbd "e b") 'embark-become)
 
+    ;; windows
+    (define-key map (kbd "w 0") 'delete-window)
+    (define-key map (kbd "w 1") 'delete-other-windows)
     (define-key map (kbd "w r") 'my-rotate-windows)
     (define-key map (kbd "w t") 'my-toggle-window-split)
     map))
