@@ -619,6 +619,12 @@
 (yas-reload-all)
 (add-hook 'prog-mode-hook #'yas-minor-mode)
 
+(unless (package-installed-p 'yaml-mode)
+  (package-refresh-contents)
+  (package-install 'yaml-mode))
+(require 'yaml-mode)
+(add-to-list 'auto-mode-alist '("\\.y[a]?ml\\'" . yaml-mode))
+
 (defun my-move-line-down ()
   (interactive)
   (let ((col (current-column)))

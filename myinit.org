@@ -4075,8 +4075,8 @@
   | C-c & C-s | yas-insert-snippet (chose a snippet to expand)   |
   | C-c & C-v | yas-visit-snippet-file (chose a snippet to edit) |
   |           |                                                  |
-  #+TBLFM: 
-#+begin_src emacs-lisp
+
+  #+begin_src emacs-lisp
     (unless (package-installed-p 'yasnippet)
       (package-refresh-contents)
       (package-install 'yasnippet)
@@ -4085,6 +4085,16 @@
     (yas-reload-all)
     (add-hook 'prog-mode-hook #'yas-minor-mode)
   #+end_src
+
+* YAML Mode
+  #+begin_src emacs-lisp
+    (unless (package-installed-p 'yaml-mode)
+      (package-refresh-contents)
+      (package-install 'yaml-mode))
+    (require 'yaml-mode)
+    (add-to-list 'auto-mode-alist '("\\.y[a]?ml\\'" . yaml-mode))
+  #+end_src
+
 * Useful functions
   [[http://whattheemacsd.com/][Move Lines]]
   #+begin_src emacs-lisp
