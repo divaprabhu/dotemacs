@@ -80,7 +80,7 @@
 		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
     ;; (add-to-list 'package-archives
-    ;;		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+    ;; 		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 
     (unless package-archive-contents
       (package-refresh-contents))
@@ -3999,7 +3999,10 @@
 	  eglot-send-changes-idle-time 1
 	  eglot-confirm-server-initiated-edits nil
 	  eglot-extend-to-xref t)
+  #+end_src
 
+** Python
+  #+begin_src emacs-lisp
     (add-hook 'python-mode-hook
 	      (progn
 		(setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/venv/bin"))
@@ -4007,9 +4010,13 @@
 		(with-eval-after-load 'eglot
 		  (push '(python-mode "~/venv/bin/pylsp" "--verbose") eglot-server-programs))
 		'eglot-ensure))
-
+  #+end_src
+** C
+  #+begin_src emacs-lisp
     (add-hook 'c-mode-hook 'eglot-ensure)
-
+  #+end_src
+** Go
+  #+begin_src emacs-lisp
     (unless (package-installed-p 'go-mode)
       (package-refresh-contents)
       (package-install 'go-mode))
@@ -4092,7 +4099,7 @@
       (package-refresh-contents)
       (package-install 'yaml-mode))
     (require 'yaml-mode)
-    (add-to-list 'auto-mode-alist '("\\.y[a]?ml\\'" . yaml-mode))
+    (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-mode))
   #+end_src
 
 * Useful functions

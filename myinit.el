@@ -22,7 +22,7 @@
 		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
 ;; (add-to-list 'package-archives
-;;		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+;; 		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 
 (unless package-archive-contents
   (package-refresh-contents))
@@ -623,7 +623,7 @@
   (package-refresh-contents)
   (package-install 'yaml-mode))
 (require 'yaml-mode)
-(add-to-list 'auto-mode-alist '("\\.y[a]?ml\\'" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-mode))
 
 (defun my-move-line-down ()
   (interactive)
