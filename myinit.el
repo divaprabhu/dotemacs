@@ -587,6 +587,7 @@
 
 (add-hook 'python-mode-hook
 	  (progn
+	    (setq python-indent-guess-indent-offset-verbose nil)
 	    (setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/venv/bin"))
 	    (setq exec-path (split-string (getenv "PATH") path-separator))
 	    (with-eval-after-load 'eglot
