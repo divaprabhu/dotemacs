@@ -4003,12 +4003,20 @@
 
 ** Python
   #+begin_src emacs-lisp
+    (unless (package-installed-p 'pyvenv)
+      (package-refresh-contents)
+      (package-install 'pyvenv))
+    (pyvenv-mode 1)
+  #+end_src
+
+  Create a .dir-locals.el file in root of folder with contents like 
+  ((python-mode . ((pyvenv-activate . "~/.cache/venv/project-name"))))
+
+  #+begin_src emacs-lisp
     (add-hook 'python-mode-hook
 	      (progn
-		(setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/venv/bin"))
-		(setq exec-path (split-string (getenv "PATH") path-separator))
 		(with-eval-after-load 'eglot
-		  (push '(python-mode "~/venv/bin/pylsp" "--verbose") eglot-server-programs))
+		  (push '(python-mode "~/.cache/venv/lsp/bin/pylsp" "--verbose") eglot-server-programs))
 		'eglot-ensure))
   #+end_src
 ** C

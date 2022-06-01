@@ -585,12 +585,15 @@
       eglot-confirm-server-initiated-edits nil
       eglot-extend-to-xref t)
 
+(unless (package-installed-p 'pyvenv)
+  (package-refresh-contents)
+  (package-install 'pyvenv))
+(pyvenv-mode 1)
+
 (add-hook 'python-mode-hook
 	  (progn
-	    (setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/venv/bin"))
-	    (setq exec-path (split-string (getenv "PATH") path-separator))
 	    (with-eval-after-load 'eglot
-	      (push '(python-mode "~/venv/bin/pylsp" "--verbose") eglot-server-programs))
+	      (push '(python-mode "~/.cache/venv/lsp/bin/pylsp" "--verbose") eglot-server-programs))
 	    'eglot-ensure))
 
 (add-hook 'c-mode-hook 'eglot-ensure)
