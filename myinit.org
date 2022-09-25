@@ -390,11 +390,11 @@
     (setq mark-even-inactive nil)
   #+end_src
 
-  |------------------------------+------+----------------------------------------|
-  | *C-u C-SPC [C-SPC C-SPC...]* | *`m* | jump to last mark                      |
+  |------------------------------+-------+----------------------------------------|
+  | *C-u C-SPC [C-SPC C-SPC...]* | *`m*  | jump to last mark                      |
   | *C-x C-SPC*                  | *C-o* | pop-global-mark (works across buffers) |
-  | C-SPC C-SPC                  |      | set and unset mark (good for jumping)  |
-  |------------------------------+------+----------------------------------------|
+  | C-SPC C-SPC                  |       | set and unset mark (good for jumping)  |
+  |------------------------------+-------+----------------------------------------|
 
   #+begin_src emacs-lisp
     (setq set-mark-command-repeat-pop t)
@@ -524,6 +524,7 @@
 ** Position
    |---------------------------+---+---------------------------------------------------------------|
    | *M-x view-register RET R* |   | display what is in register R                                 |
+   | *M-x list-register*       |   | display non empty registers                                   |
    | *C-x r SPC R*             |   | point-to-register (save position of point and current buffer) |
    | *C-x r j R*               |   | jump-to-register (jump to position and buffer saved in reg)   |
    |---------------------------+---+---------------------------------------------------------------|
@@ -564,7 +565,7 @@
 
 ** Macros
    |-------------+------------------------|
-   | C-x C-k x r | kmacro-to-register     |
+   | C-x C-k x R | kmacro-to-register     |
    | C-x r j R   | execute keyboard macro |
    |-------------+------------------------|
 
@@ -614,6 +615,7 @@
    - When point moves out of visible area, scroll just enough to bring point on screen
    #+begin_src emacs-lisp
      (setq hscroll-step 2)
+     (put 'scroll-left 'disabled nil)
    #+end_src
    |---------+--------------|
    | *C-x <* | scroll-left  |
@@ -646,7 +648,7 @@
    - M-x view-buffer enters view mode
 
 ** Text Faces
-   - Face specifies, font, height, weight, slant, foreground and background color, underlining or overlining
+   - Face specifies, font, height, weight, slant, foreground and background color, underlining or over-lining
    |----------------------------+--------------------------------------------|
    | M-x list-faces-display     | list faces current defined                 |
    | C-u M-x list-faces-display | Accept REGEX and display faces matching it |
@@ -729,12 +731,13 @@
    | 'indicate-buffer-boundaries'                  | Mark first and last line of buffer in fringe line        |
    |                                               | Also display an arrow to indicate whether it is possible |
    |                                               | to scroll the window                                     |
+   | 'fill-column'                                 | set the fill column                                      |
    |-----------------------------------------------+----------------------------------------------------------|
 
 ** Whitespace
    |--------------------------------+-------------------------------------------------------------|
    | 'show-trailing-whitespace'     | show trailing space in buffer                               |
-   | 'tailing-whitespace'           | face used to dispaly traling whitespace                     |
+   | 'trailing-whitespace'          | face used to dispaly traling whitespace                     |
    | M-x delete-trailing-whitespace | delete all trailing whitespace in buffer and                |
    |                                | all empty lines at the end of buffer                        |
    |                                | if region is active, delete in region instead               |
@@ -1076,6 +1079,7 @@
    | *C-u C-SPC*    | *``*  | return to where point was before starting search |
    | *C-s [C-s ..]* | *n*   | isearch-repeat-forward                           |
    | *C-r [C-r...]* | *N*   | isearch-repeat-backward                          |
+   | *M-e*          |       | isearch-edit-string                              |
    | C-f            | *C-w* | add search string characters following point     |
    |----------------+-------+--------------------------------------------------|
 
@@ -1246,7 +1250,7 @@
    #+begin_src emacs-lisp
      (global-set-key (kbd "M-l") 'downcase-dwim)
      (global-set-key (kbd "M-u") 'upcase-dwim)
-     (global-set-key (kbd "M-l") 'capitalize-dwim)
+     (global-set-key (kbd "M-c") 'capitalize-dwim)
    #+end_src
 
 ** Spelling
@@ -1296,17 +1300,17 @@
 * Keyboard Macros
 ** Basic use
    - Macro can help repeat same keystrokes by recording and repeating it
-   |-------------+------+--------------------------------------------------------------------|
-   | *F3*        | *qq* | kmacro-start-macro-or-insert-counter                               |
-   | *F4*        | *q*  | kmacro-end-or-call-macro                                           |
-   |             | *@q* | if macro is being defined, end it else execute it                  |
-   |             |      | pass a prefix to execute that many times                           |
-   |             |      | prefix of zero executes indefinitely and has to be broken with C-g |
-   | C-u F3      | *@@* | re-execute last keyboard macro then append the same keys to macro  |
-   | C-u C-u F3  | *qQ* | append keys to last macro without re executing it                  |
-   | *C-x C-k r* | *qq* | apply-macro-to-region-lines                                        |
-   |             |      | run last keyboard macro on each line in region                     |
-   |-------------+------+--------------------------------------------------------------------|
+   |-----------------------------+------+--------------------------------------------------------------------|
+   | *F3* or *C-x (*             | *qq* | kmacro-start-macro-or-insert-counter                               |
+   | *F4* or *C-x )*             | *q*  | kmacro-end-or-call-macro                                           |
+   | *F4* or *C-x e*             | *@q* | if macro is being defined, end it else execute it                  |
+   |                             |      | pass a prefix to execute that many times                           |
+   |                             |      | prefix of zero executes indefinitely and has to be broken with C-g |
+   | C-u F3 or C-u C-x (         | *@@* | re-execute last keyboard macro then append the same keys to macro  |
+   | C-u C-u F3 or C-u C-u C-x ( | *qQ* | append keys to last macro without re executing it                  |
+   | *C-x C-k r*                 | *qq* | apply-macro-to-region-lines                                        |
+   |                             |      | run last keyboard macro on each line in region                     |
+   |-----------------------------+------+--------------------------------------------------------------------|
 
 ** Keyboard macro ring
    - all buffers share same keyboard macro ring
@@ -1782,7 +1786,7 @@
 	      (side . bottom)
 	      (window-height . 0.4)
 	      (slot . 0))
-	     ("\\*\\(Messages\\).*"
+	     ("\\*\\(Messages|Output\\).*"
 	      (display-buffer-in-side-window)
 	      (side . bottom)
 	      (window-height . 0.4)
@@ -1849,6 +1853,7 @@
 ** Scroll Bars
    - disable scroll bar
    #+begin_src emacs-lisp
+     (require 'scroll-bar)
      (scroll-bar-mode -1)
    #+end_src
 
@@ -1870,6 +1875,7 @@
 ** Tool Bar
    - disable tool bar
    #+begin_src emacs-lisp
+     (require 'tool-bar)
      (tool-bar-mode -1)
    #+end_src
 
@@ -4262,4 +4268,4 @@
 
     (global-set-key (kbd "M-<SPC>") my-mode-map)
   #+end_src
- 
+

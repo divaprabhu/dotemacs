@@ -92,6 +92,7 @@
 (setq scroll-conservatively 2)
 
 (setq hscroll-step 2)
+(put 'scroll-left 'disabled nil)
 
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page 'disabled nil)
@@ -123,7 +124,7 @@
 
 (global-set-key (kbd "M-l") 'downcase-dwim)
 (global-set-key (kbd "M-u") 'upcase-dwim)
-(global-set-key (kbd "M-l") 'capitalize-dwim)
+(global-set-key (kbd "M-c") 'capitalize-dwim)
 
 (add-hook 'text-mode-hook 'flyspell-mode)
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
@@ -170,7 +171,7 @@
 	 (side . bottom)
 	 (window-height . 0.4)
 	 (slot . 0))
-	("\\*\\(Messages\\).*"
+	("\\*\\(Messages|Output\\).*"
 	 (display-buffer-in-side-window)
 	 (side . bottom)
 	 (window-height . 0.4)
@@ -214,11 +215,13 @@
 	 (slot . 0))))
 (global-set-key (kbd "<f10>") 'window-toggle-side-windows)
 
+(require 'scroll-bar)
 (scroll-bar-mode -1)
 
 (menu-bar-mode -1)
 (setq tty-menu-open-use-tmm t)
 
+(require 'tool-bar)
 (tool-bar-mode -1)
 
 (setq tab-bar-show 1)
