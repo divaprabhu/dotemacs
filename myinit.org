@@ -1687,20 +1687,20 @@
    |---------------------------+-------+----------------------------------------------------|
 
 ** Unique names
-   |------------------------------+-------------------------------------------------------------------------------------+---|
-   | 'uniquify-buffer-name-style' | tells how buffer should be name when files with same name in differ path are opened |   |
-   |                              | forward                       bar/mumble/name    quux/mumble/name                   |   |
-   |                              | reverse                       name\mumble\bar    name\mumble\quux                   |   |
-   |                              | post-forward                  name\vertbar/mumble name\vertquux/mumble              |   |
-   |                              | post-forward-angle-brackets   name<bar/mumble>   name<quux/mumble>                  |   |
-   |                              | nil                           name               name<2>                            |   |
-   |------------------------------+-------------------------------------------------------------------------------------+---|
+   |------------------------------+-------------------------------------------------------------------------------------|
+   | 'uniquify-buffer-name-style' | tells how buffer should be name when files with same name in differ path are opened |
+   |                              | forward                       bar/mumble/name    quux/mumble/name                   |
+   |                              | reverse                       name\mumble\bar    name\mumble\quux                   |
+   |                              | post-forward                  name\vertbar/mumble name\vertquux/mumble              |
+   |                              | post-forward-angle-brackets   name<bar/mumble>   name<quux/mumble>                  |
+   |                              | nil                           name               name<2>                            |
+   |------------------------------+-------------------------------------------------------------------------------------|
 
 ** Icomplete and Fido
    - Icomplete global minor mode provides completions in mini buffer
    - An alternative is Fido mode which uses icomplete but has IDO like interface
    - completion looks for initials like cs to mean 'completion-styles'.
-   - Flex will give the result for compsty
+   - Flex will give the fuzzy match
    - display completion list buffer for invalid completion
    - don't hide the common prefix
    - icomplete-vertical will show completion candidates vertically
@@ -2728,8 +2728,13 @@
    | 'project-list-file'        | file in which Emacs records list of known projects                      |
    | M-x project-search         | interactive variant of project-find-regexp                              |
    | M-x project-forget-project | remove a known project from project-list-file                           |
-   |                            |                                                                         |
    |----------------------------+-------------------------------------------------------------------------|
+
+   - Ignore case when reading file name completion. Useful for C-x p f
+   #+begin_src emacs-lisp
+     (setq read-file-name-completion-ignore-case t)
+   #+end_src
+
 ** Xref
 
 :PROPERTIES:
