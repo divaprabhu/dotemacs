@@ -1482,7 +1482,8 @@
    |---------------------------------------+----------------------------------------------------------------------------------------|
 
    #+begin_src emacs-lisp
-     (setq global-auto-revert-non-file-buffers t)
+     (setq global-auto-revert-non-file-buffers t
+	   auto-revert-remote-files t)
      (global-auto-revert-mode 1)
    #+end_src
 
@@ -1500,8 +1501,10 @@
    | M-x do-auto-save                | auto save manually                                                  |
    | M-x recover-file RET FILE RET   | visit file FILE and restores its contents from auto save file       |
    |                                 | the auto save file must be latest than actual file                  |
-   |                                 | file must be explicitly saved                                       |
-   | M-x recover-session             | show list of sessions. select right session on C-c C-c              |
+   |                                 | file must be explicitly saved with C-x C-s                          |
+   | M-x recover-session             | If Emacs or computer crashes, all files can be recovered from their |
+   |                                 | autosave files using this command                                   |
+   |                                 | show list of sessions. select right session on C-c C-c              |
    |                                 | each file edited during the session is shown and asked for recovery |
    |                                 | the file should be saved manually after recovery                    |
    |---------------------------------+---------------------------------------------------------------------|
@@ -1617,7 +1620,7 @@
    - Opening image selects Image Mode
      |---------+-----------------------------------------------------------------|
      | C-c C-c | image-toggle-display (toggle between showing image and rawbytes |
-     | C-x C-x | image-toggle-hex-display (toggle between image and hex display) |
+     | C-s C-x | image-toggle-hex-display (toggle between image and hex display) |
      | *s b*   | image-transform-fit-both (fit to both window height and width)  |
      | s s     | image-transform-set-scale (scale image with a factor)           |
      | s 0     | image-transform-reset (reset all scaling)                       |
