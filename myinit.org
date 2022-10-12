@@ -1770,19 +1770,22 @@
    |-----------+-----------+-------------------------------------------------------------------------------|
 
 ** Displaying buffer
+   [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Demystifying Emacs’s Window Manager]]
+   [[https://emacs.stackexchange.com/questions/3356/select-help-window-buffer-after-c-h-f][Select *Help* window buffer after C-h f]]
    - Based on the buffer names, decide where it should be displayed and if it needs to be selected
    #+begin_src emacs-lisp
-     (setq help-window-select t)
-     (setq switch-to-buffer-obey-display-actions t)
+     (setq help-window-select t
+	   switch-to-buffer-in-dedicated-window 'pop
+	   switch-to-buffer-obey-display-actions t)
      (add-hook 'occur-hook
 	       '(lambda ()
 		  (switch-to-buffer-other-window "*Occur*")))
      ;;(add-hook 'compilation-finish-functions 'switch-to-buffer-other-window 'compilation)
      (setq display-buffer-alist
 	   '(("\\*\\(Metahelp\\|Help\\|Apropos\\).*"
-	      (display-buffer-in-side-window)
-	      (side . bottom)
-	      (window-height . 0.4)
+	      (display-buffer-reuse-window display-buffer-in-side-window)
+	      (side . right)
+	      (window-width . 0.5)
 	      (slot . 0))
 	     ("\\*\\(.*shell\\|ansi-term\\|\.*eshell\\|.*terminal\\|Async Shell\\).*"
 	      (display-buffer-in-side-window)
@@ -1798,6 +1801,11 @@
 	      (display-buffer-in-side-window)
 	      (side . bottom)
 	      (window-height . 0.4)
+	      (slot . 0))
+	     ("\\*\\(log-edit-\\).*"
+	      (display-buffer-in-atom-window)
+	      (side . right)
+	      (window-width . 0.3)
 	      (slot . 0))
 	     ("\\*\\(Diff\\).*"
 	      (display-buffer-in-side-window)
@@ -1824,8 +1832,6 @@
 	      (side . bottom)
 	      (window-height . 0.4)
 	      (slot . 0))
-	     ("\\*\\(log-edit-files\\).*"
-	      (display-buffer-no-window))
 	     ("\\*\\(compilation\\|Occur\\|grep\\).*"
 	      (display-buffer-in-side-window)
 	      (side . bottom)
@@ -1833,6 +1839,7 @@
 	      (slot . 0))))
      (global-set-key (kbd "<f10>") 'window-toggle-side-windows)
    #+end_src
+
 
 * Frames
 ** Concepts
@@ -4167,6 +4174,19 @@
   #+end_src
   [[http://whattheemacsd.com/][Window Layout]]
   #+begin_src emacs-lisp
+
+    (defun my-split-below (arg)
+      "Split window below from the parent or from root with ARG."
+      (interactive "P")
+      (split-window (if arg (frame-root-window)
+		      (window-parent (selected-window)))
+		    nil 'below nil))
+    (defun my-toggle-window-dedication ()
+      "Toggles window dedication in the selected window."
+      (interactive)
+      (set-window-dedicated-p (selected-window)
+			      (not (window-dedicated-p (selected-window)))))
+
     (defun my-rotate-windows ()
       "Rotate your windows"
       (interactive)
@@ -4272,6 +4292,8 @@
 	(define-key map (kbd "w 1") 'delete-other-windows)
 	(define-key map (kbd "w r") 'my-rotate-windows)
 	(define-key map (kbd "w t") 'my-toggle-window-split)
+	(define-key map (kbd "w b") 'my-split-below)
+	(define-key map (kbd "w d") 'my-toggle-window-dedication)
 	map))
 
     (global-set-key (kbd "M-<SPC>") my-mode-map)

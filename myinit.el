@@ -139,7 +139,8 @@
 (setq make-backup-files nil)
 (setq backup-directory-alist `(("." . ,(expand-file-name "backups/" user-emacs-directory))))
 
-(setq global-auto-revert-non-file-buffers t)
+(setq global-auto-revert-non-file-buffers t
+      auto-revert-remote-files t)
 (global-auto-revert-mode 1)
 
 (make-directory (expand-file-name "autosave/" user-emacs-directory) t)
@@ -154,17 +155,18 @@
       (icomplete-vertical-mode 1)
       (fido-vertical-mode 1)))
 
-(setq help-window-select t)
-(setq switch-to-buffer-obey-display-actions t)
+(setq help-window-select t
+      switch-to-buffer-in-dedicated-window 'pop
+      switch-to-buffer-obey-display-actions t)
 (add-hook 'occur-hook
 	  '(lambda ()
 	     (switch-to-buffer-other-window "*Occur*")))
 ;;(add-hook 'compilation-finish-functions 'switch-to-buffer-other-window 'compilation)
 (setq display-buffer-alist
       '(("\\*\\(Metahelp\\|Help\\|Apropos\\).*"
-	 (display-buffer-in-side-window)
-	 (side . bottom)
-	 (window-height . 0.4)
+	 (display-buffer-reuse-window display-buffer-in-side-window)
+	 (side . right)
+	 (window-width . 0.5)
 	 (slot . 0))
 	("\\*\\(.*shell\\|ansi-term\\|\.*eshell\\|.*terminal\\|Async Shell\\).*"
 	 (display-buffer-in-side-window)
@@ -180,6 +182,11 @@
 	 (display-buffer-in-side-window)
 	 (side . bottom)
 	 (window-height . 0.4)
+	 (slot . 0))
+	("\\*\\(log-edit-\\).*"
+	 (display-buffer-in-atom-window)
+	 (side . right)
+	 (window-width . 0.3)
 	 (slot . 0))
 	("\\*\\(Diff\\).*"
 	 (display-buffer-in-side-window)
@@ -206,8 +213,6 @@
 	 (side . bottom)
 	 (window-height . 0.4)
 	 (slot . 0))
-	("\\*\\(log-edit-files\\).*"
-	 (display-buffer-no-window))
 	("\\*\\(compilation\\|Occur\\|grep\\).*"
 	 (display-buffer-in-side-window)
 	 (side . bottom)
@@ -287,6 +292,8 @@
 
 (setq vc-follow-symlinks t)
 (setq vc-command-messages t)
+
+(setq read-file-name-completion-ignore-case t)
 
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 (setq split-window-function 'split-window-horizontally)
@@ -667,6 +674,18 @@
 	  (message "File '%s' successfully renamed to '%s'"
 		   name (file-name-nondirectory new-name)))))))
 
+(defun my-split-below (arg)
+  "Split window below from the parent or from root with ARG."
+  (interactive "P")
+  (split-window (if arg (frame-root-window)
+		  (window-parent (selected-window)))
+		nil 'below nil))
+(defun my-toggle-window-dedication ()
+  "Toggles window dedication in the selected window."
+  (interactive)
+  (set-window-dedicated-p (selected-window)
+			  (not (window-dedicated-p (selected-window)))))
+
 (defun my-rotate-windows ()
   "Rotate your windows"
   (interactive)
@@ -768,6 +787,8 @@
     (define-key map (kbd "w 1") 'delete-other-windows)
     (define-key map (kbd "w r") 'my-rotate-windows)
     (define-key map (kbd "w t") 'my-toggle-window-split)
+    (define-key map (kbd "w b") 'my-split-below)
+    (define-key map (kbd "w d") 'my-toggle-window-dedication)
     map))
 
 (global-set-key (kbd "M-<SPC>") my-mode-map)
