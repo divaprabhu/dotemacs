@@ -1620,7 +1620,7 @@
    - Opening image selects Image Mode
      |---------+-----------------------------------------------------------------|
      | C-c C-c | image-toggle-display (toggle between showing image and rawbytes |
-     | C-s C-x | image-toggle-hex-display (toggle between image and hex display) |
+     | C-c C-x | image-toggle-hex-display (toggle between image and hex display) |
      | *s b*   | image-transform-fit-both (fit to both window height and width)  |
      | s s     | image-transform-set-scale (scale image with a factor)           |
      | s 0     | image-transform-reset (reset all scaling)                       |
@@ -3290,18 +3290,30 @@
   | 'desktop-save'              | t - always save                                                   |
   |                             | ask - always ask                                                  |
   | 'desktop-restore-eager'     | number of buffers to load immediately. others are loaded lazily   |
+  | M-x desktop-clear           |                                                                   |
   | savehist-mode               | save minibuffer history                                           |
   | 'savehist-file'             | file where minibuffer history is saved                            |
   | 'desktop-auto-save-timeout' | how frequently to save desktops                                   |
   |-----------------------------+-------------------------------------------------------------------|
 
   #+begin_src emacs-lisp
-     (setq desktop-restore-frames 1)
-    (setq desktop-save t)
-     (setq desktop-path (list user-emacs-directory))
-     (setq desktop-restore-eager 2)
-     (savehist-mode 1)
-     (setq savehist-file (expand-file-name "savehist" user-emacs-directory))
+    (setq desktop-restore-eager 5
+	  desktop-load-locked-desktop 'ask
+	  desktop-restore-frames 1
+	  desktop-save t
+	  desktop-path (list user-emacs-directory)
+	  desktop-auto-save-timeout 60
+	  desktop-base-file-name "emacs.desktop"
+	  desktop-globals-to-save
+	  '(desktop-missing-file-warning tags-file-name tags-table-list search-ring regexp-search-ring register-alist file-name-history)
+	  desktop-load-locked-desktop 'ask
+	  desktop-locals-to-save
+	  '(eww-history-position desktop-locals-to-save truncate-lines case-fold-search case-replace fill-column overwrite-mode change-log-default-name line-number-mode column-number-mode size-indication-mode buffer-file-coding-system buffer-display-time indent-tabs-mode tab-width indicate-buffer-boundaries indicate-empty-lines show-trailing-whitespace))
+    (desktop-save-mode t)
+
+    (setq savehist-file (expand-file-name "savehist" user-emacs-directory))
+    (savehist-mode 1)
+
   #+end_src
 
   [[https://www.emacswiki.org/emacs/SavePlace][Emacs Wiki]]
