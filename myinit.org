@@ -1782,7 +1782,7 @@
 		  (switch-to-buffer-other-window "*Occur*")))
      ;;(add-hook 'compilation-finish-functions 'switch-to-buffer-other-window 'compilation)
      (setq display-buffer-alist
-	   '(("\\*\\(Metahelp\\|Help\\|Apropos\\).*"
+	   '(("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
 	      (display-buffer-reuse-window display-buffer-in-side-window)
 	      (side . right)
 	      (window-width . 0.5)
@@ -1812,10 +1812,15 @@
 	      (side . bottom)
 	      (window-height . 0.4)
 	      (slot . 0))
-	     ("\\*\\(Open Recent\\|Ibuffer\\).*"
+	     ("\\*\\(Open Recent\\).*"
 	      (display-buffer-in-side-window)
 	      (side . bottom)
 	      (window-height . 0.4)
+	      (slot . 0))
+	     ("\\*\\(Ibuffer\\).*"
+	      (display-buffer-in-side-window)
+	      (side . right)
+	      (window-width . 0.5)
 	      (slot . 0))
 	     ("\\*\\(Embark\\).*"
 	      (display-buffer-in-side-window)
@@ -1837,7 +1842,7 @@
 	      (side . bottom)
 	      (window-height . 0.4)
 	      (slot . 0))))
-     (global-set-key (kbd "<f10>") 'window-toggle-side-windows)
+     (global-set-key (kbd "<f12>") 'window-toggle-side-windows)
    #+end_src
 
 
@@ -2037,14 +2042,14 @@
    |-------+------+------------------------------------------------------|
 
 ** Paragraphs
-   |-------+------+-----------------------------------------------------|
-   | M-{   | *[[* | backward-paragraph                                  |
-   | M-}   | *]]* | forward-paragraph                                   |
+   |-------+-------+-----------------------------------------------------|
+   | M-{   | *[[*  | backward-paragraph                                  |
+   | M-}   | *]]*  | forward-paragraph                                   |
    | *M-h* | *v]]* | mark-paragraph                                      |
-   |       |      | put point and mark around current or next paragraph |
-   |       |      | point at beginning and mark at end                  |
-   |       |      | each M-h advances mark by another para              |
-   |-------+------+-----------------------------------------------------|
+   |       |       | put point and mark around current or next paragraph |
+   |       |       | point at beginning and mark at end                  |
+   |       |       | each M-h advances mark by another para              |
+   |-------+-------+-----------------------------------------------------|
 
 ** Pages
    - page breaks are inserted with C-q C-l
@@ -2193,7 +2198,7 @@
     |                                            | jump - momentarily jump cursor to matching paren               |
     |                                            | jump-offscreen - jump even if opening delimiter is off screen  |
     | 'blink-matching-delay'                     | how many seconds to keep indicating the matching delimiter     |
-    | 'blink-matcihnk-paren-distance'            | how many chars back to search to find opening delimiter        |
+    | 'blink-matching-paren-distance'            | how many chars back to search to find opening delimiter        |
     | M-x show-paren-mode                        | when point is before opening or after closing delimiter,       |
     |                                            | the delimiter and optionally text in between are highlighted   |
     | 'show-paren-style'                         | parenthesis - show matching parens                             |
@@ -2213,10 +2218,18 @@
     |--------------------------------------------+----------------------------------------------------------------|
 
     #+begin_src emacs-lisp
-      (setq blink-matching-paren t)
-      (setq show-paren-style 'mixed)
-      (setq show-paren-when-point-inside-paren t)
+      (setq blink-matching-paren 'jump
+	    blink-matching-delay 1)		; not used in show paren mode
+
+      (setq show-paren-highlight-openparen t
+	    show-paren-style 'mixed
+	    show-paren-when-point-inside-paren t)
       (show-paren-mode 1)
+
+      (setq electric-pair-preserve-balance t
+	    electric-pair-delete-adjacent-pairs t
+	    electric-pair-open-newline-between-pairs t)
+
       (add-hook 'prog-mode-hook 'electric-pair-local-mode)
     #+end_src
 
@@ -2225,7 +2238,7 @@
    | *M-;*     | comment-dwim                                              |
    |           | insert or realign comment on current line                 |
    |           | if region is active, comment or uncomment lines in region |
-   | *C-c C-;* | comment-line                                              |
+   | *C-x C-;* | comment-line                                              |
    | *M-j*     | like RET followed by inserting and aligning a comment     |
    | *C-c C-c* | comment-region                                            |
    |-----------+-----------------------------------------------------------|
@@ -2234,7 +2247,7 @@
    |-----------+---------------------------------------|
    | C-h S     | info-lookup-symbol                    |
    | M-x man   | display manual using external program |
-   | M-x woman | display manual using emacs for-matter  |
+   | M-x woman | display manual using emacs formatter  |
    |-----------+---------------------------------------|
 
 ** Hideshow minor mode
@@ -2444,32 +2457,32 @@
      breakpoints, stack frames etc
    - Completion and history are available
    - Left fringe shows an arrow in source file with relevant line
-   |-------------------------+-----------------------------------------------------------------------|
-   | *M-x gdb*               | run gdb as subprocess                                                 |
-   | *M-x gud-gdb*           | run gdb using GUD interaction buffer                                  |
-   | *M-x jdb*               | java debugger                                                         |
-   | *M-x perldb*            | perl debugger                                                         |
-   | *M-x pdb*               | python debugger                                                       |
-   | *M-x gud-tooltip-mode*  | allows to move mouse pointer over variable, function or macro to show |
-   |                         | their value in tooltip                                                |
-   | 'gud-tooltip-echo-area' | if non-nil, values are shown in echo area                             |
-   | *C-x C-a C-b*           | gud-break (set break-point on line with point)                        |
-   | *C-c C-s*               | gud-step (execute next line)                                          |
-   |                         | if it is a function call, stop after entering function                |
-   | *C-c C-n*               | gud-next (execute next line)                                          |
-   |                         | if it is a function call, don't stop inside function                  |
-   | *C-c C-p*               | gud-print (evaluate expression at point)                              |
-   |                         | if region is active, evaluate region                                  |
-   | *C-c C-r*               | execute till next break-point                                         |
-   | *C-c C-d*               | gud-remove (delete break-point on current line if any)                |
-   | *C-c C-t*               | gut-tbreak (set temporary break point)                                |
-   | *C-c <*                 | gud-up (select previous stack frame)                                  |
-   |                         | each function call creates a new stack frame                          |
-   | *C-c >*                 | gud-down (select next inner stack frame)                              |
-   | *C-c C-u*               | gud-until (execute till current line)                                 |
-   | *C-c C-f*               | gud-finish (run till selected stack frame returns or stops)           |
-   | TAB                     | gud-gdb-complete-command (complete symbol name)                       |
-   |-------------------------+-----------------------------------------------------------------------|
+   |----------------------------+-----------------------------------------------------------------------|
+   | *M-x gdb*                  | run gdb as subprocess                                                 |
+   | *M-x gud-gdb*              | run gdb using GUD interaction buffer                                  |
+   | *M-x jdb*                  | java debugger                                                         |
+   | *M-x perldb*               | perl debugger                                                         |
+   | *M-x pdb*                  | python debugger                                                       |
+   | *M-x gud-tooltip-mode*     | allows to move mouse pointer over variable, function or macro to show |
+   |                            | their value in tooltip                                                |
+   | 'gud-tooltip-echo-area'    | if non-nil, values are shown in echo area                             |
+   | *C-x C-a C-r* or *C-c C-b* | gud-break (set break-point on line with point)                        |
+   | *C-c C-s*                  | gud-step (execute next line)                                          |
+   |                            | if it is a function call, stop after entering function                |
+   | *C-c C-n*                  | gud-next (execute next line)                                          |
+   |                            | if it is a function call, don't stop inside function                  |
+   | *C-c C-p*                  | gud-print (evaluate expression at point)                              |
+   |                            | if region is active, evaluate region                                  |
+   | *C-c C-r*                  | execute till next break-point                                         |
+   | *C-c C-d*                  | gud-remove (delete break-point on current line if any)                |
+   | *C-c C-t*                  | gut-tbreak (set temporary break point)                                |
+   | *C-c <*                    | gud-up (select previous stack frame)                                  |
+   |                            | each function call creates a new stack frame                          |
+   | *C-c >*                    | gud-down (select next inner stack frame)                              |
+   | *C-c C-u*                  | gud-until (execute till current line)                                 |
+   | *C-c C-f*                  | gud-finish (run till selected stack frame returns or stops)           |
+   | TAB                        | gud-gdb-complete-command (complete symbol name)                       |
+   |----------------------------+-----------------------------------------------------------------------|
 
 
    #+begin_src emacs-lisp
@@ -2485,7 +2498,7 @@
    |                                   | buffer types like breakpoints, stack, local etc                |
    | C-x k                             | kill GUD buffer                                                |
    |-----------------------------------+----------------------------------------------------------------|
-
+   
    #+begin_src emacs-lisp
      (setq gdb-many-windows t)
    #+end_src
@@ -2493,14 +2506,14 @@
    - left click on fringe area of source buffer to toggle break point
      at that line
    - in break-point buffer, SPC toggles break-point, D deletes
-     break-poin, RET visits source file where break-point set
+     break-point, RET visits source file where break-point set
    - stack buffer displays call stack with one line for each of the
      nested subroute call (stack frame). Select a stack frame with
      RET. Setting 'gdb-stack-buffer-addresses' shows each stack frame
      address
    - local buffer displays value of local variables in current frame
      for simple data types. Click RET to edit value
-   - register buffer displays values help by registers. Click RET to
+   - register buffer displays values held by registers. Click RET to
      edit values
    - assembler buffer shows current frame as machine code. Break
      points can be set like in source buffer
@@ -2569,7 +2582,7 @@
 
 * Maintaining
 ** Version Control
-   - Emacs version control interface is called "VIC". It works with
+   - Emacs version control interface is called "VC". It works with
      multiple version control system like CVS, Subversion, Git etc
    - Whenever a version controlled file is visited, VC is enabled.
    - Emacs indicates back-end name and revision id in
@@ -3830,11 +3843,12 @@
 		   " " filename))
 	   ibuffer-saved-filter-groups nil
 	   ibuffer-old-time 48)
-       (define-key ibuffer-mode-map (kbd "* f") #'ibuffer-mark-by-file-name-regexp)
-       (define-key ibuffer-mode-map (kbd "* g") #'ibuffer-mark-by-content-regexp) ; "g" is for "grep"
-       (define-key ibuffer-mode-map (kbd "* n") #'ibuffer-mark-by-name-regexp)
-       (define-key ibuffer-mode-map (kbd "s n") #'ibuffer-do-sort-by-alphabetic)  ; "sort name" mnemonic
-       (define-key ibuffer-mode-map (kbd "/ g") #'ibuffer-filter-by-content)
+     (define-key ibuffer-mode-map (kbd "* f") #'ibuffer-mark-by-file-name-regexp)
+     (define-key ibuffer-mode-map (kbd "* g") #'ibuffer-mark-by-content-regexp) ; "g" is for "grep"
+     (define-key ibuffer-mode-map (kbd "* n") #'ibuffer-mark-by-name-regexp)
+     (define-key ibuffer-mode-map (kbd "s n") #'ibuffer-do-sort-by-alphabetic)  ; "sort name" mnemonic
+     (define-key ibuffer-mode-map (kbd "/ g") #'ibuffer-filter-by-content)
+     (define-key ctl-x-map (kbd "C-b") 'ibuffer)
    #+end_src
 ** Grouping
    [[https://www.emacswiki.org/emacs/IbufferMode][emacswiki]]
@@ -4268,26 +4282,19 @@
 
     (defvar my-mode-map
       (let ((map (make-sparse-keymap)))
-	(define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
-	(define-key map (kbd "i") 'imenu)
-	(define-key map (kbd ";") 'comment-line)
-	(define-key map (kbd "o") 'my-other-window)
 
-	;; buffers
-	(define-key map (kbd "b 0") 'kill-buffer-and-window)
-	(define-key map (kbd "b b") 'switch-to-buffer)
-	(define-key map (kbd "b c") 'clean-buffer-list)
-	(define-key map (kbd "b i") 'ibuffer)
-	(define-key map (kbd "b k") 'kill-this-buffer)
-	(define-key map (kbd "b n") 'next-buffer)
-	(define-key map (kbd "b p") 'previous-buffer)
-	(define-key map (kbd "b r") 'my-rename-current-buffer-file)
-	(define-key map (kbd "b s") 'save-buffer)
+	;; restore original mapping for M-SPC
+	(define-key map (kbd "<SPC>") 'just-one-space)
 
-	;; files
-	(define-key map (kbd "f f") 'find-file)
-	(define-key map (kbd "f o") 'find-file-other-window)
-	(define-key map (kbd "f r") 'recentf-open-files)
+	;; altErnate/new binding for some commands
+	(define-key map (kbd "a i") 'imenu)
+	(define-key map (kbd "a r") 'recentf-open-files)
+
+	;; grep
+	(define-key map (kbd "g g") 'grep)
+	(define-key map (kbd "g f") 'grep-find)
+	(define-key map (kbd "g r") 'rgrep)	; interactive grep-find
+	(define-key map (kbd "g z") 'zgrep)
 
 	;; lsp
 	(define-key map (kbd "l a") 'eglot-code-actions)
@@ -4300,8 +4307,6 @@
 	(define-key map (kbd "e b") 'embark-become)
 
 	;; windows
-	(define-key map (kbd "w 0") 'delete-window)
-	(define-key map (kbd "w 1") 'delete-other-windows)
 	(define-key map (kbd "w r") 'my-rotate-windows)
 	(define-key map (kbd "w t") 'my-toggle-window-split)
 	(define-key map (kbd "w b") 'my-split-below)
