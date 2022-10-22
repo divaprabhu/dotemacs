@@ -2404,7 +2404,8 @@
    |---------------------+---------------------------------------------------------------|
 
    #+begin_src emacs-lisp
-     (setq grep-save-buffers nil)
+     (setq grep-save-buffers nil
+	   grep-use-null-filename-separator nil)
    #+end_src
 ** Flymake
    - on the fly syntax check for programming and markup languages
@@ -2634,7 +2635,7 @@
    |-----------------------+-----------------------------------------------------------------------------------------|
    | *C-x v i*             | vc-register                                                                             |
    | *C-x v =*             | vc-diff (diff between fileset and version before making change)                         |
-   | *C-u C-x v -*         | prompt two revisions to compare                                                         |
+   | *C-u C-x v =*         | prompt two revisions to compare                                                         |
    | M-x vc-ediff          | use ediff                                                                               |
    | *C-x v D*             | vc-root-diff (compare entire working tree to version before making edits)               |
    | *C-x v ~*             | vc-revision-other-window (retrieve file with given revision and open in another window) |
@@ -2651,7 +2652,7 @@
 
    - VC Directory buffer allows viewing the version control status of
      files in directory tree and perform operations on them. It is
-     mainly used to specify melt-file fileset
+     mainly used to specify multi-file file-set
    |-----------+------------------------------------------------------------|
    | *C-x v d* | vc-dir                                                     |
    |           | shows only noteworthy status. up-to-date files are omitted |
@@ -2754,8 +2755,11 @@
    |----------------------------+-------------------------------------------------------------------------|
 
    - Ignore case when reading file name completion. Useful for C-x p f
+   - Remove --null option from grep as it is not supported in all variants
    #+begin_src emacs-lisp
-     (setq read-file-name-completion-ignore-case t)
+     (setq read-file-name-completion-ignore-case t
+	   xref-search-program-alist '((grep . "xargs -0 grep <C> -snHE -e <R>")
+				       ))
    #+end_src
 
 ** Xref
