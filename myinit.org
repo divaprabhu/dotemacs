@@ -4144,18 +4144,19 @@
      (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory)))
        (unless (file-directory-p jdtlsdir)
 	 (make-directory jdtlsdir t)
-	 (url-retrieve "http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server-latest.tar.gz"
+	 (url-retrieve "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz"
 		       (lambda (s)
 			 (re-search-forward "\r?\n\r?\n")
-			 (write-region (point) (point-max) "/tmp/jdtls.tar.gz"))))
+			 (write-region (point) (point-max) "/tmp/jdtls.tar.gz")))
+	 (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C" jdtlsdir))))
 
-     (add-hook 'go-mode-hook
-	       (progn
-		 (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/gopls" user-emacs-directory)))
-		 (setq exec-path (split-string (getenv "PATH") path-separator))
-		 (with-eval-after-load 'eglot
-		   (add-to-list 'eglot-server-programs '(go-mode "~/.cache/emacs/lsp/gopls/bin/gopls" "-verbose")))
-		 'eglot-ensure))
+     (add-hook 'java-mode-hook
+		    (progn
+		     (setenv "PATH" (concat (getenv "PATH") ":" "/usr/local/jdk-17/bin"))
+		     (setenv "JAVA_HOME" "/usr/local/jdk-17/bin")
+		      (with-eval-after-load 'eglot
+			(add-to-list 'eglot-server-programs '(java-mode "~/.cache/emacs/lsp/jdtls/bin/jdtls" "-verbose")))
+		      'eglot-ensure))
    #+end_src
 
 * LSP Mode
