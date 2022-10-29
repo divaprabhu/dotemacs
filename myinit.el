@@ -163,7 +163,7 @@
 	     (switch-to-buffer-other-window "*Occur*")))
 ;;(add-hook 'compilation-finish-functions 'switch-to-buffer-other-window 'compilation)
 (setq display-buffer-alist
-      '(("\\*\\(Metahelp\\|Help\\|Apropos\\).*"
+      '(("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
 	 (display-buffer-reuse-window display-buffer-in-side-window)
 	 (side . right)
 	 (window-width . 0.5)
@@ -193,10 +193,15 @@
 	 (side . bottom)
 	 (window-height . 0.4)
 	 (slot . 0))
-	("\\*\\(Open Recent\\|Ibuffer\\).*"
+	("\\*\\(Open Recent\\).*"
 	 (display-buffer-in-side-window)
 	 (side . bottom)
 	 (window-height . 0.4)
+	 (slot . 0))
+	("\\*\\(Ibuffer\\).*"
+	 (display-buffer-in-side-window)
+	 (side . right)
+	 (window-width . 0.5)
 	 (slot . 0))
 	("\\*\\(Embark\\).*"
 	 (display-buffer-in-side-window)
@@ -218,7 +223,7 @@
 	 (side . bottom)
 	 (window-height . 0.4)
 	 (slot . 0))))
-(global-set-key (kbd "<f10>") 'window-toggle-side-windows)
+(global-set-key (kbd "<f12>") 'window-toggle-side-windows)
 
 (require 'scroll-bar)
 (scroll-bar-mode -1)
@@ -255,10 +260,18 @@
 
 (which-function-mode 1)
 
-(setq blink-matching-paren t)
-(setq show-paren-style 'mixed)
-(setq show-paren-when-point-inside-paren t)
+(setq blink-matching-paren 'jump
+      blink-matching-delay 1)		; not used in show paren mode
+
+(setq show-paren-highlight-openparen t
+      show-paren-style 'mixed
+      show-paren-when-point-inside-paren t)
 (show-paren-mode 1)
+
+(setq electric-pair-preserve-balance t
+      electric-pair-delete-adjacent-pairs t
+      electric-pair-open-newline-between-pairs t)
+
 (add-hook 'prog-mode-hook 'electric-pair-local-mode)
 
 (add-hook 'prog-mode-hook 'hs-minor-mode)
@@ -275,7 +288,8 @@
 (setq next-error-highlight-no-select 3)
 (setq compilation-save-buffers-predicate 'ignore)
 
-(setq grep-save-buffers nil)
+(setq grep-save-buffers nil
+      grep-use-null-filename-separator nil)
 
 (require 'flymake)
 (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
@@ -293,7 +307,9 @@
 (setq vc-follow-symlinks t)
 (setq vc-command-messages t)
 
-(setq read-file-name-completion-ignore-case t)
+(setq read-file-name-completion-ignore-case t
+      xref-search-program-alist '((grep . "xargs -0 grep <C> -snHE -e <R>")
+				  ))
 
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 (setq split-window-function 'split-window-horizontally)
@@ -309,19 +325,34 @@
 (global-set-key (kbd "M-/") 'hippie-expand)
 
 (require 'dired)
+(require 'ls-lisp)
 (setq dired-create-destination-dirs 'ask
-      dired-dwim-target t)
+      dired-dwim-target t
+      dired-create-destination-dirs t
+      dired-copy-preserve-time t
+      dired-recursive-copies t
+      dired-vc-rename-file t
+      ls-lisp-use-insert-directory-program nil) ; use ls-lisp instead of ls
 (define-key dired-mode-map (kbd "M-+") 'dired-create-empty-file)
 
 (setq async-shell-command-display-buffer nil
       shell-command-prompt-show-cwd t)
 
-(setq desktop-restore-frames 1)
-(setq desktop-save t)
- (setq desktop-path (list user-emacs-directory))
- (setq desktop-restore-eager 2)
- (savehist-mode 1)
- (setq savehist-file (expand-file-name "savehist" user-emacs-directory))
+(setq desktop-restore-eager 2
+      desktop-load-locked-desktop 'ask
+      desktop-restore-frames 1
+      desktop-save t
+      desktop-path (list user-emacs-directory)
+      desktop-auto-save-timeout 60
+      desktop-base-file-name "emacs.desktop"
+      desktop-globals-to-save
+      '(desktop-missing-file-warning tags-file-name tags-table-list search-ring regexp-search-ring register-alist file-name-history)
+      desktop-locals-to-save
+      '(eww-history-position desktop-locals-to-save truncate-lines case-fold-search case-replace fill-column overwrite-mode change-log-default-name line-number-mode column-number-mode size-indication-mode buffer-file-coding-system buffer-display-time indent-tabs-mode tab-width indicate-buffer-boundaries indicate-empty-lines show-trailing-whitespace))
+(desktop-save-mode t)
+
+(setq savehist-file (expand-file-name "savehist" user-emacs-directory))
+(savehist-mode 1)
 
 (save-place-mode 1)
 (setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
@@ -452,11 +483,12 @@
 	      " " filename))
       ibuffer-saved-filter-groups nil
       ibuffer-old-time 48)
-  (define-key ibuffer-mode-map (kbd "* f") #'ibuffer-mark-by-file-name-regexp)
-  (define-key ibuffer-mode-map (kbd "* g") #'ibuffer-mark-by-content-regexp) ; "g" is for "grep"
-  (define-key ibuffer-mode-map (kbd "* n") #'ibuffer-mark-by-name-regexp)
-  (define-key ibuffer-mode-map (kbd "s n") #'ibuffer-do-sort-by-alphabetic)  ; "sort name" mnemonic
-  (define-key ibuffer-mode-map (kbd "/ g") #'ibuffer-filter-by-content)
+(define-key ibuffer-mode-map (kbd "* f") #'ibuffer-mark-by-file-name-regexp)
+(define-key ibuffer-mode-map (kbd "* g") #'ibuffer-mark-by-content-regexp) ; "g" is for "grep"
+(define-key ibuffer-mode-map (kbd "* n") #'ibuffer-mark-by-name-regexp)
+(define-key ibuffer-mode-map (kbd "s n") #'ibuffer-do-sort-by-alphabetic)  ; "sort name" mnemonic
+(define-key ibuffer-mode-map (kbd "/ g") #'ibuffer-filter-by-content)
+(define-key ctl-x-map (kbd "C-b") 'ibuffer)
 
 (setq ibuffer-saved-filter-groups
       '(("default"
@@ -567,14 +599,14 @@
 (require 'corfu)
 
 (global-corfu-mode 1)
-(setq corfu-preselct-first nil
-      corfu-auto t
-      corfu-auto-delay 2
-      corfu-quit-no-match 'separator
-      corfu-quit-at-boundary nil
-      corfu-preview-current t
-      corfu-echo-documentation t
-      corfu-cycle t)
+(setq corfu-preselct-first nil	; disable candidate preselection
+      corfu-auto t			; enable auto completion
+      corfu-auto-delay 2		; delay for auto completion
+      corfu-quit-no-match 'separator	; stay alive when starting advanced match with corfu separator even if no match
+      corfu-quit-at-boundary nil	; don't quit at completion boundary
+      corfu-preview-current t		; enable candidate preview
+      corfu-echo-documentation t	; documentation in echo area
+      corfu-cycle t)			; enable cycling for corfu-next and corfu-previous
 
 (define-key corfu-map "?" #'minibuffer-completion-help)
 (define-key corfu-map (kbd "TAB") 'corfu-next)
@@ -608,17 +640,60 @@
 
 (add-hook 'c-mode-hook 'eglot-ensure)
 
+(let ((goplsdir (expand-file-name "lsp/gopls" user-emacs-directory)))
+  (unless (file-directory-p goplsdir)
+    (make-directory goplsdir t)
+    (setenv "GOPATH" goplsdir)
+    (shell-command "go install golang.org/x/tools/gopls@latest")))
+
+(add-hook 'go-mode-hook
+	  (progn
+	    (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/gopls" user-emacs-directory)))
+	    (setq exec-path (split-string (getenv "PATH") path-separator))
+	    (with-eval-after-load 'eglot
+	      (add-to-list 'eglot-server-programs '(go-mode "~/.cache/emacs/lsp/gopls/bin/gopls" "-verbose")))
+	    'eglot-ensure))
+
 (unless (package-installed-p 'go-mode)
   (package-refresh-contents)
   (package-install 'go-mode))
 
-(add-hook 'go-mode-hook
-	  (progn
-	    (setenv "PATH" (concat (getenv "PATH") ":" (getenv "HOME") "/go/bin"))
-	    (setq exec-path (split-string (getenv "PATH") path-separator))
-	    (with-eval-after-load 'eglot
-	      (push '(go-mode "~/go/bin/gopls" "-verbose") eglot-server-programs))
-	    'eglot-ensure))
+;;  The project package does not natively know about GOPATH or Go
+;;  modules. Fortunately, you can give it a custom hook to tell it to
+;;  look for the nearest parent go.mod file (that is, the root of the
+;;  Go module) as the project root
+(require 'project)
+(defun project-find-go-module (dir)
+  (when-let ((root (locate-dominating-file dir "go.mod")))
+    (cons 'go-module root)))
+(cl-defmethod project-root ((project (head go-module)))
+  (cdr project))
+(add-hook 'project-find-functions #'project-find-go-module)
+
+
+;; Optional: install eglot-format-buffer as a save hook.
+;; The depth of -10 places this before eglot's willSave notification,
+;; so that that notification reports the actual contents that will be saved.
+(defun eglot-format-buffer-on-save ()
+  (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
+(add-hook 'go-mode-hook #'eglot-format-buffer-on-save)
+
+(let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory)))
+  (unless (file-directory-p jdtlsdir)
+    (make-directory jdtlsdir t)
+    (url-retrieve "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz"
+		  (lambda (s)
+		    (re-search-forward "\r?\n\r?\n")
+		    (write-region (point) (point-max) "/tmp/jdtls.tar.gz")))
+    (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C" jdtlsdir))))
+
+(add-hook 'java-mode-hook
+	       (progn
+		(setenv "PATH" (concat (getenv "PATH") ":" "/usr/local/jdk-17/bin"))
+		(setenv "JAVA_HOME" "/usr/local/jdk-17/bin")
+		 (with-eval-after-load 'eglot
+		   (add-to-list 'eglot-server-programs '(java-mode "~/.cache/emacs/lsp/jdtls/bin/jdtls" "-verbose")))
+		 'eglot-ensure))
 
 (setq eldoc-echo-area-display-truncation-message t
       eldoc-echo-area-use-multiline-p t
@@ -751,26 +826,19 @@
 
 (defvar my-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<SPC>") 'just-one-space) ; restore original mapping for M-SPC
-    (define-key map (kbd "i") 'imenu)
-    (define-key map (kbd ";") 'comment-line)
-    (define-key map (kbd "o") 'my-other-window)
 
-    ;; buffers
-    (define-key map (kbd "b 0") 'kill-buffer-and-window)
-    (define-key map (kbd "b b") 'switch-to-buffer)
-    (define-key map (kbd "b c") 'clean-buffer-list)
-    (define-key map (kbd "b i") 'ibuffer)
-    (define-key map (kbd "b k") 'kill-this-buffer)
-    (define-key map (kbd "b n") 'next-buffer)
-    (define-key map (kbd "b p") 'previous-buffer)
-    (define-key map (kbd "b r") 'my-rename-current-buffer-file)
-    (define-key map (kbd "b s") 'save-buffer)
+    ;; restore original mapping for M-SPC
+    (define-key map (kbd "<SPC>") 'just-one-space)
 
-    ;; files
-    (define-key map (kbd "f f") 'find-file)
-    (define-key map (kbd "f o") 'find-file-other-window)
-    (define-key map (kbd "f r") 'recentf-open-files)
+    ;; altErnate/new binding for some commands
+    (define-key map (kbd "a i") 'imenu)
+    (define-key map (kbd "a r") 'recentf-open-files)
+
+    ;; grep
+    (define-key map (kbd "g g") 'grep)
+    (define-key map (kbd "g f") 'grep-find)
+    (define-key map (kbd "g r") 'rgrep)	; interactive grep-find
+    (define-key map (kbd "g z") 'zgrep)
 
     ;; lsp
     (define-key map (kbd "l a") 'eglot-code-actions)
@@ -783,8 +851,6 @@
     (define-key map (kbd "e b") 'embark-become)
 
     ;; windows
-    (define-key map (kbd "w 0") 'delete-window)
-    (define-key map (kbd "w 1") 'delete-other-windows)
     (define-key map (kbd "w r") 'my-rotate-windows)
     (define-key map (kbd "w t") 'my-toggle-window-split)
     (define-key map (kbd "w b") 'my-split-below)
