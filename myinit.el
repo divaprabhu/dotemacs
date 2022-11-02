@@ -627,6 +627,12 @@
       eglot-confirm-server-initiated-edits nil
       eglot-extend-to-xref t)
 
+(let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
+  (unless (file-directory-p pylspdir)
+    (make-directory pylspdir t)
+    (shell-command (concat "python3 -m venv " pylspdir))
+    (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))
+
 (unless (package-installed-p 'pyvenv)
   (package-refresh-contents)
   (package-install 'pyvenv))
@@ -635,7 +641,7 @@
 (add-hook 'python-mode-hook
 	  (progn
 	    (with-eval-after-load 'eglot
-	      (push '(python-mode "~/.cache/venv/lsp/bin/pylsp" "--verbose") eglot-server-programs))
+	      (push '(python-mode "~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose") eglot-server-programs))
 	    'eglot-ensure))
 
 (add-hook 'c-mode-hook 'eglot-ensure)
@@ -684,16 +690,16 @@
     (url-retrieve "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz"
 		  (lambda (s)
 		    (re-search-forward "\r?\n\r?\n")
-		    (write-region (point) (point-max) "/tmp/jdtls.tar.gz")))
-    (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C" jdtlsdir))))
+		    (write-region (point) (point-max) "/tmp/jdtls.tar.gz"))
+		  (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  (expand-file-name "lsp/jdtls" user-emacs-directory))))))
 
 (add-hook 'java-mode-hook
-	       (progn
-		(setenv "PATH" (concat (getenv "PATH") ":" "/usr/local/jdk-17/bin"))
-		(setenv "JAVA_HOME" "/usr/local/jdk-17/bin")
-		 (with-eval-after-load 'eglot
-		   (add-to-list 'eglot-server-programs '(java-mode "~/.cache/emacs/lsp/jdtls/bin/jdtls" "-verbose")))
-		 'eglot-ensure))
+	  (progn
+	    (setenv "PATH" (concat (getenv "PATH") ":" "/usr/local/jdk-17/bin"))
+	    (setenv "JAVA_HOME" "/usr/local/jdk-17")
+	    (with-eval-after-load 'eglot
+	      (add-to-list 'eglot-server-programs '(java-mode "~/.cache/emacs/lsp/jdtls/bin/jdtls" "-verbose")))
+	    'eglot-ensure))
 
 (setq eldoc-echo-area-display-truncation-message t
       eldoc-echo-area-use-multiline-p t
