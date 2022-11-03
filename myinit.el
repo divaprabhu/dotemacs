@@ -719,6 +719,12 @@
 (require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-mode))
 
+(unless (package-installed-p 'neotree)
+  (package-refresh-contents)
+  (package-install 'neotree))
+(setq neo-smart-open t			; jump to current file open
+      )
+
 (defun my-move-line-down ()
   (interactive)
   (let ((col (current-column)))
@@ -836,8 +842,11 @@
     ;; restore original mapping for M-SPC
     (define-key map (kbd "<SPC>") 'just-one-space)
 
-    ;; altErnate/new binding for some commands
+    ;; Core Emacs Bindings
+    (define-key map (kbd "a b") 'switch-to-buffer)
+    (define-key map (kbd "a f") 'find-file-at-point)
     (define-key map (kbd "a i") 'imenu)
+    (define-key map (kbd "a t") 'neotree-toggle)
     (define-key map (kbd "a r") 'recentf-open-files)
 
     ;; grep
@@ -857,10 +866,11 @@
     (define-key map (kbd "e b") 'embark-become)
 
     ;; windows
-    (define-key map (kbd "w r") 'my-rotate-windows)
-    (define-key map (kbd "w t") 'my-toggle-window-split)
     (define-key map (kbd "w b") 'my-split-below)
     (define-key map (kbd "w d") 'my-toggle-window-dedication)
+    (define-key map (kbd "w o") 'my-other-window)
+    (define-key map (kbd "w r") 'my-rotate-windows)
+    (define-key map (kbd "w t") 'my-toggle-window-split)
     map))
 
 (global-set-key (kbd "M-<SPC>") my-mode-map)
