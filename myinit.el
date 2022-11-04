@@ -6,10 +6,10 @@
 (setq inhibit-startup-screen t)
 
 (fset 'yes-or-no-p 'y-or-n-p)
-    (setq confirm-nonexistent-file-or-buffer nil)
+(setq confirm-nonexistent-file-or-buffer nil)
 (setq kill-buffer-query-functions
-  (remq 'process-kill-buffer-query-function
-	 kill-buffer-query-functions))
+      (remq 'process-kill-buffer-query-function
+	    kill-buffer-query-functions))
 
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
@@ -22,7 +22,7 @@
 		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
 (add-to-list 'package-archives
-		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+	     '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 
 (unless package-archive-contents
   (package-refresh-contents))
@@ -77,10 +77,10 @@
 (global-set-key (kbd "C-_") 'er/contract-region)
 
 (defun kill-region-or-backward-word ()
-   (interactive)
-   (if (region-active-p)
-       (kill-region (region-beginning) (region-end))
-     (backward-kill-word 1)))
+  (interactive)
+  (if (region-active-p)
+      (kill-region (region-beginning) (region-end))
+    (backward-kill-word 1)))
 (global-set-key (kbd "C-w") 'kill-region-or-backward-word)
 
 (setq kill-do-not-save-duplicates t)
@@ -213,7 +213,7 @@
 	 (side . bottom)
 	 (window-height . 0.4)
 	 (slot . 0))
-	("\\*\\(Python\\).*"
+	("\\*\\(Python\\|ielm\\).*"
 	 (display-buffer-in-side-window)
 	 (side . bottom)
 	 (window-height . 0.4)
@@ -303,6 +303,29 @@
 (setq gdb-many-windows t)
 
 (setq initial-scratch-message nil)
+
+(defun efs/ielm-send-line-or-region ()
+  (interactive)
+  (unless (use-region-p)
+    (forward-line 0)
+    (set-mark-command nil)
+    (forward-line 1))
+  (backward-char 1)
+  (let ((text (buffer-substring-no-properties (region-beginning)
+					      (region-end))))
+    (with-current-buffer "*ielm*"
+      (insert text)
+      (ielm-send-input))
+
+    (deactivate-mark)))
+
+(defun efs/show-ielm ()
+  (interactive)
+  (select-window (split-window-vertically -10))
+  (ielm)
+  (text-scale-set 1))
+
+(define-key org-mode-map (kbd "C-M-x") 'efs/ielm-send-line-or-region)
 
 (setq vc-follow-symlinks t)
 (setq vc-command-messages t)
@@ -418,19 +441,19 @@
 (gnus-add-configuration
  '(article
    (horizontal 1.0
-	   (vertical 0.25
-		 (group 1.0))
-	   (vertical 1.0
-		 (summary 0.25 point)
-		 (article 1.0)))))
+	       (vertical 0.25
+			 (group 1.0))
+	       (vertical 1.0
+			 (summary 0.25 point)
+			 (article 1.0)))))
 
 (gnus-add-configuration
  '(summary
    (horizontal 1.0
-	   (vertical 0.25
-		 (group 1.0))
-	   (vertical 1.0
-		 (summary 1.0 point)))))
+	       (vertical 0.25
+			 (group 1.0))
+	       (vertical 1.0
+			 (summary 1.0 point)))))
 
 (setq epg-pinentry-mode 'loopback)
 
@@ -843,11 +866,11 @@
     (define-key map (kbd "<SPC>") 'just-one-space)
 
     ;; Core Emacs Bindings
-    (define-key map (kbd "a b") 'switch-to-buffer)
-    (define-key map (kbd "a f") 'find-file-at-point)
-    (define-key map (kbd "a i") 'imenu)
-    (define-key map (kbd "a t") 'neotree-toggle)
-    (define-key map (kbd "a r") 'recentf-open-files)
+    (define-key map (kbd "b") 'switch-to-buffer)
+    (define-key map (kbd "f") 'find-file-at-point)
+    (define-key map (kbd "i") 'imenu)
+    (define-key map (kbd "t") 'neotree-toggle)
+    (define-key map (kbd "r") 'recentf-open-files)
 
     ;; grep
     (define-key map (kbd "g g") 'grep)
