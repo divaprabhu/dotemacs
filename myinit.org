@@ -1950,7 +1950,7 @@ major modes, which are used for editing or interacting with a
 particular kind of text. Each buffer has exactly one major mode at a
 time.
 
-FUNDAMENTAL MODE is the least specialized major mode. In Fundamental
+FUNDAMENTL MODE is the least specialized major mode. In Fundamental
 mode , every Emacs command behaves in its most general manner
 PROG MODE is for working with programming language source code.
 TEXT MODE is used for working with human languages (as opposed to programming
@@ -3765,6 +3765,9 @@ Linebreaks
 #+end_src
 
 * Evil
+:PROPERTIES:
+:ORDERED:  t
+:END:
   - VIM emulation in Emacs
     |-------+-------------------------------------------------------------------|
     | *C-z* | toggle evil state. Modeline shows <E> for emacs                   |
@@ -3777,23 +3780,23 @@ Linebreaks
     |-------+-------------------------------------------------------------------|
 
     - Settings
-    #+begin_src
+    #+begin_src emacs-lisp
       (unless (package-installed-p 'evil)
 	(package-refresh-contents)
 	(package-install 'evil))
 
-      (unless (package-installed-p 'goto-chg)
-	(package-refresh-contents)
-	(package-install 'goto-chg))
+      ;; (unless (package-installed-p 'goto-chg)
+      ;;   (package-refresh-contents)
+      ;;   (package-install 'goto-chg))
 
       ;; (unless (package-installed-p 'evil-collection)
       ;;   (package-refresh-contents)
       ;;   (package-install 'evil-collection))
 
       (setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
-	    evil-want-C-u-scroll        t        ; C-u scroll up in normal mode
+	    evil-want-C-u-scroll t               ; C-u scroll up in normal mode
 	    evil-move-beyond-eol t               ; move one char beyond end of line
-	    evil-cross-lines        t            ; motions like h, l, f can go to next/prev line
+	    evil-cross-lines t                   ; motions like h, l, f can go to next/prev line
 	    evil-respect-visual-line-mode t      ; respect visual-line-mode so that j, k move by visual lines
 	    evil-show-paren-range 1              ; distance from parenthesis to highlight it
 	    evil-want-fine-undo t                ; use Emacs heuristics for undo
@@ -3803,6 +3806,9 @@ Linebreaks
 	    )
 					      ; load evil
       (require 'evil)
+      (add-hook 'prog-mode-hook 'turn-on-evil-mode)
+      (add-hook 'text-mode-hook 'turn-on-evil-mode)
+
       ;; (evil-mode 1)
       ;; (evil-collection-init)
 
@@ -4401,11 +4407,9 @@ Create a .dir-locals.el file in root of folder with contents like
       (define-key map (kbd "<SPC>") 'just-one-space)
 
       ;; Core Emacs Bindings
-      (define-key map (kbd "b") 'switch-to-buffer)
-      (define-key map (kbd "f") 'find-file-at-point)
-      (define-key map (kbd "i") 'imenu)
-      (define-key map (kbd "t") 'neotree-toggle)
-      (define-key map (kbd "r") 'recentf-open-files)
+      (define-key map (kbd "a i") 'imenu)
+      (define-key map (kbd "a t") 'neotree-toggle)
+      (define-key map (kbd "a r") 'recentf-open-files)
 
       ;; grep
       (define-key map (kbd "g g") 'grep)
