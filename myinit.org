@@ -5,6 +5,10 @@ This avoid litter and helps version control only config files.
   (setq custom-file (concat user-emacs-directory "custom.el"))
   (when (file-exists-p custom-file)
     (load custom-file))
+  (when (boundp 'native-comp-eln-load-path)
+    (setcar native-comp-eln-load-path
+	    (expand-file-name (convert-standard-filename "eln-cache/")
+			      user-emacs-directory)))
 #+end_src
 
   - Hide startup screen
@@ -3789,9 +3793,9 @@ Linebreaks
       ;;   (package-refresh-contents)
       ;;   (package-install 'goto-chg))
 
-      ;; (unless (package-installed-p 'evil-collection)
-      ;;   (package-refresh-contents)
-      ;;   (package-install 'evil-collection))
+      (unless (package-installed-p 'evil-collection)
+	(package-refresh-contents)
+	(package-install 'evil-collection))
 
       (setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
 	    evil-want-C-u-scroll t               ; C-u scroll up in normal mode
@@ -3806,23 +3810,13 @@ Linebreaks
 	    )
 					      ; load evil
       (require 'evil)
+      (evil-set-undo-system 'undo-redo)          ; native to Emacs 28
+
       (add-hook 'prog-mode-hook 'turn-on-evil-mode)
       (add-hook 'text-mode-hook 'turn-on-evil-mode)
-
+      (evil-collection-init '(corfu dired ediff eglot eldoc flymake go-mode neotree org python restclient unimpaired vc-annotate vc-dir vc-git xref youtube-dl))
       ;; (evil-mode 1)
       ;; (evil-collection-init)
-
-      (if (>= emacs-major-version 28)
-	  (setq evil-undo-system 'undo-redo)          ; native to Emacs 28
-	(progn
-	  (unless (package-installed-p 'undo-tree)
-	    (package-refresh-contents)
-	    (package-install 'undo-tree))
-	  (add-hook 'evil-local-mode-hook 'undo-tree-mode)
-	  (setq undo-tree-visualizer-diff t
-		undo-tree-visualizer-timestamps t
-		undo-tree-history-directory-alist '(("." . "~/.cache/emacs/undo/"))
-		evil-undo-system 'undo-tree)))
 
     #+end_src
 
@@ -4071,7 +4065,7 @@ Linebreaks
   (global-corfu-mode 1)
   (setq corfu-preselct-first nil	; disable candidate preselection
 	corfu-auto t			; enable auto completion
-	corfu-auto-delay 2		; delay for auto completion
+	corfu-auto-delay 1		; delay for auto completion
 	corfu-quit-no-match 'separator	; stay alive when starting advanced match with corfu separator even if no match
 	corfu-quit-at-boundary nil	; don't quit at completion boundary
 	corfu-preview-current t		; enable candidate preview
@@ -4181,11 +4175,8 @@ Create a .dir-locals.el file in root of folder with contents like
   (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory)))
     (unless (file-directory-p jdtlsdir)
       (make-directory jdtlsdir t)
-      (url-retrieve "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz"
-		    (lambda (s)
-		      (re-search-forward "\r?\n\r?\n")
-		      (write-region (point) (point-max) "/tmp/jdtls.tar.gz"))
-		    (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  (expand-file-name "lsp/jdtls" user-emacs-directory))))))
+      (url-copy-file "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz" "/tmp/jdtls.tar.gz" t t)
+      (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  (expand-file-name "lsp/jdtls" user-emacs-directory)))))
 
   (add-hook 'java-mode-hook
 	    (progn
@@ -4232,7 +4223,7 @@ Create a .dir-locals.el file in root of folder with contents like
       (package-refresh-contents)
       (package-install 'pyvenv))
     (add-hook 'python-mode-hook #'lsp)
-#+end_src
+      #+end_src
 * Eldoc
 #+begin_src emacs-lisp
   (setq eldoc-echo-area-display-truncation-message t
@@ -4241,23 +4232,23 @@ Create a .dir-locals.el file in root of folder with contents like
 #+end_src
 
 * Yasnippet
-  - Use tab key for snippet completion
-    |-----------+--------------------------------------------------|
-    | TAB       | yas-next-field-or-maybe-expand                   |
-    | C-c & C-n | yas-new-snippet (allows to write new snippet)    |
-    | C-c & C-s | yas-insert-snippet (chose a snippet to expand)   |
-    | C-c & C-v | yas-visit-snippet-file (chose a snippet to edit) |
-    |           |                                                  |
+- Use tab key for snippet completion
+  |-----------+--------------------------------------------------|
+  | TAB       | yas-next-field-or-maybe-expand                   |
+  | C-c & C-n | yas-new-snippet (allows to write new snippet)    |
+  | C-c & C-s | yas-insert-snippet (chose a snippet to expand)   |
+  | C-c & C-v | yas-visit-snippet-file (chose a snippet to edit) |
+  |           |                                                  |
 
-    #+begin_src emacs-lisp
-      (unless (package-installed-p 'yasnippet)
-	(package-refresh-contents)
-	(package-install 'yasnippet)
-	(package-install 'yasnippet-snippets))
-      (require 'yasnippet)
-      (yas-reload-all)
-      (add-hook 'prog-mode-hook #'yas-minor-mode)
-    #+end_src
+  #+begin_src emacs-lisp
+    (unless (package-installed-p 'yasnippet)
+      (package-refresh-contents)
+      (package-install 'yasnippet)
+      (package-install 'yasnippet-snippets))
+    (require 'yasnippet)
+    (yas-reload-all)
+    (add-hook 'prog-mode-hook #'yas-minor-mode)
+  #+end_src
 
 * YAML Mode
 #+begin_src emacs-lisp
@@ -4277,6 +4268,15 @@ Create a .dir-locals.el file in root of folder with contents like
 	)
 #+end_src
 
+* Youtube-dl
+#+begin_src emacs-lisp
+  (unless (package-installed-p 'ytdl)
+    (package-refresh-contents)
+    (package-install 'ytdl))
+  (require 'ytdl)
+
+
+#+end_src
 * Useful functions
 [[http://whattheemacsd.com/][Move Lines]]
 #+begin_src emacs-lisp
