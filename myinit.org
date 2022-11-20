@@ -84,7 +84,7 @@ This avoid litter and helps version control only config files.
 		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
     (add-to-list 'package-archives
-		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+		 '("melpa" . "https://melpa.org/packages/") t)
 
     (unless package-archive-contents
       (package-refresh-contents))
@@ -4274,9 +4274,15 @@ Create a .dir-locals.el file in root of folder with contents like
     (package-refresh-contents)
     (package-install 'ytdl))
   (require 'ytdl)
-
-
 #+end_src
+
+* EIN (Jupyter Notebook)
+#+begin_src emacs-lisp
+  (unless (package-installed-p 'ein)
+    (package-refresh-contents)
+    (package-install 'ein))
+#+end_src
+
 * Useful functions
 [[http://whattheemacsd.com/][Move Lines]]
 #+begin_src emacs-lisp

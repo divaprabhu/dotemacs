@@ -2,6 +2,10 @@
 (setq custom-file (concat user-emacs-directory "custom.el"))
 (when (file-exists-p custom-file)
   (load custom-file))
+(when (boundp 'native-comp-eln-load-path)
+  (setcar native-comp-eln-load-path
+	  (expand-file-name (convert-standard-filename "eln-cache/")
+			    user-emacs-directory)))
 
 (setq inhibit-startup-screen t)
 
@@ -22,7 +26,7 @@
 		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
 (add-to-list 'package-archives
-	     '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+	     '("melpa" . "https://melpa.org/packages/") t)
 
 (unless package-archive-contents
   (package-refresh-contents))
@@ -492,9 +496,9 @@
 ;;   (package-refresh-contents)
 ;;   (package-install 'goto-chg))
 
-;; (unless (package-installed-p 'evil-collection)
-;;   (package-refresh-contents)
-;;   (package-install 'evil-collection))
+(unless (package-installed-p 'evil-collection)
+  (package-refresh-contents)
+  (package-install 'evil-collection))
 
 (setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
       evil-want-C-u-scroll t               ; C-u scroll up in normal mode
@@ -509,23 +513,13 @@
       )
 					; load evil
 (require 'evil)
+(evil-set-undo-system 'undo-redo)          ; native to Emacs 28
+
 (add-hook 'prog-mode-hook 'turn-on-evil-mode)
 (add-hook 'text-mode-hook 'turn-on-evil-mode)
-
+(evil-collection-init '(corfu dired ediff eglot eldoc flymake go-mode neotree org python restclient unimpaired vc-annotate vc-dir vc-git xref youtube-dl))
 ;; (evil-mode 1)
 ;; (evil-collection-init)
-
-(if (>= emacs-major-version 28)
-    (setq evil-undo-system 'undo-redo)          ; native to Emacs 28
-  (progn
-    (unless (package-installed-p 'undo-tree)
-      (package-refresh-contents)
-      (package-install 'undo-tree))
-    (add-hook 'evil-local-mode-hook 'undo-tree-mode)
-    (setq undo-tree-visualizer-diff t
-	  undo-tree-visualizer-timestamps t
-	  undo-tree-history-directory-alist '(("." . "~/.cache/emacs/undo/"))
-	  evil-undo-system 'undo-tree)))
 
 (require 'ibuffer)
 (setq ibuffer-expert t
@@ -667,7 +661,7 @@
 (global-corfu-mode 1)
 (setq corfu-preselct-first nil	; disable candidate preselection
       corfu-auto t			; enable auto completion
-      corfu-auto-delay 2		; delay for auto completion
+      corfu-auto-delay 1		; delay for auto completion
       corfu-quit-no-match 'separator	; stay alive when starting advanced match with corfu separator even if no match
       corfu-quit-at-boundary nil	; don't quit at completion boundary
       corfu-preview-current t		; enable candidate preview
@@ -753,11 +747,8 @@
 (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory)))
   (unless (file-directory-p jdtlsdir)
     (make-directory jdtlsdir t)
-    (url-retrieve "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz"
-		  (lambda (s)
-		    (re-search-forward "\r?\n\r?\n")
-		    (write-region (point) (point-max) "/tmp/jdtls.tar.gz"))
-		  (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  (expand-file-name "lsp/jdtls" user-emacs-directory))))))
+    (url-copy-file "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz" "/tmp/jdtls.tar.gz" t t)
+    (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  (expand-file-name "lsp/jdtls" user-emacs-directory)))))
 
 (add-hook 'java-mode-hook
 	  (progn
@@ -790,6 +781,15 @@
   (package-install 'neotree))
 (setq neo-smart-open t			; jump to current file open
       )
+
+(unless (package-installed-p 'ytdl)
+  (package-refresh-contents)
+  (package-install 'ytdl))
+(require 'ytdl)
+
+(unless (package-installed-p 'ein)
+  (package-refresh-contents)
+  (package-install 'ein))
 
 (defun my-move-line-down ()
   (interactive)
