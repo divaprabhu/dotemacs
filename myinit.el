@@ -488,39 +488,6 @@
 			      (t . (monochrome ))))
 (load-theme 'modus-vivendi t)
 
-(unless (package-installed-p 'evil)
-  (package-refresh-contents)
-  (package-install 'evil))
-
-;; (unless (package-installed-p 'goto-chg)
-;;   (package-refresh-contents)
-;;   (package-install 'goto-chg))
-
-(unless (package-installed-p 'evil-collection)
-  (package-refresh-contents)
-  (package-install 'evil-collection))
-
-(setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
-      evil-want-C-u-scroll t               ; C-u scroll up in normal mode
-      evil-move-beyond-eol t               ; move one char beyond end of line
-      evil-cross-lines t                   ; motions like h, l, f can go to next/prev line
-      evil-respect-visual-line-mode t      ; respect visual-line-mode so that j, k move by visual lines
-      evil-show-paren-range 1              ; distance from parenthesis to highlight it
-      evil-want-fine-undo t                ; use Emacs heuristics for undo
-      evil-disable-insert-state-bindings t ; use emacs bindings in insert mode
-      evil-want-keybinding nil             ; required for evil-collection
-      evil-want-integration t              ; required for evil-collection
-      )
-					; load evil
-(require 'evil)
-(evil-set-undo-system 'undo-redo)          ; native to Emacs 28
-
-(add-hook 'prog-mode-hook 'turn-on-evil-mode)
-(add-hook 'text-mode-hook 'turn-on-evil-mode)
-(evil-collection-init '(corfu dired ediff eglot eldoc flymake go-mode neotree org python restclient unimpaired vc-annotate vc-dir vc-git xref youtube-dl))
-;; (evil-mode 1)
-;; (evil-collection-init)
-
 (require 'ibuffer)
 (setq ibuffer-expert t
       ibuffer-display-summary nil
@@ -786,10 +753,9 @@
   (package-refresh-contents)
   (package-install 'ytdl))
 (require 'ytdl)
-
-(unless (package-installed-p 'ein)
-  (package-refresh-contents)
-  (package-install 'ein))
+(setq ytdl-always-query-default-filename 'yes-confirm
+      ytdl-music-folder "~/Downloads/Music"
+      ytdl-video-folder "~/Downloads/Videos")
 
 (defun my-move-line-down ()
   (interactive)

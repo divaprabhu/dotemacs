@@ -3784,7 +3784,7 @@ Linebreaks
     |-------+-------------------------------------------------------------------|
 
     - Settings
-    #+begin_src emacs-lisp
+    #+begin_src
       (unless (package-installed-p 'evil)
 	(package-refresh-contents)
 	(package-install 'evil))
@@ -4274,14 +4274,11 @@ Create a .dir-locals.el file in root of folder with contents like
     (package-refresh-contents)
     (package-install 'ytdl))
   (require 'ytdl)
+  (setq ytdl-always-query-default-filename 'yes-confirm
+	ytdl-music-folder "~/Downloads/Music"
+	ytdl-video-folder "~/Downloads/Videos")
 #+end_src
 
-* EIN (Jupyter Notebook)
-#+begin_src emacs-lisp
-  (unless (package-installed-p 'ein)
-    (package-refresh-contents)
-    (package-install 'ein))
-#+end_src
 
 * Useful functions
 [[http://whattheemacsd.com/][Move Lines]]
