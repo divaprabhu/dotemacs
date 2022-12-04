@@ -153,6 +153,9 @@
 
 (setq delete-by-moving-to-trash t)
 
+(require 'tramp)
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+
 (setq completion-styles '(initials partial-completion flex basic))
 (if (>= emacs-major-version 29)
     (progn
@@ -711,19 +714,25 @@
   (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
 (add-hook 'go-mode-hook #'eglot-format-buffer-on-save)
 
-(let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory)))
-  (unless (file-directory-p jdtlsdir)
-    (make-directory jdtlsdir t)
-    (url-copy-file "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz" "/tmp/jdtls.tar.gz" t t)
-    (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  (expand-file-name "lsp/jdtls" user-emacs-directory)))))
+;; (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory)))
+;;   (unless (file-directory-p jdtlsdir)
+;;     (make-directory jdtlsdir t)
+;;     (url-copy-file "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz" "/tmp/jdtls.tar.gz" t t)
+;;     (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  (expand-file-name "lsp/jdtls" user-emacs-directory)))))
 
-(add-hook 'java-mode-hook
-	  (progn
-	    (setenv "PATH" (concat (getenv "PATH") ":" "/usr/local/jdk-17/bin"))
-	    (setenv "JAVA_HOME" "/usr/local/jdk-17")
-	    (with-eval-after-load 'eglot
-	      (add-to-list 'eglot-server-programs '(java-mode "~/.cache/emacs/lsp/jdtls/bin/jdtls" "-verbose")))
-	    'eglot-ensure))
+;; (add-hook 'java-mode-hook
+;; 	  (progn
+;; 	    (setenv "PATH" (concat (getenv "PATH") ":" "/usr/local/jdk-17/bin"))
+;; 	    (setenv "PATH" (concat (getenv "PATH") ":" "~/.cache/emacs/lsp/jdtls/bin"))
+;; 	    (add-to-list 'tramp-remote-path "~/.cache/emacs/lsp/jdtls/bin")
+;; 	    (with-eval-after-load 'eglot
+;; 	      (add-to-list 'eglot-server-programs '(java-mode "jdtls" "-verbose")))
+;; 	    'eglot-ensure))
+
+(unless (package-installed-p 'eglot-java)
+  (package-refresh-contents)
+  (package-install 'eglot-java))
+(add-hook 'java-mode-hook 'eglot-java-mode)
 
 (setq eldoc-echo-area-display-truncation-message t
       eldoc-echo-area-use-multiline-p t
