@@ -84,7 +84,7 @@ This avoid litter and helps version control only config files.
 		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
     (add-to-list 'package-archives
-		 '("melpa" . "https://melpa.org/packages/") t)
+		 '("melpa" . "https://stable.melpa.org/packages/") t)
 
     (unless package-archive-contents
       (package-refresh-contents))
@@ -2605,28 +2605,28 @@ preceding line.
 
 [[https://github.com/daviwil/emacs-from-scratch/blob/master/show-notes/Emacs-Lisp-02.org][Emacs-Lisp-02]]
 #+begin_src emacs-lisp
-     (defun efs/ielm-send-line-or-region ()
-       (interactive)
-       (unless (use-region-p)
-	 (forward-line 0)
-	 (set-mark-command nil)
-	 (forward-line 1))
-       (backward-char 1)
-       (let ((text (buffer-substring-no-properties (region-beginning)
-						   (region-end))))
-	 (with-current-buffer "*ielm*"
-	   (insert text)
-	   (ielm-send-input))
+  (defun efs/ielm-send-line-or-region ()
+    (interactive)
+    (unless (use-region-p)
+      (forward-line 0)
+      (set-mark-command nil)
+      (forward-line 1))
+    (backward-char 1)
+    (let ((text (buffer-substring-no-properties (region-beginning)
+						(region-end))))
+      (with-current-buffer "*ielm*"
+	(insert text)
+	(ielm-send-input))
 
-	 (deactivate-mark)))
+      (deactivate-mark)))
 
-     (defun efs/show-ielm ()
-       (interactive)
-       (select-window (split-window-vertically -10))
-       (ielm)
-       (text-scale-set 1))
+  (defun efs/show-ielm ()
+    (interactive)
+    (select-window (split-window-vertically -10))
+    (ielm)
+    (text-scale-set 1))
 
-     (define-key org-mode-map (kbd "C-M-x") 'efs/ielm-send-line-or-region)
+  (define-key org-mode-map (kbd "C-M-x") 'efs/ielm-send-line-or-region)
    #+end_src
 * Maintaining
 ** Version Control
@@ -4177,23 +4177,29 @@ Create a .dir-locals.el file in root of folder with contents like
 
 ** Java
 #+begin_src emacs-lisp
-  ;; (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory)))
-  ;;   (unless (file-directory-p jdtlsdir)
-  ;;     (make-directory jdtlsdir t)
-  ;;     (url-copy-file "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz" "/tmp/jdtls.tar.gz" t t)
-  ;;     (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  (expand-file-name "lsp/jdtls" user-emacs-directory)))))
+  (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory))
+	(mvndir (expand-file-name "lsp/mvn" user-emacs-directory)))
+    (unless (file-directory-p jdtlsdir)
+      (make-directory jdtlsdir t)
+      (url-copy-file "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz" "/tmp/jdtls.tar.gz" t t)
+      (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  jdtlsdir)))
+    (unless (file-directory-p mvndir)
+      (make-directory mvndir t)
+      (url-copy-file "https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz" "/tmp/mvn.tar.gz" t t)
+      (shell-command (concat "tar -xzf /tmp/mvn.tar.gz -C"  mvndir))))
 
-  ;; (add-hook 'java-mode-hook
-  ;; 	  (progn
-  ;; 	    (setenv "PATH" (concat (getenv "PATH") ":" "/usr/local/jdk-17/bin"))
-  ;; 	    (setenv "PATH" (concat (getenv "PATH") ":" "~/.cache/emacs/lsp/jdtls/bin"))
-  ;; 	    (add-to-list 'tramp-remote-path "~/.cache/emacs/lsp/jdtls/bin")
-  ;; 	    (with-eval-after-load 'eglot
-  ;; 	      (add-to-list 'eglot-server-programs '(java-mode "jdtls" "-verbose")))
-  ;; 	    'eglot-ensure))
+  (add-hook 'java-mode-hook
+	    (progn
+	      (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory))
+		    (mvndir (expand-file-name "lsp/mvn" user-emacs-directory)))
+		(add-to-list 'tramp-remote-path "~/.cache/emacs/lsp/jdtls/bin")
+		(with-eval-after-load 'eglot
+		  (add-to-list 'eglot-server-programs '(java-mode "~/.cache/emacs/lsp/jdtls/bin/jdtls" "-verbose"))
+		  (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "apache-maven-3.8.6/bin" mvndir)))
+		  'eglot-ensure))))
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src
   (unless (package-installed-p 'eglot-java)
     (package-refresh-contents)
     (package-install 'eglot-java))
@@ -4202,32 +4208,32 @@ Create a .dir-locals.el file in root of folder with contents like
 
 * LSP Mode
 #+begin_src
-    (unless (package-installed-p 'lsp-mode)
-      (package-refresh-contents)
-      (package-install 'lsp-mode))
+  (unless (package-installed-p 'lsp-mode)
+    (package-refresh-contents)
+    (package-install 'lsp-mode))
 
-    (setq lsp-keymap-prefix "C-c l"
-	  lsp-idle-delay 0.5
-	  lsp-log-io nil
-	  lsp-modeline-diagnostics-mode t
-	  lsp-modeline-code-actions-segments '(count icon name))
-    (require 'lsp-mode)
-    (add-hook 'lsp-mode-hook 'lsp-enable-which-key-integration)
+  (setq lsp-keymap-prefix "C-c l"
+	lsp-idle-delay 0.5
+	lsp-log-io nil
+	lsp-modeline-diagnostics-mode t
+	lsp-modeline-code-actions-segments '(count icon name))
+  (require 'lsp-mode)
+  (add-hook 'lsp-mode-hook 'lsp-enable-which-key-integration)
 
-    (unless (package-installed-p 'lsp-ui)
-      (package-refresh-contents)
-      (package-install 'lsp-ui))
-    (require 'lsp-ui)
+  ;; (unless (package-installed-p 'lsp-ui)
+  ;;   (package-refresh-contents)
+  ;;   (package-install 'lsp-ui))
+  ;; (require 'lsp-ui)
 
-    (setq lsp-ui-sideline-show-diagnostics t
-	  lsp-ui-sideline-show-hover t
-	  lsp-ui-sideline-update-mode 'line
-	  lsp-ui-sideline-delay 0.5
-	  lsp-ui-doc-enable t
-	  lsp-ui-doc-delay 0.5
-	  lsp-ui-doc-show-with-cursor t
-	  lsp-ui-doc-show-with-mouse t)
-    (lsp-ui-mode 1)
+  ;; (setq lsp-ui-sideline-show-diagnostics t
+  ;;       lsp-ui-sideline-show-hover t
+  ;;       lsp-ui-sideline-update-mode 'line
+  ;;       lsp-ui-sideline-delay 0.5
+  ;;       lsp-ui-doc-enable t
+  ;;       lsp-ui-doc-delay 0.5
+  ;;       lsp-ui-doc-show-with-cursor t
+  ;;       lsp-ui-doc-show-with-mouse t)
+  ;; (lsp-ui-mode 1)
 #+end_src
 
 ** Python
@@ -4235,8 +4241,16 @@ Create a .dir-locals.el file in root of folder with contents like
     (unless (package-installed-p 'pyvenv)
       (package-refresh-contents)
       (package-install 'pyvenv))
-    (add-hook 'python-mode-hook #'lsp)
-      #+end_src
+    (add-hook 'python-mode-hook #'lsp-deferred)
+#+end_src
+
+** Java
+#+begin_src
+    (unless (package-installed-p 'lsp-java)
+      (package-refresh-contents)
+      (package-install 'lsp-java))
+    (add-hook 'java-mode-hook #'lsp-deferred)
+#+end_src
 * Eldoc
 #+begin_src emacs-lisp
   (setq eldoc-echo-area-display-truncation-message t

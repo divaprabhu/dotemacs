@@ -26,7 +26,7 @@
 		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
 (add-to-list 'package-archives
-	     '("melpa" . "https://melpa.org/packages/") t)
+	     '("melpa" . "https://stable.melpa.org/packages/") t)
 
 (unless package-archive-contents
   (package-refresh-contents))
@@ -714,25 +714,26 @@
   (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
 (add-hook 'go-mode-hook #'eglot-format-buffer-on-save)
 
-;; (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory)))
-;;   (unless (file-directory-p jdtlsdir)
-;;     (make-directory jdtlsdir t)
-;;     (url-copy-file "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz" "/tmp/jdtls.tar.gz" t t)
-;;     (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  (expand-file-name "lsp/jdtls" user-emacs-directory)))))
+(let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory))
+      (mvndir (expand-file-name "lsp/mvn" user-emacs-directory)))
+  (unless (file-directory-p jdtlsdir)
+    (make-directory jdtlsdir t)
+    (url-copy-file "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz" "/tmp/jdtls.tar.gz" t t)
+    (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  jdtlsdir)))
+  (unless (file-directory-p mvndir)
+    (make-directory mvndir t)
+    (url-copy-file "https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz" "/tmp/mvn.tar.gz" t t)
+    (shell-command (concat "tar -xzf /tmp/mvn.tar.gz -C"  mvndir))))
 
-;; (add-hook 'java-mode-hook
-;; 	  (progn
-;; 	    (setenv "PATH" (concat (getenv "PATH") ":" "/usr/local/jdk-17/bin"))
-;; 	    (setenv "PATH" (concat (getenv "PATH") ":" "~/.cache/emacs/lsp/jdtls/bin"))
-;; 	    (add-to-list 'tramp-remote-path "~/.cache/emacs/lsp/jdtls/bin")
-;; 	    (with-eval-after-load 'eglot
-;; 	      (add-to-list 'eglot-server-programs '(java-mode "jdtls" "-verbose")))
-;; 	    'eglot-ensure))
-
-(unless (package-installed-p 'eglot-java)
-  (package-refresh-contents)
-  (package-install 'eglot-java))
-(add-hook 'java-mode-hook 'eglot-java-mode)
+(add-hook 'java-mode-hook
+	  (progn
+	    (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory))
+		  (mvndir (expand-file-name "lsp/mvn" user-emacs-directory)))
+	      (add-to-list 'tramp-remote-path "~/.cache/emacs/lsp/jdtls/bin")
+	      (with-eval-after-load 'eglot
+		(add-to-list 'eglot-server-programs '(java-mode "~/.cache/emacs/lsp/jdtls/bin/jdtls" "-verbose"))
+		(setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "apache-maven-3.8.6/bin" mvndir)))
+		'eglot-ensure))))
 
 (setq eldoc-echo-area-display-truncation-message t
       eldoc-echo-area-use-multiline-p t
