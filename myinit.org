@@ -4292,6 +4292,9 @@ Create a .dir-locals.el file in root of folder with contents like
     (package-refresh-contents)
     (package-install 'neotree))
   (setq neo-smart-open t			; jump to current file open
+	neo-autorefresh 1
+	neo-show-hidden-files t
+	neo-show-slash-for-folder t
 	)
 #+end_src
 
@@ -4429,43 +4432,56 @@ Create a .dir-locals.el file in root of folder with contents like
     (my-repeat-command 'other-window))
 
   ;; (global-set-key (kbd "M-<SPC>") ctl-x-map)
+  (define-prefix-command 'my-prefix-map)
+  (global-set-key (kbd "M-<SPC>") 'my-prefix-map)
+  (define-key 'my-prefix-map (kbd "a") 'my-core-map)
+  (define-key 'my-prefix-map (kbd "g") 'my-grep-map)
+  (define-key 'my-prefix-map (kbd "l") 'my-lsp-map)
+  (define-key 'my-prefix-map (kbd "e") 'my-embark-map)
+  (define-key 'my-prefix-map (kbd "w") 'my-window-map)
 
-  (defvar my-mode-map
+  (defalias 'my-core-map
     (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "i") 'imenu)
+      (define-key map (kbd "t") 'neotree-toggle)
+      (define-key map (kbd "r") 'recentf-open-files)
+      map)
+    "Core Emacs")
 
-      ;; restore original mapping for M-SPC
-      (define-key map (kbd "<SPC>") 'just-one-space)
-
-      ;; Core Emacs Bindings
-      (define-key map (kbd "a i") 'imenu)
-      (define-key map (kbd "a t") 'neotree-toggle)
-      (define-key map (kbd "a r") 'recentf-open-files)
-
-      ;; grep
+  (defalias 'my-grep-map
+    (let ((map (make-sparse-keymap)))
       (define-key map (kbd "g g") 'grep)
       (define-key map (kbd "g f") 'grep-find)
       (define-key map (kbd "g r") 'rgrep)	; interactive grep-find
       (define-key map (kbd "g z") 'zgrep)
+      map)
+    "Grep")
 
-      ;; lsp
+  (defalias 'my-lsp-map
+    (let ((map (make-sparse-keymap)))
       (define-key map (kbd "l a") 'eglot-code-actions)
       (define-key map (kbd "l e") 'eglot-events-buffer)
       (define-key map (kbd "l f") 'eglot-format)
       (define-key map (kbd "l r") 'eglot-rename)
+      map)
+    "LSP Eglot")
 
-      ;; embark
+  (defalias 'my-embark-map
+    (let ((map (make-sparse-keymap)))
       (define-key map (kbd "e a") 'embark-act)
       (define-key map (kbd "e b") 'embark-become)
+      map)
+    "Embark")
 
-      ;; windows
+  (defalias 'my-window-map
+    (let ((map (make-sparse-keymap)))
       (define-key map (kbd "w b") 'my-split-below)
       (define-key map (kbd "w d") 'my-toggle-window-dedication)
       (define-key map (kbd "w o") 'my-other-window)
       (define-key map (kbd "w r") 'my-rotate-windows)
       (define-key map (kbd "w t") 'my-toggle-window-split)
-      map))
-
-  (global-set-key (kbd "M-<SPC>") my-mode-map)
+      map)
+    "Window")
   #+end_src
 
 
