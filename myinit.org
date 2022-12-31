@@ -4430,10 +4430,12 @@ Create a .dir-locals.el file in root of folder with contents like
     "Repeatable version of other-window"
     (interactive "P")
     (my-repeat-command 'other-window))
+  (global-set-key (kbd "C-x o") 'my-other-window)
 
   ;; (global-set-key (kbd "M-<SPC>") ctl-x-map)
   (define-prefix-command 'my-prefix-map)
   (global-set-key (kbd "M-<SPC>") 'my-prefix-map)
+
   (define-key 'my-prefix-map (kbd "a") 'my-core-map)
   (define-key 'my-prefix-map (kbd "g") 'my-grep-map)
   (define-key 'my-prefix-map (kbd "l") 'my-lsp-map)
@@ -4450,38 +4452,37 @@ Create a .dir-locals.el file in root of folder with contents like
 
   (defalias 'my-grep-map
     (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "g g") 'grep)
-      (define-key map (kbd "g f") 'grep-find)
-      (define-key map (kbd "g r") 'rgrep)	; interactive grep-find
-      (define-key map (kbd "g z") 'zgrep)
+      (define-key map (kbd "g") 'grep)
+      (define-key map (kbd "f") 'grep-find)
+      (define-key map (kbd "r") 'rgrep)	; interactive grep-find
+      (define-key map (kbd "z") 'zgrep)
       map)
     "Grep")
 
   (defalias 'my-lsp-map
     (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "l a") 'eglot-code-actions)
-      (define-key map (kbd "l e") 'eglot-events-buffer)
-      (define-key map (kbd "l f") 'eglot-format)
-      (define-key map (kbd "l r") 'eglot-rename)
+      (define-key map (kbd "a") 'eglot-code-actions)
+      (define-key map (kbd "e") 'eglot-events-buffer)
+      (define-key map (kbd "f") 'eglot-format)
+      (define-key map (kbd "r") 'eglot-rename)
       map)
     "LSP Eglot")
 
   (defalias 'my-embark-map
     (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "e a") 'embark-act)
-      (define-key map (kbd "e b") 'embark-become)
+      (define-key map (kbd "a") 'embark-act)
+      (define-key map (kbd "b") 'embark-become)
       map)
     "Embark")
 
   (defalias 'my-window-map
     (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "w b") 'my-split-below)
-      (define-key map (kbd "w d") 'my-toggle-window-dedication)
-      (define-key map (kbd "w o") 'my-other-window)
-      (define-key map (kbd "w r") 'my-rotate-windows)
-      (define-key map (kbd "w t") 'my-toggle-window-split)
+      (define-key map (kbd "b") 'my-split-below)
+      (define-key map (kbd "d") 'my-toggle-window-dedication)
+      (define-key map (kbd "o") 'my-other-window)
+      (define-key map (kbd "r") 'my-rotate-windows)
+      (define-key map (kbd "t") 'my-toggle-window-split)
       map)
     "Window")
   #+end_src
-
 
