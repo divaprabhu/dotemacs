@@ -3789,7 +3789,7 @@ Linebreaks
     |-------+-------------------------------------------------------------------|
 
     - Settings
-    #+begin_src
+    #+begin_src emacs-lisp
       (unless (package-installed-p 'evil)
 	(package-refresh-contents)
 	(package-install 'evil))
@@ -3802,6 +3802,10 @@ Linebreaks
 	(package-refresh-contents)
 	(package-install 'evil-collection))
 
+      (unless (package-installed-p 'evil-surround)
+	(package-refresh-contents)
+	(package-install 'evil-surround))
+
       (setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
 	    evil-want-C-u-scroll t               ; C-u scroll up in normal mode
 	    evil-move-beyond-eol t               ; move one char beyond end of line
@@ -3813,7 +3817,7 @@ Linebreaks
 	    evil-want-keybinding nil             ; required for evil-collection
 	    evil-want-integration t              ; required for evil-collection
 	    )
-					      ; load evil
+						 ; load evil
       (require 'evil)
       (evil-set-undo-system 'undo-redo)          ; native to Emacs 28
 
@@ -4070,7 +4074,7 @@ Linebreaks
   (global-corfu-mode 1)
   (setq corfu-preselct-first nil	; disable candidate preselection
 	corfu-auto t			; enable auto completion
-	corfu-auto-delay 1		; delay for auto completion
+	corfu-auto-delay 0.2		; delay for auto completion
 	corfu-quit-no-match 'separator	; stay alive when starting advanced match with corfu separator even if no match
 	corfu-quit-at-boundary nil	; don't quit at completion boundary
 	corfu-preview-current t		; enable candidate preview
@@ -4122,7 +4126,7 @@ Linebreaks
 Create a .dir-locals.el file in root of folder with contents like 
 ((python-mode . ((pyvenv-activate . "~/.cache/venv/project-name"))))
 
-#+begin_src emacs-lisp
+#+begin_src
   (add-hook 'python-mode-hook
 	    (progn
 	      (with-eval-after-load 'eglot
@@ -4212,8 +4216,8 @@ Create a .dir-locals.el file in root of folder with contents like
     (package-refresh-contents)
     (package-install 'lsp-mode))
 
-  (setq lsp-keymap-prefix "C-c l"
-	lsp-idle-delay 0.5
+  (setq lsp-keymap-prefix "<M-SPC> l"
+	lsp-idle-delay 0.2
 	lsp-log-io nil
 	lsp-modeline-diagnostics-mode t
 	lsp-modeline-code-actions-segments '(count icon name))
@@ -4485,4 +4489,3 @@ Create a .dir-locals.el file in root of folder with contents like
       map)
     "Window")
   #+end_src
-

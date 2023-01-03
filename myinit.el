@@ -491,6 +491,43 @@
 			      (t . (monochrome ))))
 (load-theme 'modus-vivendi t)
 
+(unless (package-installed-p 'evil)
+  (package-refresh-contents)
+  (package-install 'evil))
+
+;; (unless (package-installed-p 'goto-chg)
+;;   (package-refresh-contents)
+;;   (package-install 'goto-chg))
+
+(unless (package-installed-p 'evil-collection)
+  (package-refresh-contents)
+  (package-install 'evil-collection))
+
+(unless (package-installed-p 'evil-surround)
+  (package-refresh-contents)
+  (package-install 'evil-surround))
+
+(setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
+      evil-want-C-u-scroll t               ; C-u scroll up in normal mode
+      evil-move-beyond-eol t               ; move one char beyond end of line
+      evil-cross-lines t                   ; motions like h, l, f can go to next/prev line
+      evil-respect-visual-line-mode t      ; respect visual-line-mode so that j, k move by visual lines
+      evil-show-paren-range 1              ; distance from parenthesis to highlight it
+      evil-want-fine-undo t                ; use Emacs heuristics for undo
+      evil-disable-insert-state-bindings t ; use emacs bindings in insert mode
+      evil-want-keybinding nil             ; required for evil-collection
+      evil-want-integration t              ; required for evil-collection
+      )
+					   ; load evil
+(require 'evil)
+(evil-set-undo-system 'undo-redo)          ; native to Emacs 28
+
+(add-hook 'prog-mode-hook 'turn-on-evil-mode)
+(add-hook 'text-mode-hook 'turn-on-evil-mode)
+(evil-collection-init '(corfu dired ediff eglot eldoc flymake go-mode neotree org python restclient unimpaired vc-annotate vc-dir vc-git xref youtube-dl))
+;; (evil-mode 1)
+;; (evil-collection-init)
+
 (require 'ibuffer)
 (setq ibuffer-expert t
       ibuffer-display-summary nil
@@ -631,7 +668,7 @@
 (global-corfu-mode 1)
 (setq corfu-preselct-first nil	; disable candidate preselection
       corfu-auto t			; enable auto completion
-      corfu-auto-delay 1		; delay for auto completion
+      corfu-auto-delay 0.2		; delay for auto completion
       corfu-quit-no-match 'separator	; stay alive when starting advanced match with corfu separator even if no match
       corfu-quit-at-boundary nil	; don't quit at completion boundary
       corfu-preview-current t		; enable candidate preview
@@ -667,12 +704,6 @@
   (package-refresh-contents)
   (package-install 'pyvenv))
 (pyvenv-mode 1)
-
-(add-hook 'python-mode-hook
-	  (progn
-	    (with-eval-after-load 'eglot
-	      (push '(python-mode "~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose") eglot-server-programs))
-	    'eglot-ensure))
 
 (add-hook 'c-mode-hook 'eglot-ensure)
 
