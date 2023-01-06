@@ -4189,7 +4189,7 @@ Create a .dir-locals.el file in root of folder with contents like
       (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  jdtlsdir)))
     (unless (file-directory-p mvndir)
       (make-directory mvndir t)
-      (url-copy-file "https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz" "/tmp/mvn.tar.gz" t t)
+      (url-copy-file "https://dlcdn.apache.org/maven/maven-3/3.8.7/binaries/apache-maven-3.8.7-bin.tar.gz" "/tmp/mvn.tar.gz" t t)
       (shell-command (concat "tar -xzf /tmp/mvn.tar.gz -C"  mvndir))))
 
   (add-hook 'java-mode-hook
@@ -4199,7 +4199,7 @@ Create a .dir-locals.el file in root of folder with contents like
 		(add-to-list 'tramp-remote-path "~/.cache/emacs/lsp/jdtls/bin")
 		(with-eval-after-load 'eglot
 		  (add-to-list 'eglot-server-programs '(java-mode "~/.cache/emacs/lsp/jdtls/bin/jdtls" "-verbose"))
-		  (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "apache-maven-3.8.6/bin" mvndir)))
+		  (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "apache-maven-3.8.7/bin" mvndir)))
 		  'eglot-ensure))))
 #+end_src
 
