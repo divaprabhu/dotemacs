@@ -895,9 +895,11 @@
 
 (defalias 'my-core-map
   (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "e") 'eshell)
     (define-key map (kbd "i") 'imenu)
-    (define-key map (kbd "t") 'neotree-toggle)
+    (define-key map (kbd "n") 'neotree-toggle)
     (define-key map (kbd "r") 'recentf-open-files)
+    (define-key map (kbd "s") 'shell)
     map)
   "Core Emacs")
 
