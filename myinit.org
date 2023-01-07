@@ -401,7 +401,8 @@ This avoid litter and helps version control only config files.
   |------------------------------+-------+----------------------------------------|
 
   #+begin_src emacs-lisp
-    (setq set-mark-command-repeat-pop t)
+    (setq set-mark-command-repeat-pop t
+	  mark-ring-max 512)
   #+end_src
 
   - Setting C-<SPC> to activate and highlight region is called transient mode
@@ -2830,8 +2831,17 @@ preceding line.
   | C-x 4 .             | xref-find-definitions-other-window                                  |
   | *M-,*               | xref-go-back (go back to where you invoked M-.)                     |
   | *C-M-,*             | xref-go-forward                                                     |
+  |                     | Emacs 29 only (or install xref from elpa)                           |
   | M-x xref-etags-mode | switch to etags mode. make sure to run etags in source directory    |
   |---------------------+---------------------------------------------------------------------|
+
+  #+begin_src emacs-lisp
+    (if (< emacs-major-version 29)
+	(progn
+	  (unless (package-installed-p 'xref)
+	    (package-refresh-contents)
+	    (package-install 'xref))))
+  #+end_src
 
   - xref buffer commands
     |---------+-------------------------------------------------------------------------|

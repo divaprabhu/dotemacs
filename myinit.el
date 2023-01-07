@@ -71,7 +71,8 @@
 
 (setq mark-even-inactive nil)
 
-(setq set-mark-command-repeat-pop t)
+(setq set-mark-command-repeat-pop t
+      mark-ring-max 512)
 
 (unless (package-installed-p 'expand-region)
   (package-refresh-contents)
@@ -340,6 +341,12 @@
 (setq read-file-name-completion-ignore-case t
       xref-search-program-alist '((grep . "xargs -0 grep <C> -snHE -e <R>")
 				  ))
+
+(if (< emacs-major-version 29)
+    (progn
+      (unless (package-installed-p 'xref)
+	(package-refresh-contents)
+	(package-install 'xref))))
 
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 (setq split-window-function 'split-window-horizontally)
