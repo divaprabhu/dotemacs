@@ -3789,7 +3789,7 @@ Linebreaks
     |-------+-------------------------------------------------------------------|
 
     - Settings
-    #+begin_src emacs-lisp
+    #+begin_src
       (unless (package-installed-p 'evil)
 	(package-refresh-contents)
 	(package-install 'evil))
@@ -4126,7 +4126,7 @@ Linebreaks
 Create a .dir-locals.el file in root of folder with contents like 
 ((python-mode . ((pyvenv-activate . "~/.cache/venv/project-name"))))
 
-#+begin_src
+#+begin_src emacs-lisp
   (add-hook 'python-mode-hook
 	    (progn
 	      (with-eval-after-load 'eglot
@@ -4192,15 +4192,18 @@ Create a .dir-locals.el file in root of folder with contents like
       (url-copy-file "https://dlcdn.apache.org/maven/maven-3/3.8.7/binaries/apache-maven-3.8.7-bin.tar.gz" "/tmp/mvn.tar.gz" t t)
       (shell-command (concat "tar -xzf /tmp/mvn.tar.gz -C"  mvndir))))
 
+  (let ((jdtlsdir (expand-file-name "lsp/jdtls/bin" user-emacs-directory))
+	(mvndir (expand-file-name "lsp/mvn/apache-maven-3.8.7/bin" user-emacs-directory)))
+    (add-to-list 'tramp-remote-path jdtlsdir)
+    (add-to-list 'tramp-remote-path mvndir)
+    (setenv "PATH" (concat (getenv "PATH") ":" jdtlsdir))
+    (setenv "PATH" (concat (getenv "PATH") ":" mvndir))
+    (setq exec-path (split-string (getenv "PATH") path-separator)))
+
   (add-hook 'java-mode-hook
-	    (progn
-	      (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory))
-		    (mvndir (expand-file-name "lsp/mvn" user-emacs-directory)))
-		(add-to-list 'tramp-remote-path "~/.cache/emacs/lsp/jdtls/bin")
 		(with-eval-after-load 'eglot
-		  (add-to-list 'eglot-server-programs '(java-mode "~/.cache/emacs/lsp/jdtls/bin/jdtls" "-verbose"))
-		  (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "apache-maven-3.8.7/bin" mvndir)))
-		  'eglot-ensure))))
+		  (add-to-list 'eglot-server-programs '(java-mode "jdtls" "-verbose"))
+		  'eglot-ensure))
 #+end_src
 
 #+begin_src

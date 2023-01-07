@@ -491,43 +491,6 @@
 			      (t . (monochrome ))))
 (load-theme 'modus-vivendi t)
 
-(unless (package-installed-p 'evil)
-  (package-refresh-contents)
-  (package-install 'evil))
-
-;; (unless (package-installed-p 'goto-chg)
-;;   (package-refresh-contents)
-;;   (package-install 'goto-chg))
-
-(unless (package-installed-p 'evil-collection)
-  (package-refresh-contents)
-  (package-install 'evil-collection))
-
-(unless (package-installed-p 'evil-surround)
-  (package-refresh-contents)
-  (package-install 'evil-surround))
-
-(setq evil-want-C-i-jump t                 ; use C-i for jump list navigation as complement to C-o
-      evil-want-C-u-scroll t               ; C-u scroll up in normal mode
-      evil-move-beyond-eol t               ; move one char beyond end of line
-      evil-cross-lines t                   ; motions like h, l, f can go to next/prev line
-      evil-respect-visual-line-mode t      ; respect visual-line-mode so that j, k move by visual lines
-      evil-show-paren-range 1              ; distance from parenthesis to highlight it
-      evil-want-fine-undo t                ; use Emacs heuristics for undo
-      evil-disable-insert-state-bindings t ; use emacs bindings in insert mode
-      evil-want-keybinding nil             ; required for evil-collection
-      evil-want-integration t              ; required for evil-collection
-      )
-					   ; load evil
-(require 'evil)
-(evil-set-undo-system 'undo-redo)          ; native to Emacs 28
-
-(add-hook 'prog-mode-hook 'turn-on-evil-mode)
-(add-hook 'text-mode-hook 'turn-on-evil-mode)
-(evil-collection-init '(corfu dired ediff eglot eldoc flymake go-mode neotree org python restclient unimpaired vc-annotate vc-dir vc-git xref youtube-dl))
-;; (evil-mode 1)
-;; (evil-collection-init)
-
 (require 'ibuffer)
 (setq ibuffer-expert t
       ibuffer-display-summary nil
@@ -705,6 +668,12 @@
   (package-install 'pyvenv))
 (pyvenv-mode 1)
 
+(add-hook 'python-mode-hook
+	  (progn
+	    (with-eval-after-load 'eglot
+	      (push '(python-mode "~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose") eglot-server-programs))
+	    'eglot-ensure))
+
 (add-hook 'c-mode-hook 'eglot-ensure)
 
 (let ((goplsdir (expand-file-name "lsp/gopls" user-emacs-directory)))
@@ -756,15 +725,18 @@
     (url-copy-file "https://dlcdn.apache.org/maven/maven-3/3.8.7/binaries/apache-maven-3.8.7-bin.tar.gz" "/tmp/mvn.tar.gz" t t)
     (shell-command (concat "tar -xzf /tmp/mvn.tar.gz -C"  mvndir))))
 
+(let ((jdtlsdir (expand-file-name "lsp/jdtls/bin" user-emacs-directory))
+      (mvndir (expand-file-name "lsp/mvn/apache-maven-3.8.7/bin" user-emacs-directory)))
+  (add-to-list 'tramp-remote-path jdtlsdir)
+  (add-to-list 'tramp-remote-path mvndir)
+  (setenv "PATH" (concat (getenv "PATH") ":" jdtlsdir))
+  (setenv "PATH" (concat (getenv "PATH") ":" mvndir))
+  (setq exec-path (split-string (getenv "PATH") path-separator)))
+
 (add-hook 'java-mode-hook
-	  (progn
-	    (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory))
-		  (mvndir (expand-file-name "lsp/mvn" user-emacs-directory)))
-	      (add-to-list 'tramp-remote-path "~/.cache/emacs/lsp/jdtls/bin")
 	      (with-eval-after-load 'eglot
-		(add-to-list 'eglot-server-programs '(java-mode "~/.cache/emacs/lsp/jdtls/bin/jdtls" "-verbose"))
-		(setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "apache-maven-3.8.7/bin" mvndir)))
-		'eglot-ensure))))
+		(add-to-list 'eglot-server-programs '(java-mode "jdtls" "-verbose"))
+		'eglot-ensure))
 
 (setq eldoc-echo-area-display-truncation-message t
       eldoc-echo-area-use-multiline-p t
