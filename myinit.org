@@ -4211,9 +4211,61 @@ Create a .dir-locals.el file in root of folder with contents like
     (setq exec-path (split-string (getenv "PATH") path-separator)))
 
   (add-hook 'java-mode-hook
-		(with-eval-after-load 'eglot
-		  (add-to-list 'eglot-server-programs '(java-mode "jdtls" "-verbose"))
-		  'eglot-ensure))
+	    (with-eval-after-load 'eglot
+	      (add-to-list 'eglot-server-programs '(java-mode "jdtls" "-verbose"))
+	      'eglot-ensure))
+
+  (defun my-mvn-create ()
+    "Create a new Maven project."
+    (interactive)
+    (let ((mvn-project-parent-dir    (read-directory-name "Enter parent directory: "))
+	  (mvn-group-id              (read-string         "Enter group id: "))
+	  (mvn-artifact-id           (read-string         "Enter artifact id: "))
+	  (mvn-archetype-artifact-id (read-string         "Enter archetype artifact id: " "maven-archetype-quickstart"))
+	  (mvn-archetype-version     (read-string         "Enter archetype verion: " "1.4"))
+	  (mvn-version               (read-string         "Enter version: " "1.0")))
+      (make-directory mvn-project-parent-dir t)
+      (cd mvn-project-parent-dir)
+      (message (concat "mvn archetype:generate" " -DgroupId=" mvn-group-id " -DartifactId=" mvn-artifact-id " -DarchetypeArtifactId=" mvn-archetype-artifact-id " -DarchetypeVersion=" mvn-archetype-version " -Dversion=" mvn-version " -DinteractiveMode=false"))
+      (compile (concat "mvn archetype:generate" " -DgroupId=" mvn-group-id " -DartifactId=" mvn-artifact-id " -DarchetypeArtifactId=" mvn-archetype-artifact-id " -DarchetypeVersion=" mvn-archetype-version " -Dversion=" mvn-version " -DinteractiveMode=false"))))
+
+  (defun my-mvn-compile ()
+    "Compile Maven project"
+    (interactive)
+    (let ((pom-dir (locate-dominating-file (file-name-directory (buffer-file-name)) "pom.xml")))
+      (cd pom-dir)
+      (compile "mvn compile")))
+
+  (defun my-java-get-symbol (symbols symbol-type)
+    "Extract the symbol value for a given SYMBOL-TYPE from a symbol table SYMBOLS."
+    (let ((symbol-details (cl-find-if
+			   (lambda (elem)
+			     (let* ((elem-kind (plist-get elem :kind))
+				    (elem-type (cdr (assoc elem-kind eglot--symbol-kind-names))))
+			       (string= elem-type symbol-type)))
+			   symbols)))
+      (if symbol-details
+	  (plist-get symbol-details :name)
+	"")))
+
+  (defun my-mvn-execute ()
+    "Run the main program"
+    (interactive)
+    (let* ((document-symbols  (jsonrpc-request
+			       (eglot--current-server-or-lose)
+			       :textDocument/documentSymbol
+			       (list :textDocument (list :uri (eglot--path-to-uri (buffer-file-name))))))
+	   (package-name       (my-java-get-symbol document-symbols "Package"))
+	   (class-name         (my-java-get-symbol document-symbols "Class"))
+	   (package-suffix   (if (string= "" package-name)
+				 package-name
+			       "."))
+	   (fqcn               (format "%s%s%s" package-name package-suffix class-name))
+	   (args               (read-string     "Enter arguments: " "")))
+      (message (concat "mvn compile exec:java -Dexec.mainClass=" fqcn " -Dexec.args=" args))
+      (compile (concat "mvn compile exec:java -Dexec.mainClass=" fqcn " -Dexec.args=" args))))
+
+
 #+end_src
 
 #+begin_src
