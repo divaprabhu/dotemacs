@@ -814,13 +814,17 @@
 (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-mode))
 
 (unless (package-installed-p 'neotree)
-  (package-refresh-contents)
-  (package-install 'neotree))
-(setq neo-smart-open t			; jump to current file open
-      neo-autorefresh 1
-      neo-show-hidden-files t
-      neo-show-slash-for-folder t
-      )
+    (package-refresh-contents)
+    (package-install 'neotree))
+  (setq neo-theme 'nerd
+ neo-smart-open t			; jump to current file open
+	neo-autorefresh 1
+	neo-show-hidden-files t
+	neo-show-slash-for-folder t
+	neo-window-fixed-size nil
+	neo-vc-integration '(char)
+	)
+(add-hook 'neotree-mode-hook (lambda() (setq-local display-line-numbers nil)))
 
 (unless (package-installed-p 'ytdl)
   (package-refresh-contents)

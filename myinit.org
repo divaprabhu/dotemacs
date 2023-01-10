@@ -4360,11 +4360,14 @@ Create a .dir-locals.el file in root of folder with contents like
   (unless (package-installed-p 'neotree)
     (package-refresh-contents)
     (package-install 'neotree))
-  (setq neo-smart-open t			; jump to current file open
+  (setq neo-theme 'nerd
+	neo-smart-open t			; jump to current file open
 	neo-autorefresh 1
 	neo-show-hidden-files t
 	neo-show-slash-for-folder t
-	)
+	neo-window-fixed-size nil
+	neo-vc-integration '(char))
+  (add-hook 'neotree-mode-hook (lambda() (setq-local display-line-numbers nil))) 
 #+end_src
 
 * Youtube-dl
