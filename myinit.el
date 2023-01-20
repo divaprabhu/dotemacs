@@ -116,7 +116,7 @@
 
 (setq blink-cursor-blink -1)
 
-(setq-default display-line-numbers 'relative)
+(setq-default display-line-numbers t)
 (setq-default display-line-numbers-width nil)
 (setq display-raw-bytes-as-hex t)
 (setq visible-bell t)
@@ -791,7 +791,10 @@
 			       package-name
 			     "."))
 	 (fqcn               (format "%s%s%s" package-name package-suffix class-name))
-	 (args               (read-string     "Enter arguments: " "")))
+	 (args               (read-string     "Enter arguments: " ""))
+	 (pom-dir (locate-dominating-file (file-name-directory (buffer-file-name)) "pom.xml")))
+    (message pom-dir)
+    (cd pom-dir)
     (message (concat "mvn compile exec:java -Dexec.mainClass=" fqcn " -Dexec.args=" args))
     (compile (concat "mvn compile exec:java -Dexec.mainClass=" fqcn " -Dexec.args=" args))))
 
@@ -813,18 +816,82 @@
 (require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-mode))
 
-(unless (package-installed-p 'neotree)
-    (package-refresh-contents)
-    (package-install 'neotree))
-  (setq neo-theme 'nerd
- neo-smart-open t			; jump to current file open
-	neo-autorefresh 1
-	neo-show-hidden-files t
-	neo-show-slash-for-folder t
-	neo-window-fixed-size nil
-	neo-vc-integration '(char)
-	)
-(add-hook 'neotree-mode-hook (lambda() (setq-local display-line-numbers nil)))
+(unless (package-installed-p 'treemacs)
+  (package-refresh-contents)
+  (package-install 'treemacs))
+(require 'treemacs)
+(setq treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
+      treemacs-deferred-git-apply-delay        0.5
+      treemacs-directory-name-transformer      #'identity
+      treemacs-display-in-side-window          t
+      treemacs-eldoc-display                   'simple
+      treemacs-expand-after-init               t
+      treemacs-file-event-delay                2000
+      treemacs-file-extension-regex            treemacs-last-period-regex-value
+      treemacs-file-follow-delay               0.2
+      treemacs-file-name-transformer           #'identity
+      treemacs-find-workspace-method           'find-for-file-or-pick-first
+      treemacs-follow-after-init               t
+      treemacs-git-command-pipe                ""
+      treemacs-goto-tag-strategy               'refetch-index
+      treemacs-header-scroll-indicators        '(nil . "^^^^^^")
+      treemacs-hide-dot-git-directory          t
+      treemacs-indentation                     2
+      treemacs-indentation-string              " "
+      treemacs-is-never-other-window           nil
+      treemacs-litter-directories              '("/node_modules" "/.venv" "/.cask")
+      treemacs-max-git-entries                 5000
+      treemacs-missing-project-action          'ask
+      treemacs-move-forward-on-expand          nil
+      treemacs-no-delete-other-windows         t
+      treemacs-no-png-images                   nil
+      treemacs-persist-file                    (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+      treemacs-position                        'left
+      treemacs-project-follow-cleanup          nil
+      treemacs-project-follow-into-home        nil
+      treemacs-read-string-input               'from-child-frame
+      treemacs-recenter-after-file-follow      nil
+      treemacs-recenter-after-project-expand   'on-distance
+      treemacs-recenter-after-project-jump     'always
+      treemacs-recenter-after-tag-follow       nil
+      treemacs-recenter-distance               0.1
+      treemacs-select-when-already-in-treemacs 'move-back
+      treemacs-show-cursor                     nil
+      treemacs-show-hidden-files               t
+      treemacs-silent-filewatch                nil
+      treemacs-silent-refresh                  nil
+      treemacs-sorting                         'alphabetic-asc
+      treemacs-space-between-root-nodes        t
+      treemacs-tag-follow-cleanup              t
+      treemacs-tag-follow-delay                1.5
+      treemacs-text-scale                      nil
+      treemacs-user-header-line-format         nil
+      treemacs-user-mode-line-format           nil
+      treemacs-wide-toggle-width               70
+      treemacs-width                           35
+      treemacs-width-increment                 1
+      treemacs-width-is-initially-locked       t
+      treemacs-workspace-switch-cleanup        nil)
+
+;; The default width and height of the icons is 22 pixels. If you are
+;; using a Hi-DPI display, uncomment this to double the icon size.
+;;(treemacs-resize-icons 44)
+
+(treemacs-follow-mode t)
+(treemacs-filewatch-mode t)
+(treemacs-fringe-indicator-mode 'always)
+(when treemacs-python-executable
+  (treemacs-git-commit-diff-mode t))
+
+(pcase (cons (not (null (executable-find "git")))
+	     (not (null treemacs-python-executable)))
+  (`(t . t)
+   (treemacs-git-mode 'deferred))
+  (`(t . _)
+   (treemacs-git-mode 'simple)))
+
+(treemacs-hide-gitignored-files-mode nil)
+(add-hook 'treemacs-mode-hook (lambda(&rest _) (setq-local display-line-numbers nil)))
 
 (unless (package-installed-p 'ytdl)
   (package-refresh-contents)
@@ -942,25 +1009,25 @@
   "Repeatable version of other-window"
   (interactive "P")
   (my-repeat-command 'other-window))
-(global-set-key (kbd "C-x o") 'my-other-window)
+(global-set-key (kbd "M-o") 'my-other-window)
 
 ;; (global-set-key (kbd "M-<SPC>") ctl-x-map)
 (define-prefix-command 'my-prefix-map)
 (global-set-key (kbd "M-<SPC>") 'my-prefix-map)
 
 (define-key 'my-prefix-map (kbd "a") 'my-core-map)
+(define-key 'my-prefix-map (kbd "e") 'my-embark-map)
 (define-key 'my-prefix-map (kbd "g") 'my-grep-map)
 (define-key 'my-prefix-map (kbd "l") 'my-lsp-map)
-(define-key 'my-prefix-map (kbd "e") 'my-embark-map)
 (define-key 'my-prefix-map (kbd "w") 'my-window-map)
 
 (defalias 'my-core-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "e") 'eshell)
     (define-key map (kbd "i") 'imenu)
-    (define-key map (kbd "n") 'neotree-toggle)
     (define-key map (kbd "r") 'recentf-open-files)
     (define-key map (kbd "s") 'shell)
+    (define-key map (kbd "t") 'treemacs)
     map)
   "Core Emacs")
 
