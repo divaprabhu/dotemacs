@@ -3723,8 +3723,13 @@ Linebreaks
   (require 'org-tempo)
 
   (org-babel-do-load-languages 'org-babel-load-languages
-			       '((emacs-lisp . t)
-				 (python . t)))
+			       '((C . t)
+				 (java . t)
+				 (latex . t)
+				 (lua . t)
+				 (python . t)
+				 (shell . t)
+				 (emacs-lisp . t)))
   (setq org-confirm-babel-evaluate nil)
 #+end_src
   
@@ -4592,6 +4597,7 @@ Create a .dir-locals.el file in root of folder with contents like
   (define-prefix-command 'my-prefix-map)
   (global-set-key (kbd "M-<SPC>") 'my-prefix-map)
 
+  (define-key 'my-prefix-map (kbd "<SPC>") 'just-one-space)
   (define-key 'my-prefix-map (kbd "a") 'my-core-map)
   (define-key 'my-prefix-map (kbd "e") 'my-embark-map)
   (define-key 'my-prefix-map (kbd "g") 'my-grep-map)
