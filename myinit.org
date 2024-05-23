@@ -1,39 +1,42 @@
 * Core Settings
-    - This avoid litter and helps version control only config files.
-      #+begin_src emacs-lisp
-	(setq user-emacs-directory (expand-file-name "~/.cache/emacs/"))
-	(setq custom-file (concat user-emacs-directory "custom.el"))
-	(when (file-exists-p custom-file)
-	  (load custom-file))
-	(when (boundp 'native-comp-eln-load-path)
-	  (setcar native-comp-eln-load-path
-		  (expand-file-name (convert-standard-filename "eln-cache/")
-				    user-emacs-directory)))
-      #+end_src
+- This avoid litter and helps version control only config files.
+  #+begin_src emacs-lisp
+    (setq user-emacs-directory (expand-file-name "~/.cache/emacs/"))
+    (setq custom-file (concat user-emacs-directory "custom.el"))
+    (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
 
-      - Hide startup screen
-	#+begin_src emacs-lisp
-	  (setq inhibit-startup-screen t)
-	#+end_src
+    (when (file-exists-p custom-file)
+      (load custom-file))
+    (when (boundp 'native-comp-eln-load-path)
+      (setcar native-comp-eln-load-path
+	      (expand-file-name (convert-standard-filename "eln-cache/")
+				user-emacs-directory)))
+  #+end_src
 
-      - Performance improvement
-	#+begin_src emacs-lisp
-	  (setq gc-cons-threshold 100000000)
-	  (setq read-process-output-max (* 1024 1024)) ;; 1mb
-	#+end_src
+- Hide startup screen
+  #+begin_src emacs-lisp
+    (setq inhibit-startup-screen t)
+  #+end_src
+
+- Performance improvement
+  #+begin_src emacs-lisp
+    (setq gc-cons-threshold 100000000)
+    (setq read-process-output-max (* 1024 1024)) ;; 1mb
+  #+end_src
 
 * Echo Area
 - Max number of line in message buffer
   #+begin_src emacs-lisp
     (setq message-log-max 100000)
   #+end_src
-* Exiting Emacs
-|-----------------------------+------------+----------------------------------------------------|
-| *C-x C-c OR M-x kill-emacs* | *:q or ZZ* | exit emacs                                         |
-| C-z                         |            | suspend-frame (suspend in terminal/iconify in GUI) |
-| *M-x recover-file*          | *:e!*      | recover from autosave file                         |
-|-----------------------------+------------+----------------------------------------------------|
 
+* Exiting Emacs
+|-----------------------------+------------+--------------------------------------------|
+| *C-x C-c OR M-x kill-emacs* | *:q or ZZ* | exit emacs                                 |
+| C-z                         |            | suspend-frame (suspend in terminal/iconify |
+|                             |            | in GUI)                                    |
+| *M-x recover-file*          | *:e!*      | recover from autosave file                 |
+|-----------------------------+------------+--------------------------------------------|
 ** Prompts
 |-----+-------------------------|
 | y   | save this file          |
@@ -49,13 +52,17 @@
 - POINT is before cursor position
 - REGION is all chars between MARK and POINT
 ** Insert
-|------------------+----------------------------------+---------------------------------------------------------|
-| *C-q CHAR*       | *C-v CHAR*                       | quoted-insert (insert CHAR literally)                   |
-|                  |                                  | Followed by octal char, insert char with octal code     |
-|                  |                                  | Followed by other char, insert it literally             |
-| *C-x 8 RET*      | *C-v u HHHH* or *C-v U HHHHHHHH* | insert-char (insert unicode char with name or codepoint |
-| *C-x z [z z...]* | *.*                              | repeat (last command)                                   |
-|------------------+----------------------------------+---------------------------------------------------------|
+|------------------+----------------------------------+--------------------------------|
+| *C-q CHAR*       | *C-v CHAR*                       | quoted-insert (insert CHAR     |
+|                  |                                  | literally)                     |
+|                  |                                  | Followed by octal char, insert |
+|                  |                                  | char with octal code           |
+|                  |                                  | Followed by other char, insert |
+|                  |                                  | it literally                   |
+| *C-x 8 RET*      | *C-v u HHHH* or *C-v U HHHHHHHH* | insert-char (insert Unicode    |
+|                  |                                  | char with name or code-point   |
+| *C-x z [z z...]* | *.*                              | repeat (last command)          |
+|------------------+----------------------------------+--------------------------------|
  
 ** Movement
 |---------+------+---------------------------------------------------------|
@@ -160,7 +167,7 @@
 | *C-x z [z z...]*       | *.*                                   | repeat previous command using same arguments             |
 |------------------------+---------------------------------------+----------------------------------------------------------|
 
-* Minibuffer
+* Mini-buffer
 - last but one line of emacs                          Modeline
 - Bottom line of emacs                                ECHO area or MINIBUFFER
 - ECHO area                                           only for output
@@ -191,10 +198,10 @@
   #+begin_src emacs-lisp
     ;; (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
   #+end_src
-#+begin_src emacs-lisp
-  (setq minibuffer-completion-auto-choose t) ;; insert current completion candidate in
-  (setq confirm-nonexistent-file-or-buffer nil) ;; don't ask confirmation
-#+end_src
+  #+begin_src emacs-lisp
+    (setq minibuffer-completion-auto-choose t) ;; insert current completion candidate in
+    (setq confirm-nonexistent-file-or-buffer nil) ;; don't ask confirmation
+  #+end_src
 ** Completion
 |----------------------------------------+-------+----------------------------------------------------------------------------------|
 | *TAB* or C-i                           | *TAB* | minibuffer-complete (complete text in mini buffer as much as possible)           |
@@ -241,21 +248,21 @@
   #+begin_src emacs-lisp
     (setq minibuffer-eldef-shorten-default t)
   #+end_src
-  - Max length of minibuffer history and remove duplicate entries from history
-    #+begin_src emacs-lisp
-      (setq history-length 100
-	    history-delete-duplicates t
-	    savehist-minibuffer-history-variables '(minibuffer-history
-						    query-replace-history
-						    file-name-history
-						    buffer-name-history
-						    regexp-history
-						    extended-command-history
-						    shell-command-history
-						    read-expression-history
-						    command-history))
-    #+end_src
-
+- Max length of minibuffer history and remove duplicate entries from history
+  #+begin_src emacs-lisp
+    (setq history-length 100
+	  history-delete-duplicates t
+	  savehist-minibuffer-history-variables '(minibuffer-history
+						  query-replace-history
+						  file-name-history
+						  buffer-name-history
+						  regexp-history
+						  extended-command-history
+						  shell-command-history
+						  read-expression-history
+						  command-history))
+  #+end_src
+    
 ** Repeating
 |--------------------------+---+----------------------------------------------------------------|
 | *C-x ESC ESC*            |   | repeat-complete-command (re-execute recent minibuffer command) |
@@ -294,6 +301,7 @@
 | *C-h F*          |   | Info-goto-emacs-command-node                          |
 | C-h h            |   | view-hello-file (unicode chars in many language)      |
 | *C-h i*          |   | info (manuals)                                        |
+| *C-h 4 i*        |   | info-other-window                                     |
 | *C-h k*          |   | describe-key                                          |
 | *C-h m*          |   | describe-mode (describe keybindings in current mode)  |
 | *C-h r*          |   | info-emacs-manual                                     |
@@ -352,7 +360,7 @@
   |                    |              | (set point to beginning of buffer and mark to end) |
   |--------------------+--------------+----------------------------------------------------|
 
-  - if the region is not selected then don't run commands on inactive region
+- if the region is not selected then don't run commands on inactive region
   #+begin_src emacs-lisp
     (setq delete-active-region 'kill) ;; kill region instead of delete
     (setq mark-even-if-inactive nil)
@@ -372,9 +380,9 @@
 	  global-mark-ring-max 512)
   #+end_src
 
-  - Setting C-<SPC> to activate and highlight region is called transient mode
-  - Toggle transient mark mode                          M-x transient-mark-mode
-  - When transient mode is off
+- Setting C-<SPC> to activate and highlight region is called transient mode
+- Toggle transient mark mode                          M-x transient-mark-mode
+- When transient mode is off
     + C-<SPC> or C-x C-x does not highlight region
     + Commands that depend on active region does not work and may behave differently
     + Activate transient mode temporarily               C-<SPC> C-<SPC> or C-u C-x C-x
@@ -446,9 +454,9 @@
   #+end_src
 ** Yanking
 - Kill ring has 120 entries by default
-#+begin_src emacs-lisp
-  (setq kill-ring-max 1000)
-#+end_src
+  #+begin_src emacs-lisp
+    (setq kill-ring-max 1000)
+  #+end_src
   |-----------------+--------+-----------------------------------------------------------------|
   | *C-y*           | *p*    | yank (most recently killed text)                                |
   |                 |        | (mark at start and point at end of next text                    |
@@ -470,7 +478,7 @@
   #+begin_src emacs-lisp
     (setq save-interprogram-paste-before-kill t)
   #+end_src
-  - If clipboard has more recent data than the last kill command in emacs, then
+- If clipboard has more recent data than the last kill command in emacs, then
     commands like C-y yanks from clipboard
 
 ** Accumulation
@@ -572,10 +580,10 @@
   | *M-x bookmark-save*      | Save bookmarks in default file                                      |
   |--------------------------+---------------------------------------------------------------------|
 
-  - Save bookmark to file automatically
-    #+begin_src emacs-lisp
-      (setq bookmark-save-flag 1)
-    #+end_src
+- Save bookmark to file automatically
+  #+begin_src emacs-lisp
+    (setq bookmark-save-flag 1)
+  #+end_src
 
 * Display
 ** Scrolling
@@ -586,9 +594,9 @@
   | *C-v OR PageDown*          | *C-f* | scroll-up-command   |
   | *M-v OR PageUp OR M-- C-v* | *C-b* | scroll-down-command |
   |----------------------------+-------+---------------------|
-#+begin_src emacs-lisp
-  (setq next-screen-context-lines 3) ;; number lines that overlap during scroll command
-#+end_src
+  #+begin_src emacs-lisp
+    (setq next-screen-context-lines 3) ;; number lines that overlap during scroll command
+  #+end_src
 ** Recentering
 |-------+-------+-----------------------------------------------------------------|
 | *C-l* | *C-l* | recenter-top-bottom (make current line to center, top or bottom |
@@ -625,11 +633,11 @@
   | *C-x n d* | narrow-to-defun (also org heading)        |
   |-----------+-------------------------------------------|
 
-  - enable disabled commands
-    #+begin_src emacs-lisp
-      (put 'narrow-to-region 'disabled nil)
-      (put 'narrow-to-page 'disabled nil)
-    #+end_src
+- enable disabled commands
+  #+begin_src emacs-lisp
+    (put 'narrow-to-region 'disabled nil)
+    (put 'narrow-to-page 'disabled nil)
+  #+end_src
 
 ** View mode
 - view mode lets you read buffers sequentially one screen at a time
@@ -679,23 +687,23 @@
   | 'global-font-lock-mode'   | enable/disable font lock mode at start up |
   |---------------------------+-------------------------------------------|
 
-  - It can be enabled/disabled per major mode using hooks
-    (add-hook 'c-mode-hook 'font-lock-mode)
-    |---------------------------------------------+---------------------------------------------------------|
-    | M-x customize-group RET font-lock-faces RET | customize the appearance of different faces             |
-    |                                             | like font-lock-string-face, font-lock-comment-face etc  |
-    | 'font-lock-maximum-decorations'             | Amount of fontification applied by font lock mode for a |
-    |                                             | given major mode                                        |
-    |                                             | t - maximum fontification                               |
-    |                                             | 1 - minimum fontification                               |
-    |                                             | 2 - slightly more fontification etc                     |
-    | font-lock-add-keywords                      | Modify font lock behavior based on keywords             |
-    | font-lock-remove-keywords                   |                                                         |
-    | treesit-font-lock-level                     | 1 - fontify on comments and function names              |
-    |                                             | 2 - keywords, strings, data types                       |
-    |                                             | 3 - default level                                       |
-    |                                             | 4 - maximum                                             |
-    |---------------------------------------------+---------------------------------------------------------|
+- It can be enabled/disabled per major mode using hooks
+  (add-hook 'c-mode-hook 'font-lock-mode)
+  |---------------------------------------------+---------------------------------------------------------|
+  | M-x customize-group RET font-lock-faces RET | customize the appearance of different faces             |
+  |                                             | like font-lock-string-face, font-lock-comment-face etc  |
+  | 'font-lock-maximum-decorations'             | Amount of fontification applied by font lock mode for a |
+  |                                             | given major mode                                        |
+  |                                             | t - maximum fontification                               |
+  |                                             | 1 - minimum fontification                               |
+  |                                             | 2 - slightly more fontification etc                     |
+  | font-lock-add-keywords                      | Modify font lock behavior based on keywords             |
+  | font-lock-remove-keywords                   |                                                         |
+  | treesit-font-lock-level                     | 1 - fontify on comments and function names              |
+  |                                             | 2 - keywords, strings, data types                       |
+  |                                             | 3 - default level                                       |
+  |                                             | 4 - maximum                                             |
+  |---------------------------------------------+---------------------------------------------------------|
 ** Interactive highlighting
 - Hilight change mode - Minor mode that highlights part of buffer that were changed recently
 - Hi Lock mode - minor mode that highlights text matching REGEXP specified
@@ -711,10 +719,10 @@
   | M-s h .                       | highligh-symbol-at-point                        |
   |-------------------------------+-------------------------------------------------|
 
-  - Use next face from default list for hi lock command and don't prompt a face
-    #+begin_src emacs-lisp
-      (setq hi-lock-auto-select-face t)
-    #+end_src
+- Use next face from default list for hi lock command and don't prompt a face
+  #+begin_src emacs-lisp
+    (setq hi-lock-auto-select-face t)
+  #+end_src
 
 ** Window Fringes
 - Narrow line on left and right of a window used to display symbols like line continuation,
@@ -795,10 +803,10 @@
     (setq what-cursor-show-names t)
   #+end_src
 
-  - display line number even for large buffers
-    #+begin_src emacs-lisp
-      (setq line-number-display-limit nil)
-    #+end_src
+- display line number even for large buffers
+  #+begin_src emacs-lisp
+    (setq line-number-display-limit nil)
+  #+end_src
 
 *** Modeline Format
 - Formatting to the right and left
@@ -1205,7 +1213,7 @@
   | M-x replace-regexp RET STRING RET NEWSTRING RET |                         | NEWSTRING can refer to all or part of what is matched by regexp  |
   |                                                 |                         | \& stands for entire match                                       |
   |                                                 |                         | \D where D is a digit, matches Dth paranthesized group           |
-n | *M-% STRING RET NEWSTRING RET*                  |                         | query-replace                                                    |
+  | *M-% STRING RET NEWSTRING RET*                  |                         | query-replace                                                    |
   |                                                 |                         | only replace some occurence and not all                          |
   |                                                 |                         | prompt before each replacement                                   |
   | *C-M-% REGEXP RET NEWSTRING RET*                |                         | query-replace-regexp                                             |
@@ -1315,22 +1323,22 @@ n | *M-% STRING RET NEWSTRING RET*                  |                         | 
     (setq ispell-personal-dictionary (expand-file-name "dictionary" user-emacs-directory))
   #+end_src
 
-  - When incorrect word is encountered during above commands, a
-    Choices buffer pops up at top with numbered words. Valid
-    responses are as below:
-    |-------------+------+----------------------------------------------------------------------------------------|
-    | *DIGIT*     |      | replace word with one in Choices buffer which is listed against given number           |
-    | *SPC*       |      | skip current word and leave it incorrect                                               |
-    | *r NEW RET* |      | replace word with NEW                                                                  |
-    | *R NEW RET* |      | replace word with NEW and do query-replace in other places in buffer                   |
-    | a           |      | accept incorrect word for current session                                              |
-    | A           |      | accept incorrect word for current buffer in current session                            |
-    | *i*         | *zg* | insert the word in personal dictionary, so that it is treated as correct going forward |
-    | *u*         |      | insert lower case version of word in dictionary                                        |
-    | *C-g*       |      | quit spell check and leave point at word being checked                                 |
-    | *x*         |      | quit spell check and leave point where it was before starting spell check              |
-    | *q*         |      | quit interactive spell checked and kill spell checker sub-process                      |
-    |-------------+------+----------------------------------------------------------------------------------------|
+- When incorrect word is encountered during above commands, a Choices
+  buffer pops up at top with numbered words. Valid responses are as
+  below:
+  |-------------+------+----------------------------------------------------------------------------------------|
+  | *DIGIT*     |      | replace word with one in Choices buffer which is listed against given number           |
+  | *SPC*       |      | skip current word and leave it incorrect                                               |
+  | *r NEW RET* |      | replace word with NEW                                                                  |
+  | *R NEW RET* |      | replace word with NEW and do query-replace in other places in buffer                   |
+  | a           |      | accept incorrect word for current session                                              |
+  | A           |      | accept incorrect word for current buffer in current session                            |
+  | *i*         | *zg* | insert the word in personal dictionary, so that it is treated as correct going forward |
+  | *u*         |      | insert lower case version of word in dictionary                                        |
+  | *C-g*       |      | quit spell check and leave point at word being checked                                 |
+  | *x*         |      | quit spell check and leave point where it was before starting spell check              |
+  | *q*         |      | quit interactive spell checked and kill spell checker sub-process                      |
+  |-------------+------+----------------------------------------------------------------------------------------|
 
 * Keyboard Macros
 ** Basic use
@@ -1360,9 +1368,9 @@ n | *M-% STRING RET NEWSTRING RET*                  |                         | 
   |               |        | bring next or previous macro to the head of the ring |
   |               |        | echo area will display the definition of new head    |
   |---------------+--------+------------------------------------------------------|
-#+begin_src emacs-lisp
-  (setq kmacro-ring-max 1000)
-#+end_src
+  #+begin_src emacs-lisp
+    (setq kmacro-ring-max 1000)
+  #+end_src
 
 ** Keyboard macro counter
 - each keyboard macro has a counter which is set to zero when defined
@@ -1444,7 +1452,7 @@ n | *M-% STRING RET NEWSTRING RET*                  |                         | 
 ** Visiting file
 - shell wild-card is allowed for file name
 - visiting directory invokes Dired
--  |-------------------------+------------------------------------------------------------------------------|
+  |-------------------------+------------------------------------------------------------------------------|
   | *C-x C-f*               | find-file (visit file)                                                       |
   | *C-x C-r*               | find-file-read-only                                                          |
   | C-x C-q                 | make buffer writable                                                         |
@@ -1461,7 +1469,10 @@ n | *M-% STRING RET NEWSTRING RET*                  |                         | 
 | *C-x s*                   | save-some-buffers (prompt for each buffer)                          |
 | *C-x C-w*                 | write-file (save as)                                                |
 | *M-~*                     | not-modified (mark not modified so that emacs won't prompt to save) |
-| M-x set-visited-file-name | Change file name under which current buffer will be saved           |
+| M-x set-visited-file-name | marks buffer as visiting new file name and changes buffer name      |
+|                           | does not save buffer in new file name                               |
+|                           | C-x C-w is better option if you want to rename and save             |
+| M-x write-region          | to save buffer to new file but not visit the file                   |
 | 'require-final-newline'   | t        - put newline at the end if it is not there                |
 |                           | visit    - put newline at the end of file when you visit it         |
 |                           | visit-save - put newline both on visiting and saving                |
@@ -1470,6 +1481,8 @@ n | *M-% STRING RET NEWSTRING RET*                  |                         | 
 
 ** Backup file
 - Emacs makes a backup for a file first time it is saved
+- If a buffer is killed and visit file again, saving will create a backup again
+
   |-----------------------------------+-------------------------------------------------------------------------------|
   | 'make-backup-files'               | determines if emacs should backup file                                        |
   | 'vc-make-backup-files'            | if file is managed by version control, determines if emacs should backup file |
@@ -1486,46 +1499,52 @@ n | *M-% STRING RET NEWSTRING RET*                  |                         | 
   | 'delete-old-version'              | delete excess backup files silently instead of prompting                      |
   | 'backup-by-copying'               | use copying instead of renaming while making backup                           |
   | 'backup-by-copying-when-linked'   | use copying if there are links                                                |
-  | 'backup-by-copying-when-mismatch' | renaming will change file owner and group                                     |
+  | 'backup-by-copying-when-mismatch' | use copying if renaming will change file owner and group                      |
   |-----------------------------------+-------------------------------------------------------------------------------|
 
-  - backup file names have ~ appended to it
-  - numbered backup will be named like .~NUMBER~
+- backup file names have ~ appended to it
+- numbered backup will be named like .~NUMBER~
 
-    #+begin_src
-      (setq make-backup-files nil)
-      (setq backup-directory-alist `(("." . ,(expand-file-name "backups/" user-emacs-directory))))
-    #+end_src
+  #+begin_src emacs-lisp
+    (setq make-backup-files nil)
+    (setq backup-directory-alist `(("." . ,(expand-file-name "backups/" user-emacs-directory))))
+  #+end_src
 
 ** Interlocking
-- When a first modification is made in emacs buffer that is visiting a file, a link is created in same
-  directory to prevent another person editing it. This is deleted when file is saved.
-  |---------------------------+------------------------------------------|
-  | 'create-lockfiles'        | setting to nil stops creating lock files |
-  |                           | when there is collision                  |
-  | s                         | steal the lock                           |
-  | p                         | proceed - go ahead and edit the file     |
-  | q                         | quit                                     |
-  | M-x diff-buffer-with-file | compare buffer to its file               |
-  |---------------------------+------------------------------------------|
+- When a first modification is made in emacs buffer that is visiting a
+  file, a link is created in same directory to prevent another person
+  editing it. This is deleted when file is saved.
+- By default link name will be file name prepended with .#
+- If file has multiple names via hard-links, Emacs cannot prevent
+  simultaneous editing
+  |----------------------------------+------------------------------------------|
+  | 'create-lockfiles'               | setting to nil stops creating lock files |
+  |                                  | when there is collision                  |
+  | s                                | steal the lock                           |
+  | p                                | proceed - go ahead and edit the file     |
+  | q                                | quit                                     |
+  | M-x diff-buffer-with-file        | compare buffer to its file               |
+  | 'remote-file-name-inhibit-locks' | don't create lock files for remote files |
+  |----------------------------------+------------------------------------------|
 
 ** Shadowing
 - identical shadow copies of file can be kept in multiple places
 - A shadow file group is a set of identically named files in different location
 - When exiting emacs, the file will be copied to other files in its group (shadow-copy-files)
 - shadow cluster is at a host level
-
+  
 ** Time stamp
-- emacs can put time stamp in a file if following line is present in first 8 lines of file
-  Time-stamp: <>
-  OR
-  Time-stamp: ""
-- Then add function time-stamp to hook 'before-save-hook. You can also call it manually M-x time-stamp
+- emacs can put time stamp in a file if following line is present in
+  first 8 lines of file Time-stamp: <> OR Time-stamp: ""
+- Then add function time-stamp to hook 'before-save-hook. You can also
+  call it manually M-x time-stamp
 
 ** Reverting buffer
 |---------------------------------------+----------------------------------------------------------------------------------------|
 | *M-x revert-buffer*                   | revert all changes in buffer and go back to the saved version of file                  |
 |                                       | reverting creates single entry in undo history which can be used to bring changes back |
+| *C-x x g*                             | revert-buffer-quick                                                                    |
+|                                       | like revert-buffer but asks less confirmation                                          |
 | M-x auto-revert-mode                  | keep buffer updated with file (useful for log files that keep appending)               |
 | M-x global-auto-revert-mode           | enable globally                                                                        |
 |                                       | if buffer has been modified, it will not revert                                        |
@@ -1534,40 +1553,53 @@ n | *M-% STRING RET NEWSTRING RET*                  |                         | 
 | 'auto-revert-verbose'                 | disable message when buffer is auto reverted                                           |
 | 'auto-revert-remote-files'            | enable auto revert mode for remote files as well                                       |
 | 'global-auto-revert-non-file-buffers' | auto revert non-file buffers also                                                      |
-|---------------------------------------+----------------------------------------------------------------------------------------|
+|---------------------------------------+---------------------------------------------------------------------------------------- |
 
-#+begin_src
-  (setq global-auto-revert-non-file-buffers t
+#+begin_src emacs-lisp
+  (setq auto-revert-verbose nil ;; don't flash echo area message
+	global-auto-revert-non-file-buffers t ;; auto revert for dired buffers etc
 	auto-revert-remote-files t)
   (global-auto-revert-mode 1)
 #+end_src
 
 ** Auto save
-- emacs automatically saves each visited file in a separate file to avoid losing change during crash
-- auto save file name is made by appending # to front and rare of actual file name
-- non-files are not automatically saved. if manually saved, then file name is made using buffer name
+- emacs automatically saves each visited file in a separate file to
+  avoid losing change during crash
+- auto save file name is made by appending # to front and rare of
+  actual file name
+- non-files are not automatically saved. if manually saved, then file
+  name is made using buffer name
 - remote auto save files will be put in temp directory in local
 - auto save file is deleted when file is saved
+- Emacs auto saves during fatal error like network disconnect or when killed
 
-  |---------------------------------+---------------------------------------------------------------------|
-  | 'auto-save-file-name-transform' | helps control auto save file name                                   |
-  | auto-save-visited-mode          | auto saves in the visited file itself                               |
-  | 'auto-save-default'             | disable auto save                                                   |
-  | M-x do-auto-save                | auto save manually                                                  |
-  | M-x recover-file RET FILE RET   | visit file FILE and restores its contents from auto save file       |
-  |                                 | the auto save file must be latest than actual file                  |
-  |                                 | file must be explicitly saved with C-x C-s                          |
-  | M-x recover-session             | If Emacs or computer crashes, all files can be recovered from their |
-  |                                 | autosave files using this command                                   |
-  |                                 | show list of sessions. select right session on C-c C-c              |
-  |                                 | each file edited during the session is shown and asked for recovery |
-  |                                 | the file should be saved manually after recovery                    |
-  |---------------------------------+---------------------------------------------------------------------|
+  |------------------------------------+---------------------------------------------------------------------|
+  | 'auto-save-file-name-transform'    | helps control auto save file name                                   |
+  | auto-save-visited-mode             | auto saves in the visited file itself                               |
+  | 'auto-save-default'                | disable auto save                                                   |
+  | M-x do-auto-save                   | auto save manually                                                  |
+  | M-x recover-file RET FILE RET      | visit file FILE and restores its contents from auto save file       |
+  |                                    | the auto save file must be latest than actual file                  |
+  |                                    | file must be explicitly saved with C-x C-s                          |
+  | M-x recover-session                | If Emacs or computer crashes, all files can be recovered from their |
+  |                                    | autosave files using this command                                   |
+  |                                    | show list of sessions. select right session on C-c C-c              |
+  |                                    | each file edited during the session is shown and asked for recovery |
+  |                                    | the file should be saved manually after recovery                    |
+  |                                    | interrupted session are saved in .saves* files under auto-save-list |
+  |                                    | directory                                                           |
+  | 'auto-save-list-file-prefix        | directory to save auto save sessions                                |
+  | delete-auto-save-files             | delete auto-save files when buffer is saved                         |
+  | kill-buffer-delete-auto-save-files | killing a buffer prompts to delete auto-save file                   |
+  | M-x auto-save-mode                 | toggle auto-saving in current buffer                                |
+  |------------------------------------+---------------------------------------------------------------------|
 
   #+begin_src emacs-lisp
     (make-directory (expand-file-name "autosave/" user-emacs-directory) t)
     (setq auto-save-list-file-prefix (expand-file-name "autosave/sessions/" user-emacs-directory)
 	  auto-save-file-name-transforms `((".*" ,(expand-file-name "autosave/" user-emacs-directory) t)))
+    (setq delete-auto-save-files t
+	  kill-buffer-delete-auto-save-files t)
   #+end_src
 
 ** File name alias
@@ -1589,7 +1621,7 @@ n | *M-% STRING RET NEWSTRING RET*                  |                         | 
 | 'delete-by-moving-to-trash'       |          | move to trash if system supports it                  |
 |-----------------------------------+----------+------------------------------------------------------|
 
-#+begin_src
+#+begin_src emacs-lisp
   (setq delete-by-moving-to-trash t)
 #+end_src
 
@@ -1605,6 +1637,8 @@ n | *M-% STRING RET NEWSTRING RET*                  |                         | 
 |-----------------------------+-----------------------------------------------------|
 
 ** Diff mode
+- Major mode for output of M-x diff and similar command
+- Can be started manually with M-x diff-mode
 - Editing patch in diff mode tries to maintain line number so the patch is still valid
   |-------------------------------------+------------------------------------------------------------|
   | 'diff-update-on-the-fly'            | disable automatic line number correction                   |
@@ -1619,32 +1653,40 @@ n | *M-% STRING RET NEWSTRING RET*                  |                         | 
   | C-c C-n                             | diff-restrict-view (narrow to current hunk)                |
   | *C-c C-r*                           | diff-reverse-direction (create patch to change new to old) |
   | C-c C-w                             | diff-ignore-whitespace-hunk                                |
+  | C-c C-s                             | diff-split-hunk (split hunk at point)                      |
+  | C-c C-u                             | diff-context->unified (convert to unified)                 |
+  | C-c C-d                             | diff-unified->context (convert to context)                 |
+  | C-c C-l                             | diff-refresh-hunk (regenerate current hunk)                |
   | M-x diff-delete-trailing-whitespace | delete trailing whitespace from patch and patched source   |
   |-------------------------------------+------------------------------------------------------------|
 
 ** Copy and Move
 - if NEW file already exists, all below commands ask for confirmation
-  |------------------------+-------------------------------------------------------------------------------------|
-  | M-x copy-file          | copies file                                                                         |
-  | M-x copy-directory     | like cp -r (if NEW is directory copy OLD into NEW else copy contents of OLD to NEW) |
-  | M-x rename-file        | rename OLD as NEW. If NEW exists, get confirmation                                  |
-  | M-x vc-rename-file     | If file is under version control, should be renamed using this                      |
-  | M-x add-name-to-file   | create a hard link                                                                  |
-  | M-x make-symbolic-link | create a symbolic link                                                              |
-  | M-x delete-file        | delete file                                                                         |
-  | M-x move-file-to-trash | moves to trash instead of deleting                                                  |
-  | M-x vc-delete-file     | If file is under version control, should be deleted using this                      |
-  | *M-x insert-file*      | insert a contents of specified file into current buffer at point                    |
-  | *M-x write-region*     | copy contents of region to specified file                                           |
-  | *M-x append-to-file*   | append contents of region to specified file                                         |
-  | M-x set-file-modes     | set permission                                                                      |
-  |------------------------+-------------------------------------------------------------------------------------|
+  |----------------------------+------------------------------------------------------------------|
+  | M-x copy-file              | copies file                                                      |
+  | M-x copy-directory         | like cp -r (if NEW is directory copy OLD into NEW                |
+  |                            | else copy contents of OLD to NEW)                                |
+  | M-x rename-file            | rename OLD as NEW. If NEW exists, get confirmation               |
+  | M-x vc-rename-file         | If file is under version control, should be renamed using this   |
+  | M-x add-name-to-file       | create a hard link                                               |
+  | M-x make-symbolic-link     | create a symbolic link                                           |
+  | M-x delete-file            | delete file                                                      |
+  | M-x move-file-to-trash     | moves to trash instead of deleting                               |
+  | M-x vc-delete-file         | If file is under version control, should be deleted using this   |
+  | *M-x insert-file OR C-x i* | insert a contents of specified file into current buffer at point |
+  | M-x insert-file-literally  | like insert-file but encoding or conversion                      |
+  | *M-x write-region*         | copy contents of region to specified file                        |
+  | *M-x append-to-file*       | append contents of region to specified file                      |
+  | M-x set-file-modes         | set permission                                                   |
+  |----------------------------+------------------------------------------------------------------|
 
 ** Compressed files
-- Emacs automatically decompresses archives when you visit them and re-compresses if you alter and save
+- Emacs automatically decompresses archives when you visit them and
+  re-compresses if you alter and save
 - supports .tar, .tgz, .tar.gz, .tar.Z using Tar mode
 - tar is read natively in emacs
-- Archive mode is used for other types of archives
+- Archive mode is used for other types of archives like zip, rar, 7z etc
+- Archive mode requires separate decompression program
 
   |-------------------------+------------------------------------------------------------------|
   | 'auto-compression-mode' | disable auto compress and decompress                             |
@@ -1671,28 +1713,57 @@ n | *M-% STRING RET NEWSTRING RET*                  |                         | 
 - Tramp handles all methods except FTP which is handled by Ange-FTP
 - auto save files will be created in temp directory in local
 - for anonymous ftp, use the user name anonymous
-#+begin_src
-  (require 'tramp)
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-#+end_src
+  #+begin_src emacs-lisp
+    (require 'tramp)
+    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  #+end_src
+
+** File Name Cache
+- Type C-Tab in mini-buffer to complete file name from cache
+- The cache is not persistent and maintained only for current session
+  |----------------------------------------------------+-----------------------------------------------|
+  | M-x file-cache-add-directory RET DIRECTORY RET     | Add each file in directory to file name cache |
+  | M-x file-cache-add-directory-using-fin RET DIR RET | Add each file in directory and all its nested |
+  |                                                    | sub-directories to file name cache            |
+  | M-x file-cache-clear-cache RET                     | Clear the cache                               |
+  | M-x file-cache-display                             | view contents of file cache                   |
+  |----------------------------------------------------+-----------------------------------------------|
+** Recentf
+- Emacs maintains a list of recently opened files if recentf-mode is enabled
+  |------------------+-----------------------------|
+  | M-x recentf-open | Open file from recentf-list |
+  |------------------+-----------------------------|
+  #+begin_src
+  (require 'recentf)
+  (recentf-mode 1)			; keybinding in keybindings section toward the end
+  #+end_src
 
 ** Image files
 - Opening image selects Image Mode
-  |---------+-----------------------------------------------------------------|
-  | C-c C-c | image-toggle-display (toggle between showing image and rawbytes |
-  | C-c C-x | image-toggle-hex-display (toggle between image and hex display) |
-  | *s b*   | image-transform-fit-both (fit to both window height and width)  |
-  | s s     | image-transform-set-scale (scale image with a factor)           |
-  | s 0     | image-transform-reset (reset all scaling)                       |
-  | *n*     | image-next-file                                                 |
-  | *p*     | image-previous-file                                             |
-  | *m*     | image-mode-mark-file                                            |
-  | *u*     | image-mode-unmark-file                                          |
-  | *w*     | image-mode-copy-file-name-as-kill                               |
-  | RET     | image-toggle-animation                                          |
-  | f       | image-next-frame                                                |
-  | b       | image-previous-frame                                            |
-  |---------+-----------------------------------------------------------------|
+  |-----------+-----------------------------------------------------------------|
+  | *C-c C-c* | image-toggle-display (toggle between showing image and rawbytes |
+  | C-c C-x   | image-toggle-hex-display (toggle between image and hex display) |
+  | *s h*     | image-transform-fit-to-height                                   |
+  | *s i*     | image-transform-fit-to-width                                    |
+  | *s b*     | image-transform-fit-both (fit to both window height and width)  |
+  | s s       | image-transform-set-scale (scale image with a factor)           |
+  | *s o*     | image-transform-reset-to-original (reset all scaling)           |
+  | *s r*     | image-transform-set-rotation                                    |
+  | *s p*     | image-transform-set-percent                                     |
+  | *n*       | image-next-file                                                 |
+  | *p*       | image-previous-file                                             |
+  | *m*       | image-mode-mark-file                                            |
+  | *u*       | image-mode-unmark-file                                          |
+  | *w*       | image-mode-copy-file-name-as-kill                               |
+  | RET       | image-toggle-animation                                          |
+  | f         | image-next-frame                                                |
+  | b         | image-previous-frame                                            |
+  | i + +...  | image-increase-size                                             |
+  | i - -...  | image-decrease-size                                             |
+  | i v       | image-flip-vertically                                           |
+  | i h       | image-flip-horizontally                                         |
+  | i r r...  | image-rotate                                                    |
+  |-----------+-----------------------------------------------------------------|
 
 * Buffers
 - Buffer is an object used to hold visited file's text, Dired buffer listings or email message etc
@@ -4002,6 +4073,64 @@ Linebreaks
 	    (lambda ()
 	      (ibuffer-switch-to-saved-filter-groups "default")))
 #+end_src
+* Packages
+- Packages are Emacs Lisp libraries. For a package to be available
+  in future sessions, compile it and put it in path of lisp
+  libraries
+- Packages can also be provided by package-archives which are large
+  collection of Emacs Lisp packages. Emacs includes a facility to
+  easily download and install packages from such archives
+  |----------------------------------+-----------------------------------------------------------------------------------------|
+  | M-x list-packages                | List all available packages in archive in Packages buffer                               |
+  |                                  | install or uninstall of package can be done via this buffer                             |
+  | C-h P                            | describe-package                                                                        |
+  | h                                | package-menu-quick-help                                                                 |
+  | RET                              | package-menu-describe-package                                                           |
+  | i                                | package-menu-mark-install (adds I flag at the start)                                    |
+  | d                                | package-menu-mark-delete (add D flag)                                                   |
+  | ~                                | package-menu-mark-obsolete-for-deletion                                                 |
+  | u                                | package-menu-mark-unmark (remove any install or delete marks on current line)           |
+  | U                                | package-menu-mark-upgrades (mark all packages with newer available version for upgrade) |
+  | x                                | package-menu-execute (delete packages marked for delete and install packages marked for |
+  |                                  | upgrade)                                                                                |
+  | g                                | revert-buffer (refresh package list)                                                    |
+  | / k                              | package-menu-filter-by-keyword                                                          |
+  | / n                              | package-menu-filter-by-name                                                             |
+  | / /                              | package-menu-clear-filter                                                               |
+  | M-x package-install              | prompt for package and install                                                          |
+  |                                  | automatically installs dependencies                                                     |
+  | 'package-archives'               | list of packages archives known to Emacs                                                |
+  | 'package-pinned-packages'        | if a packages is in multiple archives with different version, then tell which one       |
+  |                                  | to install. it is a list of package/archive pairs                                       |
+  | 'package-archive-priorities'     | set priority of archives (higher number is high priority)                               |
+  | 'package-menu-hide-low-priority' | hide package if high priority version of it is available from other archives            |
+  | 'load-path'                      | list of directories to search for files to load                                         |
+  |                                  | package-install updates it with path of package location                                |
+  | -q or --no-init-file             | if Emacs is started with this option, don't load any packages                           |
+  | 'package-enable-at-startup'      | nil - don't load packages at start                                                      |
+  | M-x package-activate-all         | make installed packages available                                                       |
+  | 'package-load-list'              | decides which packages to load                                                          |
+  | M-x package-install-file         | each package downloaded from archive is a single file or a tar file with                |
+  |                                  | multiple Lisp sources and other files. This command installs package                    |
+  |                                  | directly from a package file                                                            |
+  | 'package-user-dir'               | location where package files are placed                                                 |
+  | 'package-directory-list'         | used for system-wide packages                                                           |
+  |----------------------------------+-----------------------------------------------------------------------------------------|
+
+  #+begin_src emacs-lisp
+    (require 'package)
+    (package-initialize)
+    (if (< emacs-major-version 28)
+	(add-to-list 'package-archives
+		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
+
+    ;;    (add-to-list 'package-archives
+    ;;		 '("melpa" . "https://stable.melpa.org/packages/") t)
+
+    (unless package-archive-contents
+      (package-refresh-contents))
+  #+end_src
+  
 * Marginalia
 - Marginalia adds annotations like type of completion, short
   documentation etc to the completion candidates
@@ -4151,12 +4280,6 @@ Linebreaks
   (define-key corfu-map (kbd "<backtab>") 'corfu-previous)
   (define-key corfu-map (kbd "S-TAB") 'corfu-previous)
 
-#+end_src
-
-* Recentf
-#+begin_src
-  (require 'recentf)
-  (recentf-mode 1)			; keybinding in keybindings section toward the end
 #+end_src
 
 * Eglot
@@ -4697,61 +4820,3 @@ Create a .dir-locals.el file in root of folder with contents like
       map)
     "Window")
 #+end_src
-* Packages
-- Packages are Emacs Lisp libraries. For a package to be available
-  in future sessions, compile it and put it in path of lisp
-  libraries
-- Packages can also be provided by package-archives which are large
-  collection of Emacs Lisp packages. Emacs includes a facility to
-  easily download and install packages from such archives
-  |----------------------------------+-----------------------------------------------------------------------------------------|
-  | M-x list-packages                | List all available packages in archive in Packages buffer                               |
-  |                                  | install or uninstall of package can be done via this buffer                             |
-  | C-h P                            | describe-package                                                                        |
-  | h                                | package-menu-quick-help                                                                 |
-  | RET                              | package-menu-describe-package                                                           |
-  | i                                | package-menu-mark-install (adds I flag at the start)                                    |
-  | d                                | package-menu-mark-delete (add D flag)                                                   |
-  | ~                                | package-menu-mark-obsolete-for-deletion                                                 |
-  | u                                | package-menu-mark-unmark (remove any install or delete marks on current line)           |
-  | U                                | package-menu-mark-upgrades (mark all packages with newer available version for upgrade) |
-  | x                                | package-menu-execute (delete packages marked for delete and install packages marked for |
-  |                                  | upgrade)                                                                                |
-  | g                                | revert-buffer (refresh package list)                                                    |
-  | / k                              | package-menu-filter-by-keyword                                                          |
-  | / n                              | package-menu-filter-by-name                                                             |
-  | / /                              | package-menu-clear-filter                                                               |
-  | M-x package-install              | prompt for package and install                                                          |
-  |                                  | automatically installs dependencies                                                     |
-  | 'package-archives'               | list of packages archives known to Emacs                                                |
-  | 'package-pinned-packages'        | if a packages is in multiple archives with different version, then tell which one       |
-  |                                  | to install. it is a list of package/archive pairs                                       |
-  | 'package-archive-priorities'     | set priority of archives (higher number is high priority)                               |
-  | 'package-menu-hide-low-priority' | hide package if high priority version of it is available from other archives            |
-  | 'load-path'                      | list of directories to search for files to load                                         |
-  |                                  | package-install updates it with path of package location                                |
-  | -q or --no-init-file             | if Emacs is started with this option, don't load any packages                           |
-  | 'package-enable-at-startup'      | nil - don't load packages at start                                                      |
-  | M-x package-activate-all         | make installed packages available                                                       |
-  | 'package-load-list'              | decides which packages to load                                                          |
-  | M-x package-install-file         | each package downloaded from archive is a single file or a tar file with                |
-  |                                  | multiple Lisp sources and other files. This command installs package                    |
-  |                                  | directly from a package file                                                            |
-  | 'package-user-dir'               | location where package files are placed                                                 |
-  | 'package-directory-list'         | used for system-wide packages                                                           |
-  |----------------------------------+-----------------------------------------------------------------------------------------|
-
-  #+begin_src emacs-lisp
-    (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
-    (require 'package)
-    (package-initialize)
-    (if (< emacs-major-version 28)
-	(add-to-list 'package-archives
-		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
-
-    ;;    (add-to-list 'package-archives
-    ;;		 '("melpa" . "https://stable.melpa.org/packages/") t)
-
-    (unless package-archive-contents
-      (package-refresh-contents))
-  #+end_src
