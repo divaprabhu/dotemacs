@@ -225,9 +225,9 @@
 |----------------------------------------+-------+----------------------------------------------------------------------------------|
 #+begin_src emacs-lisp
   (setq completion-styles '(initials partial-completion flex basic))
-  (setq completion-auto-help 'lazy) ;; show completion list buffer on second tab
+  (setq completion-auto-help nil) ;; don't show completion list buffer
   (setq completion-auto-select nil) ;; don't switch to completion list buffer when displayed
-  (setq completion-cycle-threshold 5) ;; cycle through completion candidates if count is less than 5
+  (setq completion-cycle-threshold t) ;; always cycle through completion candidates
   (setq completions-format 'horizontal) ;; completion list buffer format
   (setq completions-sort 'alphabetical) ;; sort candidatate alphabetically
   (setq completions-max-height nil) ;; no height limit for completion list buffer
@@ -1557,9 +1557,9 @@
 
 #+begin_src emacs-lisp
   (setq auto-revert-verbose nil ;; don't flash echo area message
-	global-auto-revert-non-file-buffers t ;; auto revert for dired buffers etc
-	auto-revert-remote-files t)
-  (global-auto-revert-mode 1)
+	global-auto-revert-non-file-buffers nil ;; disable auto revert for dired buffers etc
+	auto-revert-remote-files nil)
+  (global-auto-revert-mode nil)
 #+end_src
 
 ** Auto save
@@ -1766,10 +1766,12 @@
   |-----------+-----------------------------------------------------------------|
 
 * Buffers
-- Buffer is an object used to hold visited file's text, Dired buffer listings or email message etc
+- Buffer is an object used to hold visited file's text, Dired buffer
+  listings or email message etc
 - Buffers are deleted when they are killed or when emacs exits
 - Buffer name is displayed in mode line and case matters
-- At any time only one buffer is selected which is called current buffer
+- At any time only one buffer is selected which is called current
+  buffer
 
 ** Create and Select buffers
 |----------------------+-------------+--------------------------------------------|
@@ -1777,41 +1779,56 @@
 | *C-x 4 b BUFFER RET* |             | switch-to-buffer-other-window              |
 | C-x 5 b BUFFER RET   |             | switch-to-buffer-other-frame               |
 |----------------------+-------------+--------------------------------------------|
-
+- Buffer names that start with space are used by Emacs internally
 ** List buffers
-|-----------+------------+-----------------------------------------------------------------------------------------|
-| *C-x C-b* | *:buffers* | list-buffers                                                                            |
-|           |            | show list of existing buffers in a new buffer call Buffer List                          |
-|           |            | most recent buffer is shown at top                                                      |
-| .         |            | current buffer                                                                          |
-| %         |            | read only buffer                                                                        |
-| '*'       |            | modified                                                                                |
-| d         |            | Buffer-menu-delete (flag buffer for deletion and go to next buffer)                     |
-| C-d       |            | Buffer-menu-delete-backwards                                                            |
-| s         |            | Buffer-menu-save (set save flag)                                                        |
-| x         |            | Buffer-menu-execute (perform flagged deletion and saves)                                |
-| u         |            | Buffer-menu-unmark                                                                      |
-| U         |            | Buffer-menu-unmark-all                                                                  |
-| q         |            | quit-window                                                                             |
-| o         |            | Buffer-menu-other-window (open buffer at point in other window) and make it visible     |
-| C-o       |            | Buffer-menu-switch-other-window (same as o but don't select it)                         |
-| 1         |            | Buffer-menu-1-window (open in full frame window)                                        |
-| 2         |            | Buffer-menu-2-window (open in other window)                                             |
-| m         |            | Buffer-menu-mark (mark for viewing)                                                     |
-| v         |            | Buffer-menu-select (like 1. If there are marked buffers then open them in other window) |
-| T         |            | Buffer-menu-toggle-files-only                                                           |
-|-----------+------------+-----------------------------------------------------------------------------------------|
+|-----------+------------+----------------------------------------------------------|
+| *C-x C-b* | *:buffers* | list-buffers                                             |
+|           |            | show list of existing buffers in a new buffer call       |
+|           |            | Buffer List                                              |
+|           |            | most recent buffer is shown at top                       |
+|           |            | With prefix, only show file visiting buffers             |
+| .         |            | current buffer                                           |
+| %         |            | read only buffer                                         |
+| '*'       |            | modified                                                 |
+| d         |            | Buffer-menu-delete (flag buffer for deletion and go to   |
+|           |            | next buffer)                                             |
+| C-d       |            | Buffer-menu-delete-backwards                             |
+| s         |            | Buffer-menu-save (set save flag)                         |
+| x         |            | Buffer-menu-execute (perform flagged deletion and saves) |
+| u         |            | Buffer-menu-unmark                                       |
+| U         |            | Buffer-menu-unmark-all                                   |
+| g         |            | revert-buffer                                            |
+| q         |            | quit-window                                              |
+| o         |            | Buffer-menu-other-window (open buffer at point in other  |
+|           |            | window) and make it visible                              |
+| C-o       |            | Buffer-menu-switch-other-window (same as o but don't     |
+|           |            | select it)                                               |
+| f or RET  |            | Buffer-menu-this-window                                  |
+| 1         |            | Buffer-menu-1-window (open in full frame window)         |
+| 2         |            | Buffer-menu-2-window (open in other window)              |
+| m         |            | Buffer-menu-mark (mark for viewing)                      |
+| v         |            | Buffer-menu-select (like 1. If there are marked buffers  |
+|           |            | then open them in other window)                          |
+| T         |            | Buffer-menu-toggle-files-only                            |
+| S         |            | tabulated-list-sort                                      |
+|           |            | Sort entries by column at point                          |
+|-----------+------------+----------------------------------------------------------|
 
 ** Other options
-|----------------------------------+-----------------------------------------------------|
-| *C-x C-q*                        | read-only-mode (toggle)                             |
-| M-x rename-buffer RET BUFFER RET | change buffer's name                                |
-| M-x rename-uniquely              | rename current buffer by adding a number at the end |
-| M-x view-buffer RET BUFFER RET   | scroll through buffer using view mode               |
-| M-x append-to-buffer             |                                                     |
-| M-x insert-buffer                |                                                     |
-|----------------------------------+-----------------------------------------------------|
-
+|----------------------------------+---------------------------------------------|
+| *C-x C-q*                        | read-only-mode (toggle)                     |
+| *C-x x r*                        | rename-buffer                               |
+| *C-x x i*                        | insert-buffer (insert contents of buffer    |
+|                                  | after point)                                |
+| *C-x x g*                        | revert-buffer-quick                         |
+| *C-x x n*                        | clone-buffer                                |
+| *C-x x u*                        | rename-uniquely                             |
+| M-x rename-buffer RET BUFFER RET | change buffer's name                        |
+| M-x rename-uniquely              | rename current buffer by adding a number at |
+|                                  | the end                                     |
+| M-x view-buffer RET BUFFER RET   | scroll through buffer using view mode       |
+| M-x append-to-buffer             |                                             |
+|----------------------------------+---------------------------------------------|
 ** Killing buffers
 |---------------------------+-------+----------------------------------------------------|
 | *C-x k BUFFER RET*        | *:bd* | kill-buffer                                        |
@@ -1820,15 +1837,23 @@
 | *M-x clean-buffer-list*   |       | kill all unmodified buffers not used for some time |
 |---------------------------+-------+----------------------------------------------------|
 
+** Operating on Several Buffers
+|------------------------------+-------------------------------------------------|
+| M-x buffer-menu              | edit buffer listing all Emacs buffers           |
+| M-x buffer-menu-other-window | same as buffer-menu but opens in another window |
+|------------------------------+-------------------------------------------------|
+- Buffer Menu is opened by C-x C-b
+  
 ** Unique names
-|------------------------------+-------------------------------------------------------------------------------------|
-| 'uniquify-buffer-name-style' | tells how buffer should be name when files with same name in differ path are opened |
-|                              | forward                       bar/mumble/name    quux/mumble/name                   |
-|                              | reverse                       name\mumble\bar    name\mumble\quux                   |
-|                              | post-forward                  name\vertbar/mumble name\vertquux/mumble              |
-|                              | post-forward-angle-brackets   name<bar/mumble>   name<quux/mumble>                  |
-|                              | nil                           name               name<2>                            |
-|------------------------------+-------------------------------------------------------------------------------------|
+|---------------------------------------+---------------------------------------------|
+| 'uniquify-buffer-name-style'          | tells how buffer should be named when files |
+|                                       | with same name in differ path are opened    |
+| forward                               | bar/mumble/name    quux/mumble/name         |
+| reverse                               | name\mumble\bar    name\mumble\quux         |
+| post-forward                          | name\vertbar/mumble name\vertquux/mumble    |
+| post-forward-angle-brackets (default) | name<bar/mumble>   name<quux/mumble>        |
+| nil                                   | name               name<2>                  |
+|---------------------------------------+---------------------------------------------|
 
 ** Icomplete and Fido
 - Icomplete global minor mode provides completions in mini buffer
@@ -1839,13 +1864,13 @@
 - don't hide the common prefix
 - icomplete-vertical will show completion candidates vertically
   instead of horizontally
-  |-------+-----------------------------------------|
-  | *C-s* | rotate completion list                  |
-  | *C-r* | rotate completion list in reverse order |
-  | *C-k* | kill buffer first in the list           |
-  |-------+-----------------------------------------|
+  |--------------+-----------------------------------------|
+  | *C-s OR C-.* | rotate completion list                  |
+  | *C-r OR C-,* | rotate completion list in reverse order |
+  | *C-k*        | kill buffer first in the list           |
+  |--------------+-----------------------------------------|
 
-  #+begin_src
+  #+begin_src emacs-lisp
     (setq completion-styles '(initials partial-completion flex basic))
     (if (>= emacs-major-version 29)
 	(progn
@@ -1855,18 +1880,25 @@
 
 * Windows
 ** Concepts
-- A buffer can be displayed in multiple windows, any changes in one will reflect in other
-- When multiple windows show the same buffer, they can have different regions,
-  because they can have different values of point.  However, they all have the same
-  value for the mark, because each buffer has only one mark position.
-- Each window has its own modeline
+- A buffer can be displayed in multiple windows, any changes in one
+  will reflect in other
+- When multiple windows show the same buffer, they can have different
+  regions, because they can have different values of point.  However,
+  they all have the same value for the mark, because each buffer has
+  only one mark position.
+- Each window has its own mode-line
 
 ** Splitting
-|---------+---------+-------------------------------------------------------|
-| *C-x 2* | *C-w s* | split-window-below                                    |
-|         |         | split selected window into 2, one below and one above |
-| *C-x 3* | *C-w v* | split-window-right                                    |
-|---------+---------+-------------------------------------------------------|
+|---------+---------+-----------------------------------------------------------------|
+| *C-x 2* | *C-w s* | split-window-below                                              |
+|         |         | split selected window into 2, one below and one above           |
+|         |         | top window will be selected windows                             |
+|         |         | positive prefix to set height(number of lines)  of top window   |
+|         |         | negative prefix to set height(number of lines) of bottom window |
+| *C-x 3* | *C-w v* | split-window-right                                              |
+|         |         | left window is selected window                                  |
+|         |         | prefix specifies number of columns                              |
+|---------+---------+-----------------------------------------------------------------|
 
 ** Other window
 |-----------+-----------+---------------------------------------------|
@@ -1885,7 +1917,16 @@
 |                         | open buffer in other window without switching to it |
 | *C-x 4 f FILE RET*      | find-file-other-window                              |
 | *C-x 4 d DIRECTORY RET* | dired-other-window                                  |
-| *C-x 4 m*               | compose-mail-other-window                           |
+| C-x 4 m                 | compose-mail-other-window                           |
+| *C-x 4 .*               | xref-find-definitions-other-window                  |
+|                         | Similar to M-.                                      |
+| *C-x 4 r FILENAME RET*  | find-file-read-only-other-window                    |
+| *C-x 4 4*               | other-window-prefix                                 |
+|                         | prefix command which affects buffer displayed by    |
+|                         | next command                                        |
+| *C-x 4 1*               | same-window-prefix                                  |
+|                         | prefix command which affects buffer displayed by    |
+|                         | next command                                        |
 |-------------------------+-----------------------------------------------------|
 
 ** Delete and resize
@@ -1903,15 +1944,24 @@
 ** Displaying buffer
 [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Demystifying Emacs’s Window Manager]]
 [[https://emacs.stackexchange.com/questions/3356/select-help-window-buffer-after-c-h-f][Select *Help* window buffer after C-h f]]
-- Based on the buffer names, decide where it should be displayed and if it needs to be selected
-  #+begin_src
-    (setq help-window-select t
+- Based on the buffer names, decide where it should be displayed and
+  if it needs to be selected
+  |----------------+----------------------------------------------------|
+  | display-buffer | diplay buffer in some window without selecting it  |
+  | pop-to-buffer  | same as display-buffer but also selects the window |
+  |----------------+----------------------------------------------------|
+  #+begin_src emacs-lisp
+    (setq help-window-select t ;; select help window
+	  ;; in strongly dedicate windows behave like pop-to-buffer
 	  switch-to-buffer-in-dedicated-window 'pop
+	  ;; C-x C-b respects display buffer rules
 	  switch-to-buffer-obey-display-actions t)
+    ;; switch to occur buffer immediately
     (add-hook 'occur-hook
 	      '(lambda ()
 		 (switch-to-buffer-other-window "*Occur*")))
-    ;;(add-hook 'compilation-finish-functions 'switch-to-buffer-other-window 'compilation)
+    ;; switch to compilation buffer immediately
+    (add-hook 'compilation-finish-functions 'switch-to-buffer-other-window 'compilation)
     (setq display-buffer-alist
 	  '(("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
 	     (display-buffer-reuse-window display-buffer-in-side-window)
@@ -1923,7 +1973,7 @@
 	     (side . bottom)
 	     (window-height . 0.4)
 	     (slot . 0))
-	    ("\\*\\(Messages|Output\\).*"
+	    ("\\*\\(Messages\\|Output\\).*"
 	     (display-buffer-in-side-window)
 	     (side . bottom)
 	     (window-height . 0.4)
@@ -1976,6 +2026,16 @@
     (global-set-key (kbd "<f12>") 'window-toggle-side-windows)
   #+end_src
 
+** Tab Line
+- Command global-tab-line-mode toggles tab line on top of screen of
+  each window. This shows tabs for each buffer that was displayed in a
+  window. Mouse click will switch to the buffer
+- Tab Bar is displayed at the top of frame and different from tab bar
+  in that each tab holds window configurations
+  |--------------------------+-----------------|
+  | C-x C-Left or C-x Left   | previous-buffer |
+  | C-x C-Right or C-x Right | next-buffer     |
+  |--------------------------+-----------------|
 * Frames
 ** Concepts
 - A frame is window in the desktop terms. A frame is subdivided in to windows by emacs
