@@ -2032,6 +2032,7 @@
   window. Mouse click will switch to the buffer
 - Tab Bar is displayed at the top of frame and different from tab bar
   in that each tab holds window configurations
+  [[*Tab bar][Tab bar]]
   |--------------------------+-----------------|
   | C-x C-Left or C-x Left   | previous-buffer |
   | C-x C-Right or C-x Right | next-buffer     |
@@ -2044,7 +2045,8 @@
 
 ** Frame commands
 |-----------------------+----------------------------------------------------------------|
-| C-x 5 2               | make-frame-command                                             |
+| C-x 5 2               | make-frame-command (create new frame using default params)     |
+| C-x 5 c               | clone-fram (create new frame using params of current frame)    |
 | C-x 5 b BUFNAME RET   | switch-to-buffer-other-frame                                   |
 | C-x 5 f FILENAME RET  | find-file-other-frame                                          |
 | C-x 5 d DIRECTORY RET | dired-other-frame                                              |
@@ -2053,13 +2055,18 @@
 | C-z                   | suspend-frame (iconify in desktop and suspend in command line) |
 | C-x 5 o               | other-frame                                                    |
 | C-x 5 1               | delete-other-frames                                            |
+| C-x 5 .               | xref-find-definitions-other-frame                              |
+| C-x 5 r FILENAME RET  | find-fine-read-only-other-frame                                |
+| C-x 5 5               | other-frame-prefix (request buffer of next command to          |
+|                       | display in another frame)                                      |
 |-----------------------+----------------------------------------------------------------|
 
 ** Scroll Bars
 - disable scroll bar
-  #+begin_src
+  #+begin_src emacs-lisp
     (require 'scroll-bar)
     (scroll-bar-mode -1)
+    (setq horizontal-scroll-bar-mode -1)
   #+end_src
 
 ** Window dividers
@@ -2072,14 +2079,14 @@
 - it can still be opened using C-RightClick or F10
 - setting tty-menu-open-use-tmm to non-nil opens menu bar in echo
   area on terminals
-  #+begin_src
+  #+begin_src emacs-lisp
     (menu-bar-mode -1)
     (setq tty-menu-open-use-tmm t)
   #+end_src
 
 ** Tool Bar
 - disable tool bar
-  #+begin_src
+  #+begin_src emacs-lisp
     (require 'tool-bar)
     (tool-bar-mode -1)
   #+end_src
@@ -2104,20 +2111,20 @@
 |--------------------------+-----------+-------------------------------------------------|
 
 
-#+begin_src
+#+begin_src emacs-lisp
   (setq tab-bar-show 1)
 #+end_src
 
 ** Dialog box
 - disable dialog box and always prompt in echo area
-  #+begin_src
+  #+begin_src emacs-lisp
     (setq use-dialog-box nil)
   #+end_src
 ** Tooltips
 - Tool tips are small special frames that display info at current
   point position
 - To use echo area exclusively:
-  #+begin_src
+  #+begin_src emacs-lisp
     (tooltip-mode -1)
   #+end_src
 
