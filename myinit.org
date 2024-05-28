@@ -874,7 +874,6 @@
 
   #+end_src
 
-  [[https://github.com/dbordak/telephone-line][telephone-line]]
   #+begin_src
     (setq-default mode-line-format
 		  '("%e"
@@ -993,6 +992,7 @@
      (minibuffer-line-mode 1)
 #+end_src
 *** Telephone Line
+[[https://github.com/dbordak/telephone-line][telephone-line]]
 #+begin_src
       (unless (package-installed-p 'telephone-line)
 	(package-refresh-contents)
@@ -2165,8 +2165,9 @@ displaying text that Emacs itself generates.
 
 Major Mode to open when a file is visited by specifying the first line something like:
 ; -*-Lisp-*-
-This opens the file in Lisp mode
-In scripts where first line usually begins with #!, the mode line should be specified in the second line
+
+This opens the file in Lisp mode. In scripts where first line usually
+begins with #!, the mode line should be specified in the second line
 
 |-----------------+----------------------------------------------|
 | M-x normal-mode | If major mode is changed, restore to default |
@@ -2182,20 +2183,28 @@ use <TAB> to align point with the preceding line.  If the region is
 active, <TAB> acts specially: it indents each line in the region so
 that its first non-whitespace character is aligned with the
 preceding line.
-|-----------+-----------+-------------------------------------------------------------------------------------|
-| *TAB*     |           | indent-for-tab-command                                                              |
-|           |           | insert whitespace or indent current line                                            |
-|           |           | if region is active, index all lines in it                                          |
-| *C-q TAB* | *C-v TAB* | insert tab character in buffer                                                      |
-| C-M-o     |           | split-line (split at point and text after point aligns with where point was before) |
-| *M-m*     | *^*       | back-to-indentation (move to first non whitespace char on line)                     |
-| *M-i*     |           | tab-to-tab-stop (indent at point up to next tabstop)                                |
-| *M-^*     | *kJ*      | delete-indentation (merge current and previous line)                                |
-|           |           | with prefix, join current line to next line                                         |
-| *C-M-\*   | *>*       | indent-region                                                                       |
-| *C-x TAB* |           | indent-rigidly                                                                      |
-|           |           | (indent all line in region, activating transient mode where arrow keys move region) |
-|-----------+-----------+-------------------------------------------------------------------------------------|
+|-----------+-----------+-----------------------------------------------------------|
+| *TAB*     |           | indent-for-tab-command                                    |
+|           |           | insert whitespace or indent current line                  |
+|           |           | if region is active, index all lines in it                |
+| *C-q TAB* | *C-v TAB* | insert tab character in buffer                            |
+| C-M-o     |           | split-line (split at point and text after point aligns    |
+|           |           | with where point was before)                              |
+| *M-m*     | *^*       | back-to-indentation (move to first non whitespace char    |
+|           |           | on line)                                                  |
+| *M-i*     |           | tab-to-tab-stop (indent at point up to next tabstop)      |
+| *M-^*     | *kJ*      | delete-indentation (merge current and previous line)      |
+|           |           | with prefix, join current line to next line               |
+|           |           | if region is active, join all lines in region             |
+| *C-M-\*   | *>*       | indent-region                                             |
+|           |           | join all lines in region as if you typed tab at each line |
+|           |           | with prefix, indent to prefix column                      |
+| *C-x TAB* |           | indent-rigidly                                            |
+|           |           | (indent all line in region, activating transient mode     |
+|           |           | where arrow keys move region)                             |
+|           |           | with prefix N, indent by forward/backward N space         |
+|           |           | C-u -999 C-x TAB - removes all indentation                |
+|-----------+-----------+-----------------------------------------------------------|
 
 ** Tab stops
 - certain columns are used as stopping points when using indentations
@@ -2205,39 +2214,64 @@ preceding line.
   | M-x edit-tab-stops | edit tab stops interactively |
   |--------------------+------------------------------|
 
-  - tab characters are displayed as spaces extending to next tab stop
+- tab characters are displayed as spaces extending to next tab stop
 
 ** Tabs vs spaces
 - Indentation inserts shortest possible series of tab and space to align to desired column
-  |---------------------+---------------------------------------------------------------------------|
-  | 'indent-tabs-mode'  | setting to nil makes all indentation using space                          |
-  |                     | C-q TAB still inserts tab                                                 |
-  | *M-x tabify*        | scan region and convert spaces to tabs without changing indent            |
-  | *M-x untabify*      | convert tabs to spaces                                                    |
-  | 'tab-always-indent' | if 'complete', first try to indent and if already indented, then complete |
-  |---------------------+---------------------------------------------------------------------------|
+  |--------------------------+---------------------------------------------------------|
+  | 'indent-tabs-mode'       | setting to nil makes all indentation using space        |
+  |                          | C-q TAB still inserts tab                               |
+  | *M-x tabify*             | scan region and convert spaces to tabs without changing |
+  |                          | indent                                                  |
+  | *M-x untabify*           | convert tabs to spaces                                  |
+  | 'tab-always-indent'      | if 'complete', first try to indent and if already       |
+  |                          | indented then complete                                  |
+  |                          | if nil, indent line only if point is at left margin     |
+  |                          | else insert tab                                         |
+  | M-x electric-indext-mode | automatically indent line after every RET               |
+  |--------------------------+---------------------------------------------------------|
 
   #+begin_src emacs-lisp
     (setq tab-always-indent 'complete)
+    ;; distance between tab stops in columns. control width of tab characters to display
+    ;; it should be positive integer and default is 8
+    (setq tab-width 8)
   #+end_src
-
+** Code Alignment
+|--------------------------------+-------------------------------------------|
+| M-x align                      | align lines in region                     |
+|                                | with prefix produce alternate alignment   |
+| 'align-rules-list              | specifies alignment rules to use          |
+| 'align-mode-rules-list'        | mode specific alignment rules list        |
+| 'align-to-tab-stop'            | nil - use enough whitespace for alignment |
+|                                | t - align to tab stops                    |
+| 'align-indent-before-aligning' | indent region before aligning             |
+|--------------------------------+-------------------------------------------|
 * Text
 ** Words
-|---------+------+------------------------------------------|
-| *M-f*   | *w*  | forward-word                             |
-| *M-b*   | *b*  | backward-word                            |
-| *M-d*   | *dw* | kill-word (kill word after point)        |
-| *M-DEL* | *db* | backward-kill-word                       |
-| *M-t*   |      | transpose-words (before and after point) |
-|---------+------+------------------------------------------|
+|---------+------+-------------------------------------------|
+| *M-f*   | *w*  | forward-word                              |
+| *M-b*   | *b*  | backward-word                             |
+| *M-d*   | *dw* | kill-word (kill word after point)         |
+| *M-DEL* | *db* | backward-kill-word                        |
+| *M-@*   |      | mark-word                                 |
+|         |      | change direction of region extension with |
+|         |      | C-x C-x                                   |
+| *M-t*   |      | transpose-words (before and after point)  |
+|---------+------+-------------------------------------------|
 
 ** Sentences
-|-------+------+------------------------------------------------------|
-| *M-a* | *(*  | backward-sentence (move to beginning of sentence)    |
-| *M-e* | *)*  | forward-sentence (move to end of sentence)           |
-| *M-k* | *d)* | kill-sentence (kill from point till end of sentence) |
-|-------+------+------------------------------------------------------|
-
+|-----------+------+------------------------------------------------------|
+| *M-a*     | *(*  | backward-sentence (move to beginning of sentence)    |
+| *M-e*     | *)*  | forward-sentence (move to end of sentence)           |
+| *M-k*     | *d)* | kill-sentence (kill from point till end of sentence) |
+| *C-x DEL* |      | backward-kill-sentence                               |
+|           |      | same as M-- M-k                                      |
+|-----------+------+------------------------------------------------------|
+- Sentence end with period followed by 2 spaces or end of line. A
+  sentence also begins or ends when a para begins or ends
+- If you want to use just one space, set sentence-end-double-space
+  
 ** Paragraphs
 |-------+-------+-----------------------------------------------------|
 | M-{   | *[[*  | backward-paragraph                                  |
@@ -2245,9 +2279,11 @@ preceding line.
 | *M-h* | *v]]* | mark-paragraph                                      |
 |       |       | put point and mark around current or next paragraph |
 |       |       | point at beginning and mark at end                  |
+|       |       | also select blank line preceding para               |
 |       |       | each M-h advances mark by another para              |
 |-------+-------+-----------------------------------------------------|
-
+- paragraphs are separated by one or more blank lines
+  
 ** Pages
 - page breaks are inserted with C-q C-l
   |---------------+----------------------------------------------|
@@ -2257,26 +2293,43 @@ preceding line.
   | C-x C-p       | mark-page                                    |
   | C-x l         | count-lines-page                             |
   |---------------+----------------------------------------------|
-
+** Quotation Mark
+- typewriter convention - '' or '' and ''
+- curved quotation -  ‘’ or “”
+- electric quote mode -
+  converts ` to  ‘ and ' to ’
+  converts `` to “ and '' to ”
+- alternate ways using C-x 8
+   C-x 8 [ - ‘
+   C-x 8 ] - ’
+   C-x 8 { - “
+   C-x 8 } - ”
 ** Filling
 - “Filling” text means breaking it up into lines that fit a
   specified width.
 - fill prefix allows para to be filled such that each line starts
   with special string
-  |--------------------------------+--------+--------------------------------------------------------------------------|
-  | M-x auto-fill-mode             |        | toggle autofill mode                                                     |
-  | SPC or RET                     |        | in auto fill mode break lines where appropriate                          |
-  | *M-q*                          | *gqap* | fill-paragraph                                                           |
-  |                                |        | distribute line breaks within para and delete any extra space and tab    |
-  |                                |        | such that all lines fit within max width ('fill-column')                 |
-  |                                |        | if region is active, act on region                                       |
-  |                                |        | with prefix, add spaces to right justify                                 |
-  | C-x f                          |        | set-fill-column                                                          |
-  | *M-x fill-region-as-paragraph* |        | Fill everything between point and mark as one paragraph                  |
-  | 'fill-column'                  |        |                                                                          |
-  | M-o M-s                        |        | center-line (center line within current fill column)                     |
-  | *C-x .*                        |        | set-fill-prefix (from start of line till point is treated as new prefix) |
-  |--------------------------------+--------+--------------------------------------------------------------------------|
+  |--------------------------------+--------+------------------------------------------|
+  | M-x auto-fill-mode             |        | toggle autofill mode                     |
+  | SPC or RET                     |        | in auto fill mode break lines where      |
+  |                                |        | appropriate                              |
+  | *M-q*                          | *gqap* | fill-paragraph                           |
+  |                                |        | distribute line breaks within para and   |
+  |                                |        | delete any extra space and tab           |
+  |                                |        | such that all lines fit within max       |
+  |                                |        | width ('fill-column')                    |
+  |                                |        | if region is active, act on region       |
+  |                                |        | with prefix, add spaces to right justify |
+  | C-x f                          |        | set-fill-column                          |
+  | *M-x fill-region-as-paragraph* |        | Fill everything between point and mark   |
+  |                                |        | as one paragraph                         |
+  | 'fill-column'                  |        | max line width for filling. default 70   |
+  | M-o M-s                        |        | center-line (center line within current  |
+  |                                |        | fill column)                             |
+  | *C-x .*                        |        | set-fill-prefix                          |
+  |                                |        | (from start of line till point is        |
+  |                                |        | treated as new prefix)                   |
+  |--------------------------------+--------+------------------------------------------|
   - When a fill prefix is in effect, the fill commands remove the
     fill prefix from each line of the paragraph before filling, and
     insert it on each line after filling.  The beginning of the
@@ -2289,8 +2342,7 @@ preceding line.
   - Conversely, the command M-^ deletes the prefix (if it occurs)
     after the newline that it deletes
 
-
-#+begin_src
+#+begin_src emacs-lisp
   (add-hook 'text-mode-hook 'turn-on-auto-fill)
 #+end_src
 
@@ -2305,7 +2357,7 @@ preceding line.
 |---------+-------+-------------------------------------------------|
 
 - enable disabled commands
-  #+begin_src
+  #+begin_src emacs-lisp
     (put 'downcase-region 'disabled nil)
     (put 'upcase-region 'disabled nil)
   #+end_src
@@ -2313,8 +2365,10 @@ preceding line.
 ** Text mode
 - tab inserts whitespace instead of indenting
 - apostrophe is considered part of word
-- C-M-i to spell check
-
+- if first line of para should be indented, then use
+  paragraph-indent-text-mode instead of text-mode
+- C-M-i to complete partial word
+  
 ** Outline mode
 - derived from text mode
 - uses C-c prefix
@@ -2335,6 +2389,123 @@ preceding line.
 | *C-c C-b* | outline-backward-same-level      |
 | *C-c C-u* | outline-up-heading               |
 |-----------+----------------------------------|
+
+** Org mode
+- Used as organizer and/or authoring system. File name ends with
+  '.org'
+- Heading starts with one or more '*'
+- Comment starts with #
+|---------+------------------------------------------------------------------|
+| TAB     | org-cycle                                                        |
+|         | on heading line cycle through different visibility levels        |
+|         | on body line, use global binding                                 |
+| S-TAB   | org-shifttab                                                     |
+|         | anywhere in buffer, cycle visibility of entire outline structure |
+| M-UP    | org-metaup                                                       |
+|         | move entire entry(including body and sutree) up                  |
+| M-DOWN  | org-metadown                                                     |
+| M-LEFT  | org-metaleft                                                     |
+|         | promote a heading                                                |
+| M-RIGHT | org-metaright                                                    |
+|---------+------------------------------------------------------------------|
+*** Organizer
+|---------------------+-----------------------------------------------------------|
+| C-c C-t             | org-todo                                                  |
+|                     | tag an entry as TODO item. Adds keyword TODO in the entry |
+|                     | If already TODO, switch it to DONE                        |
+|                     | If already DONE, remove the keyword                       |
+| 'org-todo-keywords' | keywords used by org-todo                                 |
+| C-c C-s             | org-schedule                                              |
+|                     | attach date to TODO adding tag SCHEDULED same as          |
+| C-c C-d             | org-deadline                                              |
+|                     | same as org-schedule but tag is DEADLINE                  |
+| C-c [               | org-agenda-file-to-front                                  |
+|                     | add file to agenda files stored in 'org-agenda-files'     |
+| M-x org-agenda      | show list of things to do                                 |
+|---------------------+-----------------------------------------------------------|
+*** Authoring
+|-----------------------------+---------------------------------------|
+| C-c C-e                     | org-export-dispatch                   |
+|                             | export buffer to HTML, LaTex, PDF etc |
+| /emphasized/                |                                       |
+| *bold*                      |                                       |
+| _underlined_                |                                       |
+| =teletype font=             |                                       |
+| #+begin_quote               |                                       |
+| #+end_quote                 |                                       |
+| #+begin_example             |                                       |
+| #+end_example               |                                       |
+| C-c C-c                     | org-ctrl-c-ctrl-c                     |
+|                             | evaluate if cursor is on code block   |
+| 'org-confirm-babel-evaluate | prompt before evaluating              |
+|-----------------------------+---------------------------------------|
+#+begin_src emacs-lisp
+  (require 'org-tempo)
+
+  (org-babel-do-load-languages 'org-babel-load-languages
+			       '((C . t)
+				 (java . t)
+				 (latex . t)
+				 (lua . t)
+				 (python . t)
+				 (shell . t)
+				 (emacs-lisp . t)))
+  (setq org-confirm-babel-evaluate nil)
+#+end_src
+
+** Text Based Tables
+|----------------------------+---------------------------------|
+| M-x table-fixed-width-mode | toggle automatic table resizing |
+|----------------------------+---------------------------------|
+*** Definition
+- Table consists of rectangular area made of cells
+- Cell must be atleast one char high and one char wide
+|------------------------------+------------------------------------------|
+| table-cell-vertical-char     | char used for vertical lines             |
+| table-cell-horizontal-chars  | char used for horizontal lines           |
+| table-cell-intersection-char | char used intersection of horizontal and |
+|                              | vertical lines                           |
+|------------------------------+------------------------------------------|
+- cells cannot overlap one another
+- border must be rectangular
+*** Creation
+|------------------+----------------------------------------------------------------|
+| M-x table-insert | create table                                                   |
+|                  | prompts number of rows, columns, cell width and height         |
+|                  | width and height can be sequence of numbers separated by comma |
+|                  | they specify cell size from top to bottom and left to right    |
+|------------------+----------------------------------------------------------------|
+*** Recognition
+- When reading text file, table appears as normal text
+|------------------------------+---------------------------------------------|
+| M-x table-recognize          | scan current buffer and recognize all valid |
+|                              | tale cells                                  |
+| M-x table-unrecognize        | convert table to plain text                 |
+| M-x table-recognize-region   |                                             |
+| M-x table-unrecognize-region |                                             |
+| M-x table-recognize-table    | recognize table at point                    |
+| M-x table-unrecognize-table  |                                             |
+| M-x table-recognize-cell     |                                             |
+| M-x table-unrecognize-cell   |                                             |
+|------------------------------+---------------------------------------------|
+*** Cell Commands
+|-----------------------------------+--------------------------------------------------|
+| M-x table-forward-cell            | move to next cell                                |
+| M-x table-backward-cell           | move to prev cell                                |
+| M-x table-span-cell               | prompt direction and merge current cell with     |
+|                                   | adjacent  in given direction                      |
+| M-x table-split-cell              | when splitting vertically, old cell contents     |
+| M-x table-split-cell-horizontally | are automatically split between two cells        |
+| M-x table-split-cell-vertically   | prompts when splitting horizontally if non-empty |
+|                                   | split - divide contents at point                 |
+|                                   | left - put all contents on left cell             |
+|                                   | right - put all contents on right cell           |
+| M-x table-heighten-cell           | pass prefix to specify number rows/columns       |
+| M-x table-shorten-cell            | to resize by                                     |
+| M-x table-widen-cell              |                                                  |
+| M-x table-narrow-cell             |                                                  |
+|-----------------------------------+--------------------------------------------------|
+
 
 * Programs
 - Program mode has special rules for indentation, syntax
@@ -3905,21 +4076,6 @@ Linebreaks
   (add-hook 'eww-mode-hook 'visual-line-mode)
 #+end_src
 
-* Org mode
-#+begin_src
-  (require 'org-tempo)
-
-  (org-babel-do-load-languages 'org-babel-load-languages
-			       '((C . t)
-				 (java . t)
-				 (latex . t)
-				 (lua . t)
-				 (python . t)
-				 (shell . t)
-				 (emacs-lisp . t)))
-  (setq org-confirm-babel-evaluate nil)
-#+end_src
-  
 * Theme
 ** Solarized
 #+begin_src
@@ -4887,3 +5043,4 @@ Create a .dir-locals.el file in root of folder with contents like
       map)
     "Window")
 #+end_src
+* International
