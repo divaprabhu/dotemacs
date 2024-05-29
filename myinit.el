@@ -272,7 +272,47 @@
 	 (slot . 0))))
 (global-set-key (kbd "<f12>") 'window-toggle-side-windows)
 
+(require 'scroll-bar)
+(scroll-bar-mode -1)
+(setq horizontal-scroll-bar-mode -1)
+
+(menu-bar-mode -1)
+(setq tty-menu-open-use-tmm t)
+
+(require 'tool-bar)
+(tool-bar-mode -1)
+
+(setq tab-bar-show 1)
+
+(setq use-dialog-box nil)
+
+(tooltip-mode -1)
+
 (setq tab-always-indent 'complete)
+;; distance between tab stops in columns. control width of tab characters to display
+;; it should be positive integer and default is 8
+(setq tab-width 8)
+
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
+
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
+
+(require 'org-tempo)
+
+(org-babel-do-load-languages 'org-babel-load-languages
+			     '((C . t)
+			       (java . t)
+			       (latex . t)
+			       (lua . t)
+			       (python . t)
+			       (shell . t)
+			       (emacs-lisp . t)))
+(setq org-confirm-babel-evaluate nil)
+
+(setq imenu-auto-rescan t)
+
+(which-function-mode 1)
 
 (require 'package)
 (package-initialize)

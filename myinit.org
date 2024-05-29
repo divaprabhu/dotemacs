@@ -2506,6 +2506,36 @@ preceding line.
 | M-x table-narrow-cell             |                                                  |
 |-----------------------------------+--------------------------------------------------|
 
+*** Cell Justification
+|-------------------------------+---------------------------------------------------------------|
+| M-x table-justify             | prompt what to justify(cell, column, row)                     |
+|                               | prompt style (center, left, right, top, middle, bottom, none) |
+|                               | call twice to justify both horizontally and vertically        |
+| 'table-detect-cell-alignment' | nil - don't attempt determine cell justification style        |
+|-------------------------------+---------------------------------------------------------------|
+*** Rows and Columns
+|-------------------------+--------------------------------------|
+| M-x table-insert-row    | insert row before current row        |
+|                         | with prefix N - insert N rows        |
+| M-x table-insert-column | insert column left of current column |
+|                         | with prefix N - insert N columns     |
+| M-x table-delete-column | delete column of cells               |
+| M-x table-delete-row    | delete row of cells                  |
+|-------------------------+--------------------------------------|
+*** Conversion
+|-------------------+-------------------------------------------------------------|
+| M-x table-capture | converts plaintext in region into table                     |
+|                   | text need not have table appearance but only some structure |
+| M-x table-release | convert table back to plain text                            |
+|-------------------+-------------------------------------------------------------|
+*** Misc
+|---------------------------+-----------------------------------------------------|
+| M-x table-query-dimension | report table size                                   |
+| M-x table-insert-sequence | insert sequence of text into each cell              |
+|                           | asks base string and then increments numerically    |
+|                           | or ASCII order                                      |
+| M-x table-generate-source | generate markup text for table like html, latex etc |
+|---------------------------+-----------------------------------------------------|
 
 * Programs
 - Program mode has special rules for indentation, syntax
@@ -2518,12 +2548,12 @@ preceding line.
 - 'open-paren-in-colum-0-is-defun-start' can be set to nil if
   opening parens or brace found at left margin is not start of a
   function
-  |---------+------------------------------------------------|
-  | *C-M-a* | beginning-of-defun                             |
-  |         | move to beginning of current or previous defun |
-  | *C-M-e* | end-of-defun                                   |
-  | *C-M-h* | mark-defun (current or following defun)        |
-  |---------+------------------------------------------------|
+|---------+------------------------------------------------|
+| *C-M-a* | beginning-of-defun                             |
+|         | move to beginning of current or previous defun |
+| *C-M-e* | end-of-defun                                   |
+| *C-M-h* | mark-defun (current or following defun)        |
+|---------+------------------------------------------------|
 
 ** Imenu
 - Offers a way to find major definitions in file by name. It also
@@ -2532,31 +2562,35 @@ preceding line.
 - Special item *Rescan* scans and updates definition list if
   anything is added or deleted. Alternatively, we can set to run
   automatically
-  #+begin_src
+  #+begin_src emacs-lisp
     (setq imenu-auto-rescan t)
   #+end_src
 
 ** Which Function
 - It is a global minor mode that displays current function name in
   mode line
-  #+begin_src
+  #+begin_src emacs-lisp
     (which-function-mode 1)
   #+end_src
 
 ** Indentation
-|-------------------+---------------------------------------------------------------------------------|
-| *TAB*             | indent-for-tab-command (indent current line or region)                          |
-| *RET*             | newline (insert new line and then adjust indentation of following line)         |
-| *C-M-q*           | prog-indent-sexp (indent all lines in parenthetical grouping)                   |
-| *C-u TAB*         | shift entire sexp side without changing indentation within parenthetical group) |
-| *C-c C-q*         | c-indent-defun                                                                  |
-|                   | re-indent current top level function def or type declaration                    |
-| *C-x h C-M-\*     | re-indent whole buffer                                                          |
-| *C-c . STYLE RET* | c-set-style                                                                     |
-|                   | c mode and related modes have an option to customize indentation style          |
-|                   | Some predefined styles - 'gnu', 'k&r', 'bsd', 'java, 'python' etc               |
-| *M-x c-guess*     | Guess indentation style using current buffer                                    |
-|-------------------+---------------------------------------------------------------------------------|
+|-------------------+------------------------------------------------------------------------|
+| *TAB*             | indent-for-tab-command (indent current line or region)                 |
+| *RET*             | newline (insert new line and then adjust indentation of                |
+|                   | following line)                                                        |
+| *C-M-q*           | prog-indent-sexp (indent all lines in parenthetical grouping)          |
+|                   | indentation of opening parenthesis won't change                         |
+| *C-M-\*           | indent-region                                                          |
+| *C-u TAB*         | shift entire sexp side without changing indentation within             |
+|                   | parenthetical group)                                                   |
+| *C-c C-q*         | c-indent-defun                                                         |
+|                   | re-indent current top level function def or type declaration           |
+| *C-x h C-M-\*     | re-indent whole buffer                                                 |
+| *C-c . STYLE RET* | c-set-style                                                            |
+|                   | c mode and related modes have an option to customize indentation style |
+|                   | Some predefined styles - 'gnu', 'k&r', 'bsd', 'java, 'python' etc      |
+| *M-x c-guess*     | Guess indentation style using current buffer                           |
+|-------------------+------------------------------------------------------------------------|
 
 ** Parenthesis
 - Balanced expression includes string or code enclosed in matching
@@ -2587,6 +2621,7 @@ preceding line.
   |                                            | highlight expression                                           |
   | 'show-paren-when-point-inside-paren'       | highlight even when point is inside parens                     |
   | 'show-paren-when-point-in-periphery'       | highlight when point is in white space before or after parens  |
+  | 'show-paren-context-when-offscreen'        | show context in echo area when opening delimiter is offscreen  |
   | M-x electric-pair-mode                     | insert closing delimiter when opening delimiter is inserted    |
   |                                            | leaving point in between                                       |
   |                                            | if region is active, insert delimiter around region            |
@@ -2597,38 +2632,76 @@ preceding line.
   | 'electric-pair-skip-whitespace'            |                                                                |
   |--------------------------------------------+----------------------------------------------------------------|
 
-  #+begin_src
+  #+begin_src emacs-lisp
     (setq blink-matching-paren 'jump
 	  blink-matching-delay 1)		; not used in show paren mode
 
     (setq show-paren-highlight-openparen t
 	  show-paren-style 'mixed
-	  show-paren-when-point-inside-paren t)
+	  show-paren-when-point-inside-paren t
+	  show-paren-context-when-offscreen t)
     (show-paren-mode 1)
 
     (setq electric-pair-preserve-balance t
 	  electric-pair-delete-adjacent-pairs t
 	  electric-pair-open-newline-between-pairs t)
 
-    (add-hook 'prog-mode-hook 'electric-pair-local-mode)
+    (add-hook 'prog-mode-hook 'electric-pair-local-mode) 
   #+end_src
 
 ** Comments
-|-----------+-----------------------------------------------------------|
-| *M-;*     | comment-dwim                                              |
-|           | insert or realign comment on current line                 |
-|           | if region is active, comment or uncomment lines in region |
-| *C-x C-;* | comment-line                                              |
-| *M-j*     | like RET followed by inserting and aligning a comment     |
-| *C-c C-c* | comment-region                                            |
-|-----------+-----------------------------------------------------------|
+|-----------+-------------------------------------------------------------------------|
+| *M-;*     | comment-dwim                                                            |
+|           | insert or realign comment on current line                               |
+|           | if region is active, comment or uncomment lines in region               |
+|           | with prefix and no active region - kill comment on current line         |
+|           | with prefix N and active region - specifies number of delimiters to add |
+| *C-x C-;* | comment-line                                                            |
+|           | with prefix N - comment N(positive) following or preceding(negative)    |
+|           | lines                                                                   |
+| *M-j*     | like RET followed by inserting and aligning a comment                   |
+| *C-c C-c* | comment-region                                                          |
+|-----------+-------------------------------------------------------------------------|
 
 ** Documentation
-|-----------+---------------------------------------|
-| C-h S     | info-lookup-symbol                    |
-| M-x man   | display manual using external program |
-| M-x woman | display manual using emacs formatter  |
-|-----------+---------------------------------------|
+|-----------+----------------------------------------------|
+| C-h S     | info-lookup-symbol                           |
+| M-x man   | display manual using external program        |
+|           | specify section in parentheses like chmod(2) |
+| M-x woman | display manual using emacs formatter         |
+|-----------+----------------------------------------------|
+** Eldoc
+- Echo area displays useful information when there is documented
+  symbol at point
+|-------------------------------------+--------------------------------------------------|
+| M-x eldoc-mode                      | buffer local eldoc mode                          |
+| M-x global-eldoc-mode               | global eldoc mode                                |
+| 'eldoc-idle-delay'                  | idle time before documentation is displayed      |
+|                                     | default 0.5s                                     |
+| 'eldoc-print-after-edit'            | show doc for symbol that was inserted and not    |
+|                                     | already present in document                      |
+| 'eldoc-echo-area-use-multiline-p'   | positive - number of max screen-lines used to    |
+|                                     | display documentation                            |
+|                                     | float - fraction of frame height                 |
+|                                     | t - never truncate documentation (uses           |
+|                                     | max-mini-window-height(0.25 default)             |
+|                                     | nil - truncate if more than one line             |
+| 'eldoc-echo-area-prefer-doc-buffer' | t - use eldoc buffer if already open instead     |
+|                                     | of echo area                                     |
+|                                     | maybe - don't display in echo area if eldoc      |
+|                                     | buffer is open and if it will truncate if        |
+|                                     | displayed in echo area                           |
+|                                     | nil - always show in echo area                   |
+| 'eldoc-documentation-strategy'      | function to retrieve and display documentation   |
+|                                     | for symbol at point                              |
+| 'eldoc-documentation-functions'     | list of functions that can produce documentation |
+|-------------------------------------+--------------------------------------------------|
+#+begin_src emacs-lisp
+  (setq eldoc-echo-area-display-truncation-message t
+	eldoc-echo-area-use-multiline-p t
+	eldoc-echo-area-prefer-doc-buffer t)
+  (global-eldoc-mode 1)
+#+end_src
 
 ** Hideshow minor mode
 - Hideshow mode is a buffer local mode that allows to selectively
@@ -2639,9 +2712,9 @@ preceding line.
   | M-x hs-minor-mode                  |      | toggle hideshow mode                            |
   | C-c @ C-h                          | *zc* | hs-hide-block                                   |
   | C-c @ C-s                          | *zo* | hs-show-block                                   |
-  | C-c @ C-c                          | *za* | hs-toggle-hiding                                |
-  | C-c @ C-M-h                        | *zm* | hs-hide-all                                     |
-  | C-c @ C-M-s                        | *zr* | hs-show-all                                     |
+  | *C-c @ C-c*                        | *za* | hs-toggle-hiding                                |
+  | *C-c @ C-M-h*                      | *zm* | hs-hide-all                                     |
+  | *C-c @ C-M-s*                      | *zr* | hs-show-all                                     |
   | C-u N C-c @ C-l                    |      | hs-hide-level                                   |
   | 'hs-hide-comments-when-hiding-all' |      | if non-nill, hs-hide-all hides comments         |
   | 'hs-isearch-open'                  |      | during isearch if match occurs in hidden block: |
@@ -2650,64 +2723,89 @@ preceding line.
   |                                    |      | t - unhide both                                 |
   |                                    |      | nil - don't unhide                              |
   |------------------------------------+------+-------------------------------------------------|
-  #+begin_src
+  #+begin_src emacs-lisp
+    (setq hs-isearch-open t
+	  hs-hide-comments-when-hiding-all t)
     (add-hook 'prog-mode-hook 'hs-minor-mode)
-    (add-hook 'org-mode-hook 'hs-minor-mode)
-    (add-hook 'outline-mode-hook 'hs-minor-mode)
   #+end_src
 ** Completion
-|---------+---------------------|
-| *C-M-i* | completion-at-point |
-|---------+---------------------|
+- Completion order
+  = Eglot LSP
+  = Semantic Parser
+  = Tags Table
+  = Emacs Session for Lisp
+  = Spell checker
+  
+|-----------------+----------------------------------------|
+| *C-M-i*         | completion-at-point                    |
+| M-UP and M-DOWN | next completion candidate              |
+| M-RET           | Insert currently highlighted candidate |
+|-----------------+----------------------------------------|
 
-** MixedCase
-|--------------------+--------------------------------------------------------------------|
-| M-x glasses-mode   | display underscore between each lowercase and following upper case |
-| M-x subword-mode   | Treat upper case letters as word bounderies                        |
-| M-x superword-mode | treat multiple words separated by underscores as one word          |
-|--------------------+--------------------------------------------------------------------|
+** Mixed-Case
+|--------------------+--------------------------------------------------------------|
+| M-x glasses-mode   | display underscore between each lowercase                    |
+|                    | and following upper case                                     |
+|                    | this does not alter buffer text, only how they are displayed |
+|                    | mode-line indicator o^o                                       |
+| M-x subword-mode   | Treat upper case letters as word boundaries                  |
+|                    | mode-line indicator - ','                                     |
+| M-x superword-mode | treat multiple words separated by underscores as one word    |
+|--------------------+--------------------------------------------------------------|
+#+begin_src emacs-lisp
+  (add-hook 'prog-mode-hook 'superword-mode)
+#+end_src
 
 ** Semantic mode
-|-------------------+-----------------------------------------------------------------------------|
-| M-x semantic-mode | provide search, navigation and completion commands                          |
-| C-c , j           | semantic-complete-jump-local                                                |
-|                   | prompt for name of function and move point to its definition (in same file) |
-| C-c , J           | semantic-complete-jump                                                      |
-|                   | prompt for name of function and move point to its definition (in any file)  |
-| C-c , SPC         | semantic-complete-analyze-inline                                            |
-|                   | display list of possible completions for symbol at point                    |
-| C-c , l           | semantic-analyze-possible-completions                                       |
-|                   | display list of possible completions at point in another window             |
-|-------------------+-----------------------------------------------------------------------------|
+|-------------------+-----------------------------------------------------------------|
+| M-x semantic-mode | provide search, navigation and completion commands              |
+|                   | relies on source code parser                                    |
+| C-c , j           | semantic-complete-jump-local                                    |
+|                   | prompt for name of function and move point to its               |
+|                   | definition (in same file)                                       |
+| C-c , J           | semantic-complete-jump                                          |
+|                   | prompt for name of function and move point to its               |
+|                   | definition (in any file)                                        |
+| C-c , SPC         | semantic-complete-analyze-inline                                |
+|                   | display list of possible completions for symbol at point        |
+|                   | M-n/M-p cycle through possible, RET accept current completion   |
+|                   | TAB - complete till max common string                           |
+| C-c , l           | semantic-analyze-possible-completions                           |
+|                   | display list of possible completions at point in another window |
+|-------------------+-----------------------------------------------------------------|
 
 ** C Mode
-|-------------------------+---------------------------------------------------------------------------|
-| *C-M-a*                 | beginning-of-defun                                                        |
-| *C-M-e*                 | end-of-defun                                                              |
-| *M-a*                   | c-beginning-of-statement                                                  |
-|                         | move point to beginning of innermost statement                            |
-| *M-e*                   | c-end-of-statement                                                        |
-| *C-M-h*                 | c-mark-function                                                           |
-| *M-q*                   | c-fill-paragraph                                                          |
-| *C-c C-e*               | c-macro-expand                                                            |
-|                         | run c pre-processor on region and display result in new buffer            |
-| *C-c C-\*               | c-backslash-region (insert or align backslash at the end of lines)        |
-| *M-x cwarn-mode*        |                                                                           |
-| *M-x global-cwarn-mode* | highlight suspicious code like assignment inside expression,              |
-|                         | semicolon after if etc                                                    |
-| C-c C-k                 | toggle comment style to block or line                                     |
-|                         | mode line show * for block and / for line                                 |
-| C-c C-l                 | c-toggle-electric-state (positive or negative prefix enables or disables) |
-|                         | In electric action mode, insert certain characters like '{', ';' etc.     |
-|                         | also re-indents current line and optionally inserts newline               |
-|                         | Modeline shows l                                                          |
-| C-c C-a                 | c-toggle-auto-newline                                                     |
-|                         | In electric action mode, newline are inserted only if auto-newline        |
-|                         | is also enabled. Modline shows a                                          |
-| C-c DEL                 | c-hungry-delete-backwards (delete all whitespace surrounding point)       |
-| C-c C-d                 | c-hungry-delete-forward                                                   |
-|                         |                                                                           |
-|-------------------------+---------------------------------------------------------------------------|
+|-------------------------+---------------------------------------------------------------------|
+| *C-M-a*                 | beginning-of-defun                                                  |
+| *C-M-e*                 | end-of-defun                                                        |
+| *M-a*                   | c-beginning-of-statement                                            |
+|                         | move point to beginning of innermost statement                      |
+| *M-e*                   | c-end-of-statement                                                  |
+| *C-M-h*                 | c-mark-function                                                     |
+| *M-q*                   | c-fill-paragraph                                                    |
+| *C-c C-e*               | c-macro-expand                                                      |
+|                         | run c pre-processor on region and display result                    |
+|                         | in new buffer                                                       |
+| *C-c C-\*               | c-backslash-region (insert or align backslash at                    |
+|                         | the end of lines)                                                   |
+| *M-x cwarn-mode*        |                                                                     |
+| *M-x global-cwarn-mode* | highlight suspicious code like assignment inside expression,        |
+|                         | semicolon after if etc                                              |
+| C-c C-k                 | toggle comment style to block or line                               |
+|                         | mode line show * for block and / for line                           |
+| C-c C-l                 | c-toggle-electric-state (positive or negative prefix                |
+|                         | enables or disables)                                                |
+|                         | In electric action mode, insert certain characters                  |
+|                         | like '{', ';' etc. also re-indents current line                     |
+|                         | and optionally inserts newline                                      |
+|                         | Modeline shows l                                                    |
+| C-c C-a                 | c-toggle-auto-newline                                               |
+|                         | In electric action mode, newline are inserted only                  |
+|                         | if auto-newline is also enabled. Modline shows a                    |
+| C-c DEL                 | c-hungry-delete-backwards (delete all whitespace surrounding point) |
+| C-c C-d                 | c-hungry-delete-forward                                             |
+|                         |                                                                     |
+|-------------------------+---------------------------------------------------------------------|
 
 #+begin_src
   (add-hook 'c-mode-hook 'cwarn-mode)
@@ -4722,13 +4820,6 @@ Create a .dir-locals.el file in root of folder with contents like
       (package-install 'lsp-java))
     (add-hook 'java-mode-hook #'lsp-deferred)
 #+end_src
-* Eldoc
-#+begin_src
-  (setq eldoc-echo-area-display-truncation-message t
-	eldoc-echo-area-use-multiline-p t
-	eldoc-echo-area-prefer-doc-buffer t)
-#+end_src
-
 * Yasnippet
 - Use tab key for snippet completion
   |-----------+--------------------------------------------------|
