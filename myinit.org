@@ -2807,29 +2807,38 @@ preceding line.
 |                         |                                                                     |
 |-------------------------+---------------------------------------------------------------------|
 
-#+begin_src
+#+begin_src emacs-lisp
   (add-hook 'c-mode-hook 'cwarn-mode)
 #+end_src
 
 * Building
 ** Compilation
-|-----------------------------+--------------------------------------------------------------------|
-| *M-x compile*               | run compiler asynchronously sending errors to compilation buffer   |
-| *g OR M-x recompile*        | in compilation buffer, recompile                                   |
-| M-x kill-compilation        | kill running compilation                                           |
-|                             | Moving point to end of compilation buffer, acts like tail command  |
-| 'compilation-scroll-output' | t - scroll compilation buffer automatically to follow output       |
-|                             | first-error - scrolling stops at first error                       |
-| 'compilation-always-kill'   | starting new compilation when previous one is already running,     |
-|                             | prompts to kill running compilation                                |
-|                             | t - automatically kill previous compilation without prompting      |
-|                             | To run two compilations at once, start the first one,              |
-|                             | rename the‘*compilation*’ buffer (perhaps using ‘rename-uniquely’; |
-|                             | switch buffers and start the other compilation.                    |
-|                             | will create a new ‘*compilation*’ buffer.                          |
-|-----------------------------+--------------------------------------------------------------------|
+|--------------------------------------+-------------------------------------------------------|
+| *M-x compile*                        | run compiler asynchronously sending errors            |
+|                                      | to compilation buffer                                 |
+| *g OR M-x recompile*                 | in compilation buffer, recompile                      |
+| M-x kill-compilation                 | kill running compilation                              |
+|                                      | Moving point to end of compilation buffer,            |
+|                                      | acts like tail command                                |
+| 'compilation-scroll-output'          | t - scroll compilation buffer automatically to        |
+|                                      | follow output                                         |
+|                                      | first-error - scrolling stops at first error          |
+| 'compilation-always-kill'            | starting new compilation when previous one            |
+|                                      | is already running, prompts to kill running           |
+|                                      | compilation                                           |
+|                                      | t - automatically kill previous compilation           |
+|                                      | without prompting                                     |
+|                                      | To run two compilations at once, start the first one, |
+|                                      | rename the‘*compilation*’ buffer (perhaps using       |
+|                                      | ‘rename-uniquely’;                                    |
+|                                      | switch buffers and start the other compilation.       |
+|                                      | will create a new ‘*compilation*’ buffer.             |
+| 'compilation-environment'            | list of env variables passed to compilation           |
+|                                      | each element should be string of form VARNAME=VALUE   |
+| 'compilation-max-output-line-length' | nil - to not hide long lines                          |
+|--------------------------------------+-------------------------------------------------------|
 
-#+begin_src
+#+begin_src emacs-lisp
   (setq compilation-scroll-output 'first-error)
   (setq compilation-always-kill t)
 #+end_src
@@ -2843,21 +2852,25 @@ preceding line.
   | 'compilation-auto-jump-to-first-error' | automatically jump to locus of first error                       |
   | *M-g M-n OR M-g n*                     | next-error (visit locus of next error)                           |
   | *M-g M-p OR M-g p*                     | previous-error                                                   |
-  | *M-n*                                  | compilation-next-error (go to next error in compilation buffer)  |
+  | *M-n*                                  | compilation-next-error (go to next error                         |
+  |                                        | in compilation buffer)                                           |
   | *M-p*                                  | compilation-previous-error                                       |
   | *C-c C-f*                              | next-error-follow-minor-mode                                     |
-  |                                        | cursor motion in compilation buffer produce automatic display    |
+  |                                        | cursor motion in compilation buffer                              |
+  |                                        | produce automatic display                                        |
   |                                        | of corresponding source                                          |
   | *g*                                    | recompile                                                        |
-  | 'next-error-highlight'                 | how long to highlight source line with error                     |
-  | 'next-error-highlight-no-select'       | how long to highlight source line with error for non-selected    |
-  |                                        | buffer                                                           |
-  | M-x compilation-minor-mode             | enable minor mode to used compilation mode features              |
+  | 'next-error-highlight'                 | how long to highlight source line                                |
+  |                                        | with error                                                       |
+  | 'next-error-highlight-no-select'       | how long to highlight source line                                |
+  |                                        | with error for non-selected buffer                               |
+  | M-x compilation-minor-mode             | enable minor mode to use compilation                             |
+  |                                        | mode features                                                    |
   | 'compilation-save-buffers-predicate'   | argument is passed to save-some-buffers                          |
   |                                        | setting it to ignore, simply consumes all params and returns nil |
   |----------------------------------------+------------------------------------------------------------------|
 
-  #+begin_src
+  #+begin_src emacs-lisp
     (setq compilation-auto-jump-to-first-error t)
     (setq next-error-highlight 3)
     (setq next-error-highlight-no-select 3)
@@ -2866,22 +2879,26 @@ preceding line.
 ** Grep
 - Running grep treats matches reported like errors so that we can
   use similar keybindings
-  |---------------------+---------------------------------------------------------------|
-  | *M-x grep*          | run grep asynchronously                                       |
-  |                     | with prefix use word under cursor as the search term          |
-  |                     | escape shell special chars in single quotes                   |
-  |                     | you can chain multiple grep commands with pipes               |
-  |                     | output goes to grep buffer                                    |
-  | 'grep-save-buffers' | nil - don't save                                              |
-  |                     | ask - ask before saving                                       |
-  | *M-x grep-find*     | also called find-grep                                         |
-  |                     | uses find in the background to search every file in directory |
-  | *M-x zgrep*         | grep on compressed files                                      |
-  | M-x lgrep           | like grep but interactive                                     |
-  | M-x rgrep           | like grep-find but interactive                                |
-  |---------------------+---------------------------------------------------------------|
+  |---------------------+------------------------------------------------------|
+  | *M-x grep*          | run grep asynchronously                              |
+  |                     | with prefix use word under cursor as the search term |
+  |                     | escape shell special chars in single quotes          |
+  |                     | you can chain multiple grep commands with pipes      |
+  |                     | output goes to grep buffer                           |
+  | 'grep-save-buffers' | nil - don't save buffer before running grep          |
+  |                     | ask - ask to save buffer before running              |
+  |                     | t   - save without asking                            |
+  | M-x grep-find       | also called find-grep                                |
+  |                     | uses find in the background to search every          |
+  |                     | file in directory                                    |
+  |                     | find . -exec grep                                    |
+  | *M-x zgrep*         | grep on compressed files                             |
+  | *M-x lgrep*         | like grep but interactive                            |
+  | *M-x rgrep*         | like grep-find but interactive                       |
+  | 'case-fold-search'  | controls case sensitivity of search                  |
+  |---------------------+------------------------------------------------------|
 
-  #+begin_src
+  #+begin_src emacs-lisp
     (setq grep-save-buffers nil
 	  grep-use-null-filename-separator nil)
   #+end_src
@@ -2891,40 +2908,49 @@ preceding line.
 - collects problems with current buffer called 'diagnostic' using
   back-ends and annotates problematic regions. It also highlights
   overall status in modeline
-  |--------------------------------------+-----------------------------------------------------------------------|
-  | M-x flymake-mode                     | start flymake mode                                                    |
-  | M-x flymake-start                    | start syntax check manually                                           |
-  | *C-h .*                              | display-local-help                                                    |
-  |                                      | on regions that are highlighted for error                             |
-  | flymake-goto-next-error              | go to next error region                                               |
-  | flymake-goto-prev-error              | go to previous error region                                           |
-  | 'flymake-wrap-around'                | wrap around during next and prev error if on last or first error      |
-  | M-x flymake-show-buffer-diagnostics  | bring a separate buffer containing detailed structured                |
-  | M-x flymake-show-project-diagnostics | listing of diagnostics of current buffer or project                   |
-  |                                      | list is dynamically as the source is edited                           |
-  | 'flymake-no-changes-timeout'         | time to wait after last change before checking buffer                 |
-  |                                      | nil - never start                                                     |
-  |                                      | integer - wait for that many seconds                                  |
-  | 'help-at-pt-display-when-idle'       | Automatically show local help on point-over (like display-local-help) |
-  | 'help-at-pt-timer-delay'             | seconds to wait before displaying local help                          |
-  |--------------------------------------+-----------------------------------------------------------------------|
+  |--------------------------------------+-------------------------------------------|
+  | M-x flymake-mode                     | start flymake mode                        |
+  | M-x flymake-start                    | start syntax check manually               |
+  | *C-h .*                              | display-local-help                        |
+  |                                      | on regions that are highlighted for error |
+  | flymake-goto-next-error              | go to next error region                   |
+  | flymake-goto-prev-error              | go to previous error region               |
+  | 'flymake-wrap-around'                | wrap around during next and prev error    |
+  |                                      | if on last or first error                 |
+  | M-x flymake-show-buffer-diagnostics  | bring a separate buffer containing        |
+  |                                      | detailed structured listing of            |
+  | M-x flymake-show-project-diagnostics | diagnostics of current buffer or project  |
+  |                                      | list is dynamically updated as the        |
+  |                                      | source is edited                          |
+  | 'flymake-no-changes-timeout'         | time to wait after last change before     |
+  |                                      | checking buffer                           |
+  |                                      | nil - never start                         |
+  |                                      | integer - wait for that many seconds      |
+  | 'help-at-pt-display-when-idle'       | Automatically show local help on          |
+  |                                      | point-over (like display-local-help)      |
+  | 'help-at-pt-timer-delay'             | seconds to wait before displaying         |
+  |                                      | local help                                |
+  |--------------------------------------+-------------------------------------------|
 
-  #+begin_src
+  #+begin_src emacs-lisp
     (require 'flymake)
     (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
     (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)
-    (setq flymake-no-changes-timeout nil
+    (setq flymake-no-changes-timeout 3
+	  flymake-start-on-flymake-mode t
+	  flymake-wrap-around t
 	  help-at-pt-display-when-idle t
 	  help-at-pt-timer-delay 1)
+    (add-hook 'prog-mode-hook 'flymake-mode)
   #+end_src
-  - following messages are displayed on modeline
-    |-------------------+-----------------------------------------------------------------|
-    | NERRORS NWARNINGS | Normal operation                                                |
-    | Wait              | some delay from back-ends, will resume operation soon           |
-    | '!'               | All configured back-ends have disabled. Needs user intervention |
-    | ?                 | No back-ends for this buffer                                    |
-    |-------------------+-----------------------------------------------------------------|
-
+- following messages are displayed on modeline
+  |-------------------+-----------------------------------------------------------------|
+  | NERRORS NWARNINGS | Normal operation                                                |
+  | Wait              | some delay from back-ends, will resume operation soon           |
+  | '!'               | All configured back-ends have disabled. Needs user intervention |
+  | ?                 | No back-ends for this buffer                                    |
+  |-------------------+-----------------------------------------------------------------|
+- Logs from flymake are logged to buffer Flymake log
 ** Debugging
 - GUD (Grand Unified Debugger) library provides unified interface
   to multiple debuggers like GDB, PDB (Python), JDB (Java)
@@ -2935,38 +2961,40 @@ preceding line.
 - M-x gdb extends this with additional special buffers to control
   breakpoints, stack frames etc
 - Completion and history are available
-- Left fringe shows an arrow in source file with relevant line
-  |----------------------------+-----------------------------------------------------------------------|
-  | *M-x gdb*                  | run gdb as subprocess                                                 |
-  | *M-x gud-gdb*              | run gdb using GUD interaction buffer                                  |
-  | *M-x jdb*                  | java debugger                                                         |
-  | *M-x perldb*               | perl debugger                                                         |
-  | *M-x pdb*                  | python debugger                                                       |
-  | *M-x gud-tooltip-mode*     | allows to move mouse pointer over variable, function or macro to show |
-  |                            | their value in tooltip                                                |
-  | 'gud-tooltip-echo-area'    | if non-nil, values are shown in echo area                             |
-  | *C-x C-a C-b* or *C-c C-b* | gud-break (set break-point on line with point)                        |
-  | *C-c C-s*                  | gud-step (execute next line)                                          |
-  |                            | if it is a function call, stop after entering function                |
-  | *C-c C-n*                  | gud-next (execute next line)                                          |
-  |                            | if it is a function call, don't stop inside function                  |
-  | *C-c C-p*                  | gud-print (evaluate expression at point)                              |
-  |                            | if region is active, evaluate region                                  |
-  | *C-c C-r*                  | execute till next break-point                                         |
-  | *C-c C-d*                  | gud-remove (delete break-point on current line if any)                |
-  | *C-c C-t*                  | gut-tbreak (set temporary break point)                                |
-  | *C-c <*                    | gud-up (select previous stack frame)                                  |
-  |                            | each function call creates a new stack frame                          |
-  | *C-c >*                    | gud-down (select next inner stack frame)                              |
-  | *C-c C-u*                  | gud-until (execute till current line)                                 |
-  | *C-c C-f*                  | gud-finish (run till selected stack frame returns or stops)           |
-  | TAB                        | gud-gdb-complete-command (complete symbol name)                       |
-  |----------------------------+-----------------------------------------------------------------------|
+- Left fringe shows an arrow in source file with current execution line
+  |----------------------------+-------------------------------------------------------------|
+  | *M-x gdb*                  | run gdb as subprocess                                       |
+  | *M-x gud-gdb*              | run gdb using GUD interaction buffer                        |
+  | *M-x jdb*                  | java debugger                                               |
+  | *M-x perldb*               | perl debugger                                               |
+  | *M-x pdb*                  | python debugger                                             |
+  | *M-x gud-tooltip-mode*     | allows to move mouse pointer over variable,                 |
+  |                            | function or macro to their value in tooltip                 |
+  | 'gud-tooltip-echo-area'    | if non-nil, values are shown in echo area                   |
+  | *C-x C-a C-b* or *C-c C-b* | gud-break (set break-point on line with point)              |
+  |                            | C-x C-a is available globally                               |
+  |                            | C-c prefix available only in gud buffer                     |
+  | *C-c C-s*                  | gud-step (execute next line)                                |
+  |                            | if it is a function call, stop after entering function      |
+  | *C-c C-n*                  | gud-next (execute next line)                                |
+  |                            | if it is a function call, don't stop inside function        |
+  | *C-c C-p*                  | gud-print (evaluate expression at point)                    |
+  |                            | if region is active, evaluate region                        |
+  | *C-c C-r*                  | execute till next break-point                               |
+  | *C-c C-d*                  | gud-remove (delete break-point on current line if any)      |
+  | *C-c C-t*                  | gut-tbreak (set temporary break point)                      |
+  | *C-c <*                    | gud-up (select previous stack frame)                        |
+  |                            | each function call creates a new stack frame                |
+  | *C-c >*                    | gud-down (select next inner stack frame)                    |
+  | *C-c C-u*                  | gud-until (execute till current line)                       |
+  | *C-c C-f*                  | gud-finish (run till selected stack frame returns or stops) |
+  | TAB                        | gud-gdb-complete-command (complete symbol name)             |
+  |----------------------------+-------------------------------------------------------------|
 
 
-#+begin_src
-  (setq gud-tooltip-echo-area t)
-#+end_src
+  #+begin_src emacs-lisp
+    (setq gud-tooltip-echo-area t)
+  #+end_src
 
 - GUD runs hooks for respective debuggers like gdb-mode-hook, pdb-mode-hook etc
   |-----------------------------------+----------------------------------------------------------------|
@@ -2978,35 +3006,35 @@ preceding line.
   | C-x k                             | kill GUD buffer                                                |
   |-----------------------------------+----------------------------------------------------------------|
 
-  #+begin_src
+  #+begin_src emacs-lisp
     (setq gdb-many-windows t)
   #+end_src
 
-  - left click on fringe area of source buffer to toggle break point
-    at that line
-  - in break-point buffer, SPC toggles break-point, D deletes
-    break-point, RET visits source file where break-point set
-  - stack buffer displays call stack with one line for each of the
-    nested subroute call (stack frame). Select a stack frame with
-    RET. Setting 'gdb-stack-buffer-addresses' shows each stack frame
-    address
-  - local buffer displays value of local variables in current frame
-    for simple data types. Click RET to edit value
-  - register buffer displays values held by registers. Click RET to
-    edit values
-  - assembler buffer shows current frame as machine code. Break
-    points can be set like in source buffer
-  - memory buffer lets you examine program memory
+- left click on fringe area of source buffer to toggle break point
+  at that line
+- in break-point buffer, SPC toggles break-point, D deletes
+  break-point, RET visits source file where break-point set
+- stack buffer displays call stack with one line for each of the
+  nested subroute call (stack frame). Select a stack frame with
+  RET. Setting 'gdb-stack-buffer-addresses' shows each stack frame
+  address
+- local buffer displays value of local variables in current frame
+  for simple data types. Click RET to edit value
+- register buffer displays values held by registers. Click RET to
+  edit values
+- assembler buffer shows current frame as machine code. Break
+  points can be set like in source buffer
+- memory buffer lets you examine program memory
 
-    |--------------------------------+------------------------------------------------------------------|
-    | *C-x C-a C-w*                  | gud-watch (watch how variable changes each time)                 |
-    |                                | arrays, structures etc are represented in tree format            |
-    | *D*                            | gdb-var-delete (delete watch expression)                         |
-    | 'gdb-show-changed-values'      | highlight values that have recently changed                      |
-    | 'gdb-delete-out-out-scope'     | automatically delete watch expression which goes out of scope    |
-    | 'gdb-use-colon-colon-notation' | display variable using FUNCTION::VARIABLE notation               |
-    | 'gdb-speedbar-auto-raise'      | automatically raise speedbar every time watch expression updates |
-    |--------------------------------+------------------------------------------------------------------|
+  |--------------------------------+------------------------------------------------------------------|
+  | *C-x C-a C-w*                  | gud-watch (watch how variable changes each time)                 |
+  |                                | arrays, structures etc are represented in tree format            |
+  | *D*                            | gdb-var-delete (delete watch expression)                         |
+  | 'gdb-show-changed-values'      | highlight values that have recently changed                      |
+  | 'gdb-delete-out-out-scope'     | automatically delete watch expression which goes out of scope    |
+  | 'gdb-use-colon-colon-notation' | display variable using FUNCTION::VARIABLE notation               |
+  | 'gdb-speedbar-auto-raise'      | automatically raise speedbar every time watch expression updates |
+  |--------------------------------+------------------------------------------------------------------|
 
 ** Lisp
 - Emacs has major modes for several lisp variants
@@ -3021,48 +3049,49 @@ preceding line.
   - Scheme Mode: Like Lisp mode but for Scheme programs
   - Inferior Scheme Mode: List Inferior Lisp mode but for Scheme
 - Files ending in '.el' are automatically visited in Emacs lisp
-  mode. Compiled Emacs Lisp codes ends in '.elc'
-  |---------------------+---------------------------------------------------------------------|
-  | M-x load-file       | read a file name and execute its contents as Emacs Lisp code        |
-  | M-x load-library    | prompt a library name, search through each directory in *load path* |
-  |                     | trying to find a file library name. Prefers elc over el even if elc |
-  |                     | is older than el file, however issues a warning                     |
-  | 'load-prefer-newer' | check all suffix and use the newest file                            |
-  | 'load-path'         | list of directories to search for files to load                     |
-  |                     | directories are search in that order                                |
-  |                     | nil stands for current default directory                            |
-  | load or require     | make some libraries available on Emacs start up rather than         |
-  |                     | manually loading it                                                 |
-  | autoload            | load the library when some command or function is invoked           |
-  |                     | package-install takes care of placing lisp code in load-path        |
-  |---------------------+---------------------------------------------------------------------|
+  mode. Compiled Emacs Lisp codes(byte code) ends in '.elc'. Native
+  code ends in .eln
+  |---------------------+--------------------------------------------------------------|
+  | M-x load-file       | read a file name and execute its contents as                 |
+  |                     | Emacs Lisp code                                              |
+  | M-x load-library    | prompt a library name, search through each directory         |
+  |                     | in load path trying to find a file library name.             |
+  |                     | Prefers elc over el and eln over elc                         |
+  | 'load-prefer-newer' | check all suffix and use the newest file                     |
+  |                     | it also compiles new version in background                   |
+  | 'load-path'         | list of directories to search for files to load              |
+  |                     | directories are search in that order                         |
+  |                     | nil stands for current default directory                     |
+  | load or require     | make some libraries available on Emacs start up rather than  |
+  |                     | manually loading it                                          |
+  | autoload            | load the library when some command or function is invoked    |
+  |                     | package-install takes care of placing lisp code in load-path |
+  |---------------------+--------------------------------------------------------------|
 
-  - emacs-lisp-mode is the major mode for Emacs lisp. Following
-    commands are globally available and can be used outside Emacs
-    Lisp mode
-    |-------------------+-----------------------------------------------|
-    | *M-:*             | eval-expression                               |
-    | *C-x C-e*         | eval-last-sexp                                |
-    | *C-M-x*           | eval-defun                                    |
-    | *M-x eval-region* | Evaluate all Emacs Lisp expressions in region |
-    | *M-x eval-buffer* | Evaluate all Emacs lisp expressions in buffer |
-    |-------------------+-----------------------------------------------|
+- emacs-lisp-mode is the major mode for Emacs lisp. Following commands
+  are globally available and can be used outside Emacs Lisp mode
+  |-------------------+-----------------------------------------------|
+  | *M-:*             | eval-expression                               |
+  | *C-x C-e*         | eval-last-sexp                                |
+  | *C-M-x*           | eval-defun                                    |
+  | *M-x eval-region* | Evaluate all Emacs Lisp expressions in region |
+  | *M-x eval-buffer* | Evaluate all Emacs lisp expressions in buffer |
+  |-------------------+-----------------------------------------------|
 
-    - Emacs start with a buffer called *scratch* for evaluating Emacs
+- Emacs start with a buffer called *scratch* for evaluating Emacs
       Lisp expressions interactively. Its major mode is
       lisp-interaction-mode. C-j can be used to evaluate last
       expression and print result at point
       #+begin_src
 	(setq initial-scratch-message nil)
       #+end_src
-
-    - M-x ielm can be used to start inferior lisp mode which acts like
-      a REPL
+- M-x ielm can be used to start inferior lisp mode which acts like a
+  REPL
 
 
 [[https://github.com/daviwil/emacs-from-scratch/blob/master/show-notes/Emacs-Lisp-02.org][Emacs-Lisp-02]]
-#+begin_src
-  (defun efs/ielm-send-line-or-region ()
+#+begin_src emacs-lisp
+  (defun my/ielm-send-line-or-region ()
     (interactive)
     (unless (use-region-p)
       (forward-line 0)
@@ -3077,13 +3106,13 @@ preceding line.
 
       (deactivate-mark)))
 
-  (defun efs/show-ielm ()
+  (defun my/show-ielm ()
     (interactive)
     (select-window (split-window-vertically -10))
     (ielm)
     (text-scale-set 1))
 
-  (define-key org-mode-map (kbd "C-M-x") 'efs/ielm-send-line-or-region)
+  (define-key org-mode-map (kbd "C-M-x") 'my/ielm-send-line-or-region)
 #+end_src
 * Maintaining
 ** Version Control
@@ -3672,7 +3701,7 @@ preceding line.
 	  ls-lisp-use-insert-directory-program nil) ; use ls-lisp instead of ls
     (define-key dired-mode-map (kbd "M-+") 'dired-create-empty-file)
   #+end_src
-
+  
 * Document Viewing
 - major mode for viewing DVI, PS PDF formats
 - opening a document that can be viewed in DocView mode, Emacs
