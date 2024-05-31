@@ -314,6 +314,82 @@
 
 (which-function-mode 1)
 
+(setq blink-matching-paren 'jump
+      blink-matching-delay 1)		; not used in show paren mode
+
+(setq show-paren-highlight-openparen t
+      show-paren-style 'mixed
+      show-paren-when-point-inside-paren t
+      show-paren-context-when-offscreen t)
+(show-paren-mode 1)
+
+(setq electric-pair-preserve-balance t
+      electric-pair-delete-adjacent-pairs t
+      electric-pair-open-newline-between-pairs t)
+
+(add-hook 'prog-mode-hook 'electric-pair-local-mode)
+
+(setq eldoc-echo-area-display-truncation-message t
+      eldoc-echo-area-use-multiline-p t
+      eldoc-echo-area-prefer-doc-buffer t)
+(global-eldoc-mode 1)
+
+(setq hs-isearch-open t
+      hs-hide-comments-when-hiding-all t)
+(add-hook 'prog-mode-hook 'hs-minor-mode)
+
+(add-hook 'prog-mode-hook 'superword-mode)
+
+(add-hook 'c-mode-hook 'cwarn-mode)
+
+(setq compilation-scroll-output 'first-error)
+(setq compilation-always-kill t)
+
+(setq compilation-auto-jump-to-first-error t)
+(setq next-error-highlight 3)
+(setq next-error-highlight-no-select 3)
+(setq compilation-save-buffers-predicate 'ignore)
+
+(setq grep-save-buffers nil
+      grep-use-null-filename-separator nil)
+
+(require 'flymake)
+(define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
+(define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)
+(setq flymake-no-changes-timeout 3
+      flymake-start-on-flymake-mode t
+      flymake-wrap-around t
+      help-at-pt-display-when-idle t
+      help-at-pt-timer-delay 1)
+(add-hook 'prog-mode-hook 'flymake-mode)
+
+(setq gud-tooltip-echo-area t)
+
+(setq gdb-many-windows t)
+
+(defun my/ielm-send-line-or-region ()
+  (interactive)
+  (unless (use-region-p)
+    (forward-line 0)
+    (set-mark-command nil)
+    (forward-line 1))
+  (backward-char 1)
+  (let ((text (buffer-substring-no-properties (region-beginning)
+					      (region-end))))
+    (with-current-buffer "*ielm*"
+      (insert text)
+      (ielm-send-input))
+
+    (deactivate-mark)))
+
+(defun my/show-ielm ()
+  (interactive)
+  (select-window (split-window-vertically -10))
+  (ielm)
+  (text-scale-set 1))
+
+(define-key org-mode-map (kbd "C-M-x") 'my/ielm-send-line-or-region)
+
 (require 'package)
 (package-initialize)
 (if (< emacs-major-version 28)

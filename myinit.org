@@ -1964,8 +1964,9 @@
     (add-hook 'compilation-finish-functions 'switch-to-buffer-other-window 'compilation)
     (setq display-buffer-alist
 	  '(("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
-	     (display-buffer-reuse-window display-buffer-in-side-window)
+	     (display-buffer-reuse-window display-buffer-in-direction)
 	     (side . right)
+	     (direction . right)
 	     (window-width . 0.5)
 	     (slot . 0))
 	    ("\\*\\(.*shell\\|ansi-term\\|\.*eshell\\|.*terminal\\|Async Shell\\).*"
@@ -1978,7 +1979,7 @@
 	     (side . bottom)
 	     (window-height . 0.4)
 	     (slot . 0))
-	    ("\\*\\(vc-\\).*"
+	    ("\\*\\(vc-\\|Annotate\\).*"
 	     (display-buffer-in-side-window)
 	     (side . bottom)
 	     (window-height . 0.4)
@@ -3128,132 +3129,215 @@ preceding line.
   | '?' | file is under version control but missing from working tree |
   |-----+-------------------------------------------------------------|
 
-  |-----------------------------+-----------------------------------------------------------------------|
-  | 'vc-handled-backends'       | set to nil to disable VC entirely                                     |
-  | 'auto-revert-check-vc-info' | auto revert mode reliably update VC info every 'auto-revert-interval' |
-  |                             | seconds even if work file is unchanged                                |
-  |-----------------------------+-----------------------------------------------------------------------|
+  |-----------------------------+------------------------------------------------|
+  | 'vc-handled-backends'       | set to nil to disable VC entirely              |
+  | 'auto-revert-check-vc-info' | auto revert mode reliably update VC info every |
+  |                             | 'auto-revert-interval'                         |
+  |                             | seconds even if work file is unchanged         |
+  |-----------------------------+------------------------------------------------|
 
-  - VC filesets is a collection of one or more files that a VC
-    operation acts on. When a VC command is executed in a buffer
-    visiting version controlled file, fileset is just one file. When
-    it is executed from VC Directory buffer, it includes all the
-    marked files. They don't persist across sessions
-    |---------------+--------------------------------------------------------------------------------------------|
-    | *C-x v v*     | vc-next-action                                                                             |
-    |               | performs next appropriate action on current vc fileset                                     |
-    |               | it can be registering with version control or committing it                                |
-    |               | or unlocking or merging changes into it                                                    |
-    |               | 1. If there is more than one file and if they have inconsistent status, signal error       |
-    |               | 2. If no files in set are registered, register it. If no repo is active, Emacs creates one |
-    |               | 3. If every file in set are unchanged, do nothing                                          |
-    |               | 4. If every file in set are changed, commit changes                                        |
-    | *C-u C-x v v* | Offer more control like name of version control system or revision id etc                  |
-    |---------------+--------------------------------------------------------------------------------------------|
+- VC filesets is a collection of one or more files that a VC operation
+  acts on. When a VC command is executed in a buffer visiting version
+  controlled file, fileset is just one file. When it is executed from
+  VC Directory buffer, it includes all the marked files. They don't
+  persist across sessions
+  |---------------+-------------------------------------------------------------------|
+  | *C-x v v*     | vc-next-action                                                    |
+  |               | performs next appropriate action on current vc fileset            |
+  |               | it can be registering with version control or committing it       |
+  |               | or unlocking or merging changes into it                           |
+  |               | 1. If there is more than one file and if they have                |
+  |               | inconsistent status, signal error                                 |
+  |               | 2. If all files in set are registered and unchanged, do nothing   |
+  |               | 3. If no files in set are registered, register it.                |
+  |               | If no repo is active, Emacs prompts and creates one and registers |
+  |               | files to it                                                       |
+  |               | 4. If every file in set are new or changed, commit changes        |
+  |               | Emacs pops up vc-log buffer                                       |
+  |               | 5. If invoked from diff mode, applies the changes and pops up     |
+  |               | vc-log buffer to commit                                           |
+  | *C-u C-x v v* | Offer more control like name of version control system or         |
+  |               | revision id etc                                                   |
+  |---------------+-------------------------------------------------------------------|
 
-    - *vc-log* buffer is opened when committing change allowing to
-      write commit message
-    - It consists of header lines like Author, Summary, Date or
-      Fixes. Author can be used to credit author who is different from
-      committer. Each header line must occupy a single line at top of
-      buffer. First line that is not header is treated as addition
-      commit message. Ex:
-      Author: J. R. Hacker <jrh@example.com>
-    |-----------+-------------------------------------------------------------------------|
-    | *C-c C-c* | log-edit-done (commit changes and exit buffer)                          |
-    | *C-c C-f* | log-edit-show-files (list of files in fileset)                          |
-    | *C-c C-d* | log-edit-show-diff (show diff between fileset and last commited change) |
-    |-----------+-------------------------------------------------------------------------|
+- *vc-log* buffer is opened when committing change allowing to
+  write commit message
+- It can have one or more header lines like Author, Summary, Date or
+  Fixes. Author can be used to credit author who is different from
+  committer. Each header line must occupy a single line at top of
+  buffer. First line that is not header is treated as addition
+  commit message. Ex:
+  Author: J. R. Hacker <jrh@example.com>
+  |-----------+---------------------------------------------------|
+  | *C-c C-c* | log-edit-done (commit changes and exit buffer)    |
+  | *C-c C-f* | log-edit-show-files (list of files in fileset)    |
+  | *C-c C-d* | log-edit-show-diff (show diff between fileset and |
+  |           | last commited change)                             |
+  | C-c C-w   | log-edit-generate-changelog-from-diff             |
+  | M-n       | In vc-log buffer, browse through history          |
+  | M-p       |                                                   |
+  |-----------+---------------------------------------------------|
 
-    |-----------------------+-----------------------------------------------------------------------------------------|
-    | *C-x v i*             | vc-register                                                                             |
-    | *C-x v =*             | vc-diff (diff between fileset and version before making change)                         |
-    | *C-u C-x v =*         | prompt two revisions to compare                                                         |
-    | M-x vc-ediff          | use ediff                                                                               |
-    | *C-x v D*             | vc-root-diff (compare entire working tree to version before making edits)               |
-    | *C-x v ~*             | vc-revision-other-window (retrieve file with given revision and open in another window) |
-    | *C-x v g*             | vc-annotate (for each line show latest revision in which it was modified)               |
-    | *C-x v l*             | vc-print-log (display log of changes)                                                   |
-    | *C-x v L*             | vc-print-root-log                                                                       |
-    | *C-x v I*             | vc-log-incoming (display changes that pull will retrieve)                               |
-    | *C-x v O*             | vc-log-outgoing (display changes that push will send)                                   |
-    | *C-x v h*             | vc-region-history (display history of changes mad in the region of visited file)        |
-    | M-x vc-log-search RET | search change history for a pattern                                                     |
-    | *C-x v u*             | vc-revert (revert work files to last revision. prompts before reverting)                |
-    | *C-x v G*             | vc-ignore (ignore some file like backups, object files)                                 |
-    |-----------------------+-----------------------------------------------------------------------------------------|
+  |-----------------------+-----------------------------------------------------------|
+  | *C-x v i*             | vc-register                                               |
+  |                       | add/register each file in fileset but does not commit     |
+  |                       | modeline shows @@                                         |
+  | *C-x v =*             | vc-diff (diff between fileset and version started with    |
+  |                       | before making change). Uses Diff mode                     |
+  | *C-u C-x v =*         | prompt two revisions to compare                           |
+  | M-x vc-ediff          | use ediff                                                 |
+  | *C-x v D*             | vc-root-diff (compare entire working tree to              |
+  |                       | version before making edits)                              |
+  | *C-x v ~*             | vc-revision-other-window (retrieve file with given        |
+  |                       | revision and open in another window)                      |
+  |                       | This creates a file FILENAME.~REVISION~                   |
+  | *C-x v g*             | vc-annotate (for each line show latest revision           |
+  |                       | in which it was modified)                                 |
+  |                       | vc-annotate-switches to customize options                 |
+  |                       | red text is new, blue is old and intermediate colors      |
+  |                       | indicate age                                              |
+  |                       | Options in annotate buffer are listed in the next table   |
+  | *C-x v l*             | vc-print-log (display log of changes for current fileset) |
+  | *C-x v L*             | vc-print-root-log                                         |
+  |                       | for entire version control directory                      |
+  |                       | prefix N to specify maximum revision to display           |
+  |                       | shows in compact form. RET to toggle long form            |
+  | 'vc-log-show-limit'   | max revision to display in change log(default 2000)       |
+  | *C-x v b l*           | vc-print-branch-log                                       |
+  | *C-x v I*             | vc-log-incoming (display changes that pull will retrieve) |
+  |                       | prefix prompts specific remote location                   |
+  | *C-x v O*             | vc-log-outgoing (display changes that push will send)     |
+  |                       | prefix prompts specific remote location                   |
+  | *C-x v h*             | vc-region-history (display history of changes mad in      |
+  |                       | the region of visited file)                               |
+  | M-x vc-log-search RET | search change history for a pattern                       |
+  | *C-x v u*             | vc-revert (revert work filesets to last revision.         |
+  |                       | prompts before discarding all changes)                    |
+  | 'vc-revert-show-diff' | t - show diff of work files and revision                  |
+  | *C-x v G*             | vc-ignore (ignore some file like backups, object files)   |
+  |                       | creates .gitignore                                        |
+  | *C-x v x*             | vc-delete-file                                            |
+  | *C-x v b c*           | vc-create-branch                                          |
+  | *C-x v b l*           | vc-print-branch-log                                       |
+  | *C-x v b s*           | vc-switch-branch                                          |
+  |-----------------------+-----------------------------------------------------------|
+  #+begin_src emacs-lisp
+    (setq vc-revert-show-diff t)
+  #+end_src
+- Options in annotate buffer
+  |---+---------------------------------------------------------------------|
+  | p | annotate previous revision                                          |
+  | n | annotate next revision                                              |
+  | j | annotate revision indicated by current line                         |
+  | a | annotate revision before the one indicated by current line          |
+  |   | useful to see state of file before current line change was done     |
+  | f | show in buffer the file revision indicated by current line          |
+  | d | display diff between current line's revision and previous revision  |
+  |   | useful to see what current line's revision actually changed in file |
+  | D | display diff between current line revision and previous revision    |
+  |   | for all files in change-set                                         |
+  |   | useful to what current line's revision actually changed in tree     |
+  | l | show log of current line's revision                                 |
+  | w | annotate working revision                                           |
+  |   | useful after n and p to return to revision you are editing          |
+  | v | toggle annotation                                                   |
+  |---+---------------------------------------------------------------------|
+- Options in vc-change-log buffer
+  |-----+--------------------------------------------------------------------------|
+  | p   | move to previous revision entry                                          |
+  | n   | move to next revision entry                                              |
+  | a   | annotate revision on current line                                        |
+  | f   | visit revision at current line                                           |
+  | d   | display diff of revision at point and earlier revision for specific file |
+  | D   | display diff of revision at point and earlier revision for fileset       |
+  | RET | toggle compact style                                                     |
+  |-----+--------------------------------------------------------------------------|
+- VC Directory buffer allows viewing the version control status of
+  files in directory tree and perform operations on them. It is mainly
+  used to specify multi-file file-set
+  |-------------------------------+------------------------------------------------------------|
+  | *C-x v d*                     | vc-dir                                                     |
+  |                               | shows only noteworthy status. up-to-date files are omitted |
+  |                               | '*' indicates the file is part of fileset                  |
+  |                               | edited - modified but not committed                        |
+  |                               | added  - registered but not yet committed                  |
+  |                               | unregistered - not under version control                   |
+  | 'vc-directory-exclusion-list' | list of directories to exclude. .git is part of list       |
+  | n                             | vc-dir-next-line                                           |
+  | p                             | vc-dir-previous-line                                       |
+  | TAB                           | vc-dir-next-directory                                      |
+  | S-TAB                         | vc-dir-previous-directory                                  |
+  | f OR RET                      | vc-dir-find-file                                           |
+  | o                             | vc-dir-find-file-other-window                              |
+  | m                             | vc-dir-mark (mark file or directory on current line)       |
+  |                               | marked files or directories will be part of fileset        |
+  |                               | if region is active, mark all files in region              |
+  | M                             | vc-dir-mark-all-files                                      |
+  | G                             | vc-dir-ignore (if VC is git, adds to .gitignore)           |
+  | q                             | quit-window                                                |
+  | u                             | vc-dir-unmark                                              |
+  | U                             | vc-dir-unmark-all-files                                    |
+  | x                             | vc-dir-hide-up-to-date                                     |
+  | v                             | vc-next-action                                             |
+  | S                             | vc-dir-search                                              |
+  | Q                             | vc-dir-query-replace-regexp                                |
+  | b c                           | vc-create-branch (create new branch)                       |
+  | b l                           | vc-print-branch-log                                        |
+  | b s                           | vc-switch-branch (switch to branch)                        |
+  | d                             | vc-dir-clean-delete (delete current file or                |
+  |                               | marked files)                                              |
+  |                               | only useful for unregistered files                         |
+  |-------------------------------+------------------------------------------------------------|
 
-    - VC Directory buffer allows viewing the version control status of
-      files in directory tree and perform operations on them. It is
-      mainly used to specify multi-file file-set
-    |-----------+------------------------------------------------------------|
-    | *C-x v d* | vc-dir                                                     |
-    |           | shows only noteworthy status. up-to-date files are omitted |
-    |           | '*' indicates the file is part of fileset                  |
-    |           | edited - modified but not committed                        |
-    |           | added  - registered but not yet committed                  |
-    |           | unregistered - not under version control                   |
-    | n         | vc-dir-next-line                                           |
-    | p         | vc-dir-previous-line                                       |
-    | TAB       | vc-dir-next-directory                                      |
-    | RET       | vc-dir-find-file                                           |
-    | o         | vc-dir-find-file-other-window                              |
-    | m         | vc-dir-mark (mark file or directory on current line)       |
-    |           | marked files or directories will be part of fileset        |
-    |           | if region is active, mark all files in region              |
-    | M         | vc-dir-mark-all-files                                      |
-    | G         | vc-dir-ignore (if VC is git, adds to .gitignore)           |
-    | q         | quit-window                                                |
-    | u         | vc-dir-unmark                                              |
-    | U         | vc-dir-unmark-all-files                                    |
-    | x         | vc-dir-hide-up-to-date                                     |
-    | v         | vc-next-action                                             |
-    | S         | vc-dir-search                                              |
-    | Q         | vc-dir-query-replace-regexp                                |
-    | B c       | vc-create-tag (create new branch)                          |
-    | B l       | vc-print-branch-log                                        |
-    | B s       | vc-retrieve-tag (switch to branch)                         |
-    | d         | vc-dir-clean-delete (delete current file or marked files)  |
-    |           | only useful for unregistered files                         |
-    |-----------+------------------------------------------------------------|
+- Branches can be used to maintain separate stable and development
+  versions of program
+  |------------------------+---------------------------------------------------------|
+  | *C-x v P*              | vc-push (update remote with current branch)             |
+  | *C-x v O*              | vc-log-outgoing                                         |
+  |                        | view what changes will be pushed                        |
+  | *C-x v +*              | vc-pull (update current branch from remote)             |
+  | *C-x v I*              | vc-log-incoming                                         |
+  |                        | view what changes will be pulled                        |
+  | *C-x v m*              | vc-merge (from another branch to current one)           |
+  |                        | prompt for name of the branch to merge from             |
+  |                        | conflict markers are put in file if there are conflicts |
+  |                        | emacs places buffers with VC conflicts in smerge mode   |
+  |------------------------+---------------------------------------------------------|
 
-    - Branches can be used to maintain separate stable and development
-      versions of program
-    |----------------------+-----------------------------------------------|
-    | *C-x v r BRANCH RET* | vc-retrieve-tag (switch to another branch)    |
-    | *C-x v P*            | vc-push (update remote with current branch)   |
-    | *C-x v +*            | vc-pull (update current branch from remote)   |
-    | *C-x v m*            | vc-merge (from another branch to current one) |
-    |                      | prompt for name of the branch to merge from   |
-    |----------------------+-----------------------------------------------|
+- We can delete and rename files
+  |--------------------+--------------------------------------------------------|
+  | M-x vc-delete-file | prompt for file name from working tree and stage       |
+  |                    | for deletion when committing                           |
+  | M-x vc-rename-file | rename from OLD to NEW and stage the renaming for      |
+  |                    | committing. renamed file will have full change history |
+  |                    | of original file                                       |
+  |--------------------+--------------------------------------------------------|
 
-    - We can delete and rename files
-    |--------------------+-------------------------------------------------------------------------------|
-    | M-x vc-delete-file | prompt for file name from working tree and stage for deletion when committing |
-    | M-x vc-rename-file | rename from OLD to NEW and stage the renaming for committing.                 |
-    |                    | renamed file will have full change history of original file                   |
-    |--------------------+-------------------------------------------------------------------------------|
+- Revision tags are commonly used to identify releases that are
+  distributed to user. TAGS can be used for diff or switching branches
+- revision tag is simply a symbolic name for particular revision
+  |--------------------+---------------------------------------------|
+  | *C-x v s NAME RET* | vc-create-tag (snapshot)                    |
+  | *C-x v r NAME RET* | vc-retrieve-tag (switch to the NAME branch) |
+  |--------------------+---------------------------------------------|
+- Edit the vc command before running
+  |-----------+-------------------------------------------------------------------|
+  | *C-x v !* | vc-edit-next-command                                              |
+  |           | prefix command to edit underlying VC command that is about to run |
+  |-----------+-------------------------------------------------------------------|
+- VC Options
+  |------------------------+---------------------------------------------------|
+  | 'vc-make-backup-files' | make backup files                                 |
+  | 'vc-follow-symlinks'   | ask - ask for confirmation                        |
+  |                        | t - automatically follow link and visit real file |
+  |                        | nil - just display warning message                |
+  | 'vc-command-messages'  | display the shell command run for the VC action   |
+  |------------------------+---------------------------------------------------|
 
-    - Revision tags are commonly used to identify releases that are
-      distributed to user. TAGS can be used for diff or switching branches
-    |--------------------+---------------------------------------------|
-    | *C-x v s NAME RET* | vc-create-tag (snapshot)                    |
-    | *C-x v r NAME RET* | vc-retrieve-tag (switch to the NAME branch) |
-    |--------------------+---------------------------------------------|
-
-    - VC Options
-    |------------------------+---------------------------------------------------|
-    | 'vc-make-backup-files' | make backup files                                 |
-    | 'vc-follow-symlinks'   | ask - ask for confirmation                        |
-    |                        | t - automatically follow link and visit real file |
-    |                        | nil - just display warning message                |
-    | 'vc-command-messages'  | display the shell command run for the VC action   |
-    |------------------------+---------------------------------------------------|
-
-    #+begin_src
-      (setq vc-follow-symlinks t)
-      (setq vc-command-messages t)
-    #+end_src
+  #+begin_src emacs-lisp
+    (setq vc-follow-symlinks t)
+    (setq vc-command-messages t)
+  #+end_src
 
 ** Projects
 - A project is a collection of files used for producing one or more
@@ -3262,39 +3346,47 @@ preceding line.
 - Emacs supports VC and EDE directories as projects
 - Current project is determined by default-directory of current
   buffer, if it is considered a project
-  |----------------------------+-------------------------------------------------------------------------|
-  | *C-x p !*                  | project-shell-command                                                   |
-  | *C-x p &*                  | project-async-shell-command                                             |
-  | *C-x p b*                  | project-switch-to-buffer                                                |
-  | *C-x p c*                  | project-compile (run compilation in project's root directory)           |
-  | *C-x p d*                  | project-dired                                                           |
-  | *C-x p e*                  | project-eshell                                                          |
-  | *C-x p f*                  | project-find-file                                                       |
-  |                            | visit a file. only file's name can be provided without giving full path |
-  |                            | completion candidates only consider files belonging to project          |
-  |                            | if there is file name at point, that is offered as default              |
-  | *C-x p g*                  | project-find-regexp                                                     |
-  |                            | similar to rgrep but only searches files in current project             |
-  |                            | with prefix, prompt for sub-directory of project to limit the search    |
-  | *C-x p k*                  | project-kill-buffers (kill all buffers belonging to current project)    |
-  | *C-x p p*                  | project-switch-project (run an emacs command for another project)       |
-  |                            | prompts both project and command to run                                 |
-  | *C-x p r*                  | project-query-replace-regexp (like query-replace)                       |
-  | *C-x p s*                  | project-shell (run an inferior shell in project's root dir)             |
-  | *C-x p v*                  | project-vc-dir                                                          |
-  | 'project-list-file'        | file in which Emacs records list of known projects                      |
-  | M-x project-search         | interactive variant of project-find-regexp                              |
-  | M-x project-forget-project | remove a known project from project-list-file                           |
-  |----------------------------+-------------------------------------------------------------------------|
+  |----------------------------+-------------------------------------------------------------|
+  | *C-x p !*                  | project-shell-command                                       |
+  | *C-x p &*                  | project-async-shell-command                                 |
+  | *C-x p b*                  | project-switch-to-buffer                                    |
+  |                            | also includes compilation buffer etc                        |
+  | *C-x p c*                  | project-compile (run compilation in project's               |
+  |                            | root directory)                                             |
+  | *C-x p d*                  | project-dired                                               |
+  | *C-x p e*                  | project-eshell                                              |
+  | *C-x p f*                  | project-find-file                                           |
+  |                            | visit a file. only file's name can be provided              |
+  |                            | without giving full path                                    |
+  |                            | completion candidates only consider files                   |
+  |                            | belonging to project                                        |
+  |                            | if there is file name at point, that is offered             |
+  |                            | as default                                                  |
+  | *C-x p g*                  | project-find-regexp                                         |
+  |                            | similar to rgrep but only searches files in                 |
+  |                            | current project                                             |
+  |                            | with prefix, prompt for sub-directory of                    |
+  |                            | project to limit the search                                 |
+  | *C-x p k*                  | project-kill-buffers (kill all buffers                      |
+  |                            | belonging to current project)                               |
+  | *C-x p p*                  | project-switch-project (run an emacs command                |
+  |                            | for another project)                                        |
+  |                            | prompts both project and command to run                     |
+  | *C-x p r*                  | project-query-replace-regexp (like query-replace)           |
+  | *C-x p s*                  | project-shell (run an inferior shell in project's root dir) |
+  | *C-x p v*                  | project-vc-dir                                              |
+  | 'project-list-file'        | file in which Emacs records list of known projects          |
+  | M-x project-search         | interactive variant of project-find-regexp                  |
+  | M-x project-forget-project | remove a known project from project-list-file               |
+  |----------------------------+-------------------------------------------------------------|
 
-  - Ignore case when reading file name completion. Useful for C-x p f
-  - Remove --null option from grep as it is not supported in all
-    variants. Needed for C-x p g
-    #+begin_src
+- Ignore case when reading file name completion. Useful for C-x p f
+- Remove --null option from grep as it is not supported in all
+  variants. Needed for C-x p g
+  #+begin_src emacs-lisp
       (setq read-file-name-completion-ignore-case t
 	    xref-search-program-alist '((grep . "xargs -0 grep <C> -snHE -e <R>")
-					))
-    #+end_src
+  #+end_src
 
 ** Xref
 
@@ -3304,182 +3396,64 @@ preceding line.
 - Emacs provides unified interface called xref to quickly find
   where each identifier is defined and referenced. This is also
   useful in non-prog modes for chapters, sections etc
-- xref relies on back-end provided by major mode. Emacs includes
-  etags command which can be used by major modes to extract
-  reference to tags-table. The tags-table needs to kept up to date
-  |---------------------+---------------------------------------------------------------------|
-  | *M-.*               | xref-find-definitions (find definition of identifier)               |
-  |                     | prompt identifier if there is none at point or if prefix is given   |
-  |                     | pops a new xref buffer if more than one match                       |
-  | *C-M-.*             | xref-find-apropos (find all identifiers whose name matches pattern) |
-  |                     | always pops a new xref buffer                                       |
-  | C-x 4 .             | xref-find-definitions-other-window                                  |
-  | *M-,*               | xref-go-back (go back to where you invoked M-.)                     |
-  | *C-M-,*             | xref-go-forward                                                     |
-  |                     | Emacs 29 only (or install xref from elpa)                           |
-  | M-x xref-etags-mode | switch to etags mode. make sure to run etags in source directory    |
-  |---------------------+---------------------------------------------------------------------|
+- xref relies on back-end provided by major mode.
+  - Emacs includes etags command which can be used by major modes to
+    extract reference to tags-table. The tags-table needs to kept up
+    to date and will be referred by the back-end
+  - Major modes like Emacs Lisp provide symbol by consulting built in
+    documentation, libraries etc
+  - If Eglot is activated, it provides data LSP to back-end
+  |---------------------+-------------------------------------------------------|
+  | *M-.*               | xref-find-definitions (find definition of identifier) |
+  |                     | prompt identifier if there is none at point or        |
+  |                     | if prefix is given                                    |
+  |                     | pops a new xref buffer if more than one match         |
+  | *C-M-.*             | xref-find-apropos (find all identifiers whose name    |
+  |                     | matches pattern)                                      |
+  |                     | similar to M-. except it does regexp matching         |
+  |                     | always pops a new xref buffer                         |
+  | C-x 4 .             | xref-find-definitions-other-window                    |
+  | *M-,*               | xref-go-back (go back to where you invoked M-.)       |
+  | *C-M-,*             | xref-go-forward                                       |
+  | M-x xref-etags-mode | switch to etags mode. make sure to run etags in       |
+  |                     | source directory                                      |
+  |---------------------+-------------------------------------------------------|
 
-  #+begin_src
-    (if (< emacs-major-version 29)
-	(progn
-	  (unless (package-installed-p 'xref)
-	    (package-refresh-contents)
-	    (package-install 'xref))))
-  #+end_src
+- xref buffer commands
+  |---------+------------------------------------------------------------------------|
+  | *RET*   | xref-goto-xref (goto buffer referenced by current line)                |
+  |         | with prefix, also close xref window                                    |
+  | *n*     | xref-next-line (move to next reference and display it in other window) |
+  | *p*     | xref-prev-line                                                         |
+  | *N*     | xref-next-group (there can be matches in a source file                 |
+  |         | and there can many source file. each source file is                    |
+  |         | a group in this case)                                                  |
+  | *P*     | xref-prev-group                                                        |
+  | r       | xref-query-replace-in-results                                          |
+  |         | perform interactive query replace on references that match pattern     |
+  | g       | xref-revert-buffer (refresh xref contents)                             |
+  | *M-,*   | xref-go-back                                                           |
+  | *C-M-,* | xref-go-forward                                                        |
+  |         | quit xref window and jump to previous xref stack location              |
+  | q       | xref-quit                                                              |
+  |---------+------------------------------------------------------------------------|
 
-  - xref buffer commands
-    |---------+-------------------------------------------------------------------------|
-    | *RET*   | xref-goto-xref (goto buffer referenced by current line)                 |
-    |         | with prefix, also close xref window                                     |
-    | *n*     | xref-next-line (move to next reference and display it in other window)  |
-    | *p*     | xref-prev-line                                                          |
-    | *N*     | xref-next-group (there can be matches in a source file and there can be |
-    |         | many source file. each source file is a group in this case)             |
-    | *P*     | xref-prev-group                                                         |
-    | r       | xref-query-replace-in-results                                           |
-    |         | perform interactive query replace on references that match pattern      |
-    | g       | xref-revert-buffer (refresh xref contents)                              |
-    | *M-,*   | xref-go-back                                                            |
-    | *C-M-,* | xref-go-forward                                                         |
-    |         | quit xref window and jump to previous xref stack location               |
-    | q       | xref-quit                                                               |
-    |---------+-------------------------------------------------------------------------|
+- Identifier search
+  |----------------------------------------+---------------------------------------|
+  | *M-?*                                  | xref-find-reference                   |
+  |                                        | find all references to identifier at  |
+  |                                        | point                                 |
+  |                                        | this searches not just definitions    |
+  |                                        | but all the references                |
+  | r OR M-x xref-query-replace-in-results | interactively replace regexp with in  |
+  |                                        | the names of all identifiers shown in |
+  |                                        | buffer                                |
+  |----------------------------------------+---------------------------------------|
 
-    - Identifier search
-    |-----------------------------------+-------------------------------------------------------------|
-    | *M-?*                             | xref-find-reference                                         |
-    |                                   | find all references to identifier at point                  |
-    |                                   | *this searches not just definitions but all the references* |
-    | M-x xref-query-replace-in-results | interactively replace regexp with replacement               |
-    |                                   | in the names of all identifiers shown in buffer             |
-    |-----------------------------------+-------------------------------------------------------------|
-
-    - Inquiries
-    |---------+---------------------|
-    | *C-M-i* | completion-at-point |
-    |---------+---------------------|
-
-** Ediff
-[[https://www.youtube.com/watch?v=9S2pMZ6U5Tc][Youtube]]
-- When ediff is launched it starts a control window where ediff
-  commands are entered.
-  |----------------------------+---------------------------------------------------------------------------|
-  | M-x ediff                  | compare two files                                                         |
-  | M-x ediff-backup           | compare a file with its backup                                            |
-  | M-x ediff-current-file     | compare buffer with its file on disk                                      |
-  | M-x ediff-buffers          | compare two buffers                                                       |
-  | M-x ediff3                 | compare 3 files                                                           |
-  | M-x ediff-buffers3         | compare 3 buffers                                                         |
-  | M-x edirs                  | compare files in two directories                                          |
-  | M-x edirs3                 | compare files in 3 directories                                            |
-  | M-x ediff-windows-wordwise | compare word by word                                                      |
-  | M-x ediff-windows-linewise | compare line by line                                                      |
-  | M-x ediff-regions-wordwise | compare regions word by word.                                             |
-  |                            | prompted for buffer and regions to compare. regions can be in same buffer |
-  | M-x ediff-regions-linewise | compare regions linewise                                                  |
-  | M-x ediff-revision         | compare versions of current buffer. buffer must be visiting               |
-  |                            | version controlled file                                                   |
-  | M-x epatch                 | patch a file or multiple files and then compare                           |
-  |                            | interactively patch if multiple files                                     |
-  | M-x epatch-buffer          | patch a buffer and compare                                                |
-  |                            | the buffer and file visited are not modified                              |
-  |                            | a separate buffer ending with patched is created                          |
-  |                            | only allows single file patch                                             |
-  | M-x ediff-merge            | merge two files                                                           |
-  | M-x ediff-merge-buffers    | merge two buffers                                                         |
-  | M-x edirs-merge            | merge files common to both directories                                    |
-  | M-x ediff-merge-revisions  | merge two versions of the file visited by buffer                          |
-  | M-x eregistry              | open ediff session registry to quickly find and restart active ediff      |
-  |                            | sessions                                                                  |
-  |----------------------------+---------------------------------------------------------------------------|
-
-  - All Ediff commands are displayed in Quick Help Window. Use ? to
-    show or hide help. Ediff commands take prefix that mostly refer
-    to hunks
-    |-----+-----------------------------------------------------------------------------|
-    | ?   | toggle Ediff Quick Window                                                   |
-    | G   | prepares a mail buffer                                                      |
-    | v   | scroll up both buffers in a coordinated manner                              |
-    | V   | scroll buffer down                                                          |
-    | <   | scroll buffer left                                                          |
-    | >   | scroll buffer right                                                         |
-    | wd  | writes diff output                                                          |
-    | wa  | save buffer a if modified                                                   |
-    | wb  | save buffer b if modified                                                   |
-    | wc  | save buffer c if modified                                                   |
-    | a   | during comparison: copy current difference region from buffer A to buffer B |
-    |     | old contents of B's region are saved and can be restored with rb            |
-    |     | during merge: copy current difference region from A to merge buffer         |
-    |     | old contents for region in C can be restored with r                         |
-    | b   | same as a but other way                                                     |
-    | p   | make previous difference region current                                     |
-    | n   | make next difference region current                                         |
-    | j   | make first difference region current                                        |
-    | -j  | make last difference region current                                         |
-    | Nj  | make Nth difference region current                                          |
-    | '!' | recompute difference. useful if files are edited in ediff session           |
-    | ¦   | toggle horizontal/vertical split                                            |
-    | @   | toggle auto refinement (highlight exact words that differ)                  |
-    | r   | restore old contents of region in merge buffer                              |
-    | ra  | restore old contents of current difference region in A                      |
-    | rb  | restore old contents of current difference region in B                      |
-    | ##  | skip regions that only differ in whitespace                                 |
-    | #c  | toggle case sensitivity                                                     |
-    | A   | toggle read only property of buffer A                                       |
-    | B   | toggle read only property of buffer B                                       |
-    | i   | display useful info about current ediff session                             |
-    | R   | display ediff registry                                                      |
-    | z   | suspend current ediff session hiding all ediff related buffers              |
-    | q   | terminate ediff session                                                     |
-    |     | with prefix asks if buffers should be deleted                               |
-    | %   | toggle narrowing                                                            |
-    | C-l | ediff-recenter (restore usual ediff window setup)                           |
-    | M   | go back to session group buffer                                             |
-    |-----+-----------------------------------------------------------------------------|
-
-    - session commands
-    |-----------------------------------------------+---------------------------------------------------------------------------|
-    | M-x eregistry                                 | bring up registry of active ediff sessions                                |
-    |                                               | can be used to resume previous ediff session or switch to another session |
-    | M-x ediff-toggle-multiframe                   | toggle quick help window being in same of separate frame                  |
-    | M-x ediff-revert-buffers-then-recompute-diffs | recomputes difference                                                     |
-    | RET or v                                      | resume session                                                            |
-    |-----------------------------------------------+---------------------------------------------------------------------------|
-
-    - ediff commands that operate on directories open a dired like
-      buffer called session group that lists files common to
-      directories as a separate session
-    |-----+----------------------------------------------------------------------|
-    | RET | open ediff session on these files.                                   |
-    | D   | display directory difference buffer                                  |
-    | C   | in directory difference buffer, copy missing file to other directory |
-    | h   | mark session for hiding (with prefix unmark)                         |
-    | x   | hide marked session (with prefix unhide)                             |
-    | m   | mark session                                                         |
-    |-----+----------------------------------------------------------------------|
-
-    - customization
-    |-----------------------------------------+---------------------------------------------------------------|
-    | 'ediff-use-long-help-message'           | if non nil use long help message in quick help window         |
-    | 'ediff-control-frame-position-function' | specify position of control frame                             |
-    | 'ediff-window-setup-function'           | how window is setup                                           |
-    |                                         | nediff-setup-windows-multiframe - in a separate frame         |
-    |                                         | ediff-setup-windows-plain - in the same frame                 |
-    | 'ediff-ignore-similar-regions'          | if t, skip white space differences                            |
-    | 'ediff-split-window-function'           | controls horizontal or vertical split                         |
-    | 'ediff-use-last-dir'                    | if nil, present default directory of current buffer in prompt |
-    |                                         | if t, use directory used in previously                        |
-    | 'ediff-keep-variants'                   | if t, preserve buffers after quitting ediff                   |
-    |                                         | if nil, offer to delete the buffers if they are not modified  |
-    |                                         |                                                               |
-    |-----------------------------------------+---------------------------------------------------------------|
-
-    #+begin_src
-      (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-      (setq split-window-function 'split-window-horizontally)
-      (setq ediff-keep-variants nil)
-    #+end_src
+- Inquiries
+  |---------+---------------------|
+  | *C-M-i* | completion-at-point |
+  |---------+---------------------|
 
 * Abbrevs
 - There are three abbreviation facilities: one defined by user where
@@ -5164,3 +5138,124 @@ Create a .dir-locals.el file in root of folder with contents like
     "Window")
 #+end_src
 * International
+* Ediff
+[[https://www.youtube.com/watch?v=9S2pMZ6U5Tc][Youtube]]
+- When ediff is launched it starts a control window where ediff
+  commands are entered.
+  |----------------------------+---------------------------------------------------------------------------|
+  | M-x ediff                  | compare two files                                                         |
+  | M-x ediff-backup           | compare a file with its backup                                            |
+  | M-x ediff-current-file     | compare buffer with its file on disk                                      |
+  | M-x ediff-buffers          | compare two buffers                                                       |
+  | M-x ediff3                 | compare 3 files                                                           |
+  | M-x ediff-buffers3         | compare 3 buffers                                                         |
+  | M-x edirs                  | compare files in two directories                                          |
+  | M-x edirs3                 | compare files in 3 directories                                            |
+  | M-x ediff-windows-wordwise | compare word by word                                                      |
+  | M-x ediff-windows-linewise | compare line by line                                                      |
+  | M-x ediff-regions-wordwise | compare regions word by word.                                             |
+  |                            | prompted for buffer and regions to compare. regions can be in same buffer |
+  | M-x ediff-regions-linewise | compare regions linewise                                                  |
+  | M-x ediff-revision         | compare versions of current buffer. buffer must be visiting               |
+  |                            | version controlled file                                                   |
+  | M-x epatch                 | patch a file or multiple files and then compare                           |
+  |                            | interactively patch if multiple files                                     |
+  | M-x epatch-buffer          | patch a buffer and compare                                                |
+  |                            | the buffer and file visited are not modified                              |
+  |                            | a separate buffer ending with patched is created                          |
+  |                            | only allows single file patch                                             |
+  | M-x ediff-merge            | merge two files                                                           |
+  | M-x ediff-merge-buffers    | merge two buffers                                                         |
+  | M-x edirs-merge            | merge files common to both directories                                    |
+  | M-x ediff-merge-revisions  | merge two versions of the file visited by buffer                          |
+  | M-x eregistry              | open ediff session registry to quickly find and restart active ediff      |
+  |                            | sessions                                                                  |
+  |----------------------------+---------------------------------------------------------------------------|
+
+  - All Ediff commands are displayed in Quick Help Window. Use ? to
+    show or hide help. Ediff commands take prefix that mostly refer
+    to hunks
+    |-----+-----------------------------------------------------------------------------|
+    | ?   | toggle Ediff Quick Window                                                   |
+    | G   | prepares a mail buffer                                                      |
+    | v   | scroll up both buffers in a coordinated manner                              |
+    | V   | scroll buffer down                                                          |
+    | <   | scroll buffer left                                                          |
+    | >   | scroll buffer right                                                         |
+    | wd  | writes diff output                                                          |
+    | wa  | save buffer a if modified                                                   |
+    | wb  | save buffer b if modified                                                   |
+    | wc  | save buffer c if modified                                                   |
+    | a   | during comparison: copy current difference region from buffer A to buffer B |
+    |     | old contents of B's region are saved and can be restored with rb            |
+    |     | during merge: copy current difference region from A to merge buffer         |
+    |     | old contents for region in C can be restored with r                         |
+    | b   | same as a but other way                                                     |
+    | p   | make previous difference region current                                     |
+    | n   | make next difference region current                                         |
+    | j   | make first difference region current                                        |
+    | -j  | make last difference region current                                         |
+    | Nj  | make Nth difference region current                                          |
+    | '!' | recompute difference. useful if files are edited in ediff session           |
+    | ¦   | toggle horizontal/vertical split                                            |
+    | @   | toggle auto refinement (highlight exact words that differ)                  |
+    | r   | restore old contents of region in merge buffer                              |
+    | ra  | restore old contents of current difference region in A                      |
+    | rb  | restore old contents of current difference region in B                      |
+    | ##  | skip regions that only differ in whitespace                                 |
+    | #c  | toggle case sensitivity                                                     |
+    | A   | toggle read only property of buffer A                                       |
+    | B   | toggle read only property of buffer B                                       |
+    | i   | display useful info about current ediff session                             |
+    | R   | display ediff registry                                                      |
+    | z   | suspend current ediff session hiding all ediff related buffers              |
+    | q   | terminate ediff session                                                     |
+    |     | with prefix asks if buffers should be deleted                               |
+    | %   | toggle narrowing                                                            |
+    | C-l | ediff-recenter (restore usual ediff window setup)                           |
+    | M   | go back to session group buffer                                             |
+    |-----+-----------------------------------------------------------------------------|
+
+    - session commands
+    |-----------------------------------------------+---------------------------------------------------------------------------|
+    | M-x eregistry                                 | bring up registry of active ediff sessions                                |
+    |                                               | can be used to resume previous ediff session or switch to another session |
+    | M-x ediff-toggle-multiframe                   | toggle quick help window being in same of separate frame                  |
+    | M-x ediff-revert-buffers-then-recompute-diffs | recomputes difference                                                     |
+    | RET or v                                      | resume session                                                            |
+    |-----------------------------------------------+---------------------------------------------------------------------------|
+
+    - ediff commands that operate on directories open a dired like
+      buffer called session group that lists files common to
+      directories as a separate session
+    |-----+----------------------------------------------------------------------|
+    | RET | open ediff session on these files.                                   |
+    | D   | display directory difference buffer                                  |
+    | C   | in directory difference buffer, copy missing file to other directory |
+    | h   | mark session for hiding (with prefix unmark)                         |
+    | x   | hide marked session (with prefix unhide)                             |
+    | m   | mark session                                                         |
+    |-----+----------------------------------------------------------------------|
+
+    - customization
+    |-----------------------------------------+---------------------------------------------------------------|
+    | 'ediff-use-long-help-message'           | if non nil use long help message in quick help window         |
+    | 'ediff-control-frame-position-function' | specify position of control frame                             |
+    | 'ediff-window-setup-function'           | how window is setup                                           |
+    |                                         | nediff-setup-windows-multiframe - in a separate frame         |
+    |                                         | ediff-setup-windows-plain - in the same frame                 |
+    | 'ediff-ignore-similar-regions'          | if t, skip white space differences                            |
+    | 'ediff-split-window-function'           | controls horizontal or vertical split                         |
+    | 'ediff-use-last-dir'                    | if nil, present default directory of current buffer in prompt |
+    |                                         | if t, use directory used in previously                        |
+    | 'ediff-keep-variants'                   | if t, preserve buffers after quitting ediff                   |
+    |                                         | if nil, offer to delete the buffers if they are not modified  |
+    |                                         |                                                               |
+    |-----------------------------------------+---------------------------------------------------------------|
+
+    #+begin_src
+      (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+      (setq split-window-function 'split-window-horizontally)
+      (setq ediff-keep-variants nil)
+    #+end_src
+
