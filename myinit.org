@@ -225,13 +225,19 @@
 |----------------------------------------+-------+----------------------------------------------------------------------------------|
 #+begin_src emacs-lisp
   (setq completion-styles '(initials partial-completion flex basic))
-  (setq completion-auto-help nil) ;; don't show completion list buffer
-  (setq completion-auto-select nil) ;; don't switch to completion list buffer when displayed
-  (setq completion-cycle-threshold t) ;; always cycle through completion candidates
-  (setq completions-format 'horizontal) ;; completion list buffer format
-  (setq completions-sort 'alphabetical) ;; sort candidatate alphabetically
+  (setq completion-auto-help t)
+  (setq completion-auto-select 'second-tab) 
+  (setq completion-cycle-threshold nil) ;; always cycle through completion candidates
+  (setq completions-format 'one-column) ;; completion list buffer format
+  (setq completions-sort nil) ;; sort candidatate alphabetically
   (setq completions-max-height nil) ;; no height limit for completion list buffer
   (setq completions-header-format nil) ;; no header in completion list buffer
+  (define-key minibuffer-local-map (kbd "M-p") #'minibuffer-previous-completion)
+  (define-key minibuffer-local-map (kbd "M-n") #'minibuffer-next-completion)
+
+  ;; Up/down when competing in a normal buffer
+  (define-key completion-in-region-mode-map (kbd "M-p") #'minibuffer-previous-completion)
+  (define-key completion-in-region-mode-map (kbd "M-n") #'minibuffer-next-completion)
 #+end_src
 
 ** History
@@ -1964,9 +1970,8 @@
     (add-hook 'compilation-finish-functions 'switch-to-buffer-other-window 'compilation)
     (setq display-buffer-alist
 	  '(("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
-	     (display-buffer-reuse-window display-buffer-in-direction)
+	     (display-buffer-reuse-window display-buffer-in-side-window)
 	     (side . right)
-	     (direction . right)
 	     (window-width . 0.5)
 	     (slot . 0))
 	    ("\\*\\(.*shell\\|ansi-term\\|\.*eshell\\|.*terminal\\|Async Shell\\).*"
@@ -2731,11 +2736,11 @@ preceding line.
   #+end_src
 ** Completion
 - Completion order
-  = Eglot LSP
-  = Semantic Parser
-  = Tags Table
-  = Emacs Session for Lisp
-  = Spell checker
+  - Eglot LSP
+  - Semantic Parser
+  - Tags Table
+  - Emacs Session for Lisp
+  - Spell checker
   
 |-----------------+----------------------------------------|
 | *C-M-i*         | completion-at-point                    |
@@ -2983,7 +2988,7 @@ preceding line.
   |                            | if region is active, evaluate region                        |
   | *C-c C-r*                  | execute till next break-point                               |
   | *C-c C-d*                  | gud-remove (delete break-point on current line if any)      |
-  | *C-c C-t*                  | gut-tbreak (set temporary break point)                      |
+  | *C-c C-t*                  | gud-tbreak (set temporary break point)                      |
   | *C-c <*                    | gud-up (select previous stack frame)                        |
   |                            | each function call creates a new stack frame                |
   | *C-c >*                    | gud-down (select next inner stack frame)                    |
@@ -3385,7 +3390,7 @@ preceding line.
   variants. Needed for C-x p g
   #+begin_src emacs-lisp
       (setq read-file-name-completion-ignore-case t
-	    xref-search-program-alist '((grep . "xargs -0 grep <C> -snHE -e <R>")
+	    xref-search-program-alist '((grep . "xargs -0 grep <C> -snHE -e <R>")))
   #+end_src
 
 ** Xref
@@ -3467,46 +3472,55 @@ preceding line.
   be expanded manually using expand-abbrev
 - In Abbrev mode, any character that is not a word char expands an
   abbrev
-  |------------------------------+-----------------------------------------------------------------------------|
-  | *C-x a g*                    | add-global-abbrev (define abbrev using prefix number of words before point) |
-  | *C-x a l*                    | add-mode-abbrev                                                             |
-  | *C-x a i g*                  | inverse-add-global-abbrev (define expansion using abbrev word in buffer)    |
-  | *C-x a i l*                  | inverse-add-mode-abbrev                                                     |
-  | M-x define-global-abbrev     | prompt abbrev and expansion                                                 |
-  | M-x define-mode-abbrev       | prompt abbrev and expansion                                                 |
-  | M-x kill-all-abbrevs         | discard all abbrev                                                          |
-  | *C-x a e*                    | expand-abbrev                                                               |
-  | M-x unexpand-abbrev          | undo expansion                                                              |
-  | M-x expand-region-abbrevs    | expand abbrevs in region                                                    |
-  | M-x list-abbrevs             | with prefix list only local abbrevs                                         |
-  | M-x edit-abbrevs             | edit abbrevs                                                                |
-  | M-x write-abbrev-file        | write to file all abbrevs. prompts for file                                 |
-  | M-x read-abbrev-file         | read the abbrev file and define abbrevs                                     |
-  | M-x insert-abbrevs           | insert all abbrevs and expansions in current buffer                         |
-  | 'abbrev-file-name'           | file name where abbrevs are stored by default                               |
-  | M-x quietly-read-abbrev-file | read abbrev file without message (good for init files)                      |
-  | 'save-abbrevs'               | if t, prompt to save abbrevs                                                |
-  |                              | if silently, save without asking                                            |
-  |------------------------------+-----------------------------------------------------------------------------|
+- Abbrev preserves case. Foo - Find outer otter vs foo - find outer otter
+  |------------------------------+--------------------------------------------------------|
+  | *C-x a g*                    | add-global-abbrev (define abbrev using                 |
+  |                              | prefix number of words before point)                   |
+  |                              | if region is active, use that as expansion             |
+  |                              | negative prefix removes abbrev                         |
+  | *C-x a l*                    | add-mode-abbrev                                        |
+  | *C-x a i g*                  | inverse-add-global-abbrev (define expansion            |
+  |                              | using abbrev word in buffer)                           |
+  | *C-x a i l*                  | inverse-add-mode-abbrev                                |
+  | M-x define-global-abbrev     | prompt abbrev and expansion                            |
+  | M-x define-mode-abbrev       | prompt abbrev and expansion                            |
+  | M-x kill-all-abbrevs         | discard all abbrev                                     |
+  | *M-'*                        | abbrev-prefix-mark                                     |
+  |                              | re M-' foo expands to refind outer otter               |
+  | *C-x a e*                    | expand-abbrev                                          |
+  | foo C-q                      | don't expand foo                                       |
+  | M-x unexpand-abbrev          | undo expansion                                         |
+  | M-x expand-region-abbrevs    | expand abbrevs in region                               |
+  | M-x list-abbrevs             | with prefix list only local abbrevs                    |
+  | M-x edit-abbrevs             | edit abbrevs                                           |
+  | M-x write-abbrev-file        | write to file all abbrevs. prompts for file            |
+  | M-x read-abbrev-file         | read the abbrev file and define abbrevs                |
+  | M-x insert-abbrevs           | insert all abbrevs and expansions in current buffer    |
+  | 'abbrev-file-name'           | file name where abbrevs are stored by default          |
+  | M-x quietly-read-abbrev-file | read abbrev file without message (good for init files) |
+  | 'save-abbrevs'               | if t, prompt to save abbrevs                           |
+  |                              | if silently, save without asking                       |
+  | 'abbrev-suggest'             | t - show hint in echo area if there is an abbrev       |
+  |------------------------------+--------------------------------------------------------|
 
-  #+begin_src
+  #+begin_src emacs-lisp
     (setq abbrev-file-name (expand-file-name "abbrev_defs" user-emacs-directory))
     (setq save-abbrevs 'silently)
     (if
 	(file-exists-p abbrev-file-name)
 	(quietly-read-abbrev-file))
     (abbrev-mode -1)			; don't expand automatically on space or punctuation
+    (setq abbrev-suggest t)
   #+end_src
 
-  - dynamic abbrevs determines meaning of abbrevs from contents of
-    buffer
-  - A numeric argument to ‘M-/’ says to take the second, third,
-    etc. distinct expansion found looking backward from point.
-    Repeating ‘M-/’ searches for an alternative expansion by looking
-    farther back.  After scanning all the text before point, it
-    searches the text after point.  The variable ‘dabbrev-limit’, if
-    non-‘nil’, specifies how far away in the buffer to search for an
-    expansion.
+- dynamic abbrevs determines meaning of abbrevs from contents of
+  buffer
+- A numeric argument to ‘M-/’ says to take the second, third,
+  etc. distinct expansion found looking backward from point.
+  Repeating ‘M-/’ searches for an alternative expansion by looking
+  farther back.  After scanning all the text before point, it searches
+  the text after point.  The variable ‘dabbrev-limit’, if non-‘nil’,
+  specifies how far away in the buffer to search for an expansion.
 
     |---------------------------------+----------------------------------------------------------------|
     | *M-/*                           | dabbrev-expand                                                 |
@@ -3524,8 +3538,1115 @@ preceding line.
     |                                 | dabbrev-ignored-buffer-names or dabbrev-ignored-buffer-regexps |
     |                                 |                                                                |
     |---------------------------------+----------------------------------------------------------------|
-    #+begin_src
+    #+begin_src emacs-lisp
       (global-set-key (kbd "M-/") 'hippie-expand)
+    #+end_src
+* Shell
+|--------------------------------------+---------------------------------------------------------------------|
+| *M-!*                                | shell-command (run shell command and                                |
+|                                      | display output in echo area                                         |
+|                                      | or separate buffer based on size)                                   |
+|                                      | with prefix, put result at point                                    |
+| *M-\vert*                            | shell-command-on-region                                             |
+|                                      | run shell command with region as input                              |
+|                                      | and display result in echo area                                     |
+|                                      | if prefixed, replace region with result                             |
+| *M-&*                                | async-shell-command (run command as if                              |
+|                                      | it is ended with &)                                                 |
+|                                      | result will be sent to Async Shell Command                          |
+| M-x shell                            | run sub-shell with input and output via                             |
+|                                      | Emacs buffer                                                        |
+| M-x term                             | run subshell with input and output via                              |
+|                                      | Emacs buffer. Supports full emulation                                                           |
+| M-x eshell                           | shell implemented entirely in Emacs                                 |
+| 'async-shell-command-buffer'         | tells what to do when more than one async command are run           |
+| 'async-shell-command-display-buffer' | nil - wait till there is output to display to display output buffer |
+| 'shell-command-prompt-show-cwd'      | show current directory in prompt                                    |
+| ~/.emacs_SHELLNAME                   | execute the files based on shell used after M-x shell               |
+| ~/.emacs.d/init_SHELLNAME.sh         | if ~/.emacs_SHELLNAME is not found, use this one                    |
+|--------------------------------------+---------------------------------------------------------------------|
+
+- Shell mode Most shell commands will need to be prefixed by
+  C-c. Ex: to run C-c to kill, C-c C-c. Similarly to kill word
+  before point C-c C-w etc
+  |-----+--------------------------------------------------------------------------|
+  | RET | comint-send-input (send current line as input to subshell)               |
+  |     | can also invoke RET anywhere in buffer                                   |
+  | TAB | completion-at-point (complete file name, variables, command history etc) |
+  | C-d | comint-delchar-or-maybe-eof                                              |
+  |-----+--------------------------------------------------------------------------|
+
+  - Shell history
+  |---------+--------------------------------------------------------------|
+  | M-p     | comint-previous-input                                        |
+  | M-n     | comint-next-input                                            |
+  | M-r     | comint-history-isearch-backward-regexp                       |
+  | C-c C-l | comint-dynamic-list-input-ring                               |
+  |         | display buffer's history of shell commands in another window |
+  | C-c C-p | comint-previous-prompt                                       |
+  | C-c C-n | comint-next-prompt                                           |
+  |---------+--------------------------------------------------------------|
+
+  - Terminal Emulator
+  |-----------------+------------------------------------------------------------------------------------|
+  | M-x term        | run subshell in terminal emulator                                                  |
+  |                 | creates *terminal* buffer and uses Term mode which has line mode and char mode     |
+  |                 | line mode acts like shell mode. In char mode, each char is sent to shell directly  |
+  |                 | Term mode recognizes ansi standard VT100 style escape sequences like xterm         |
+  |                 | we can run emacs inside of term                                                    |
+  | C-c C-j         | term-line-mode                                                                     |
+  | C-c C-k         | term-char-mode                                                                     |
+  | C-c C-c         | term-interrupt-subjob (send C-c to subshell in - char mode only)                   |
+  | C-c CHAR        | like C-x CHAR in normal emacs (C-c o is like C-x o - char mode only)               |
+  | C-c C-q         | term-pager-toggle (both in line and char mode)                                     |
+  |                 | each time term receive more output, display one screen at a time like more command |
+  | M-x serial-term | prompt for serial port name and speed and open new Term mode buffer                |
+  |-----------------+------------------------------------------------------------------------------------|
+
+  #+begin_src emacs-lisp
+    (setq async-shell-command-display-buffer nil
+          async-shell-command-buffer 'new-buffer
+	  shell-command-prompt-show-cwd t)
+  #+end_src
+
+* Saving Emacs Sessions
+|-----------------------------+-----------------------------------------------|
+| 'desktop-restore-frames'    | restore window and frame configs also along   |
+|                             | with buffers                                  |
+| 'desktop-files-not-to-save' | regexp telling what files to ignore.          |
+|                             | set to nil to save all files                  |
+| M-x desktop-save            | manually save desktop                         |
+| desktop-save-mode           | setting t will save and restore automatically |
+| 'desktop-path'              | directory where desktop is saved              |
+| 'desktop-save'              | t - always save                               |
+|                             | ask - always ask                              |
+| 'desktop-restore-eager'     | number of buffers to load immediately. others |
+|                             | are loaded lazily                             |
+| M-x desktop-clear           |                                               |
+| savehist-mode               | save minibuffer history                       |
+| 'savehist-file'             | file where minibuffer history is saved        |
+| 'desktop-auto-save-timeout' | how frequently to save desktops               |
+|-----------------------------+-----------------------------------------------|
+
+#+begin_src emacs-lisp
+  (setq desktop-restore-eager 2
+	desktop-load-locked-desktop 'ask
+	desktop-restore-frames 1
+	desktop-save t
+	desktop-path (list user-emacs-directory)
+	desktop-auto-save-timeout 60
+	desktop-base-file-name "emacs.desktop"
+	desktop-globals-to-save
+	'(desktop-missing-file-warning tags-file-name tags-table-list search-ring regexp-search-ring register-alist file-name-history)
+	desktop-locals-to-save
+	'(eww-history-position desktop-locals-to-save truncate-lines case-fold-search case-replace fill-column overwrite-mode change-log-default-name line-number-mode column-number-mode size-indication-mode buffer-file-coding-system buffer-display-time indent-tabs-mode tab-width indicate-buffer-boundaries indicate-empty-lines show-trailing-whitespace))
+  (desktop-save-mode t)
+
+  (setq savehist-file (expand-file-name "savehist" user-emacs-directory))
+  (savehist-mode 1)
+
+#+end_src
+
+[[https://www.emacswiki.org/emacs/SavePlace][Emacs Wiki]]
+- When you visit a file, point goes to the last place where it was
+  when you previously visited the same file.
+  #+begin_src emacs-lisp
+    (save-place-mode 1)
+    (setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
+    (setq save-place-forget-unreadable-files t) ; set to nil if emacs is slow to exit
+  #+end_src
+* Packages
+- Packages are Emacs Lisp libraries. For a package to be available
+  in future sessions, compile it and put it in path of lisp
+  libraries
+- Packages can also be provided by package-archives which are large
+  collection of Emacs Lisp packages. Emacs includes a facility to
+  easily download and install packages from such archives
+  |----------------------------------+--------------------------------------------------------------------------|
+  | M-x list-packages                | List all available packages in archive in                                |
+  |                                  | Packages buffer                                                          |
+  |                                  | install or uninstall of package can be done                              |
+  |                                  | via this buffer                                                          |
+  | C-h P                            | describe-package                                                         |
+  | h                                | package-menu-quick-help                                                  |
+  | RET                              | package-menu-describe-package                                            |
+  | i                                | package-menu-mark-install                                                |
+  |                                  | (adds I flag at the start)                                               |
+  | d                                | package-menu-mark-delete (add D flag)                                    |
+  | ~                                | package-menu-mark-obsolete-for-deletion                                  |
+  | u                                | package-menu-mark-unmark (remove any                                     |
+  |                                  | install or delete marks on current line)                                 |
+  | U                                | package-menu-mark-upgrades (mark all packages                            |
+  |                                  | with newer available version for upgrade)                                |
+  | x                                | package-menu-execute (delete packages                                    |
+  |                                  | marked for delete and install packages                                   |
+  |                                  | marked for upgrade)                                                      |
+  | g                                | revert-buffer (refresh package list)                                     |
+  | / k                              | package-menu-filter-by-keyword                                           |
+  | / n                              | package-menu-filter-by-name                                              |
+  | / /                              | package-menu-clear-filter                                                |
+  | M-x package-install              | prompt for package and install                                           |
+  |                                  | automatically installs dependencies                                      |
+  | 'package-archives'               | list of packages archives known to Emacs                                 |
+  | 'package-pinned-packages'        | if a packages is in multiple archives with                               |
+  |                                  | different version, then tell which one                                   |
+  |                                  | to install. it is a list of package/archive                              |
+  |                                  | pairs                                                                    |
+  | 'package-archive-priorities'     | set priority of archives (higher number is                               |
+  |                                  | high priority)                                                           |
+  | 'package-menu-hide-low-priority' | hide package if high priority version of                                 |
+  |                                  | it is available from other archives                                      |
+  | 'load-path'                      | list of directories to search for files                                  |
+  |                                  | to load                                                                  |
+  |                                  | package-install updates it with path of                                  |
+  |                                  | package location                                                         |
+  | -q or --no-init-file             | if Emacs is started with this option, don't                              |
+  |                                  | load any packages                                                        |
+  | 'package-enable-at-startup'      | nil - don't load packages at start                                       |
+  | M-x package-activate-all         | make installed packages available                                        |
+  | 'package-load-list'              | decides which packages to load                                           |
+  | M-x package-install-file         | each package downloaded from archive is a single file or a tar file with |
+  |                                  | multiple Lisp sources and other files. This command installs package     |
+  |                                  | directly from a package file                                             |
+  | 'package-user-dir'               | location where package files are placed                                  |
+  | 'package-directory-list'         | used for system-wide packages                                            |
+  |----------------------------------+--------------------------------------------------------------------------|
+
+  #+begin_src emacs-lisp
+    (require 'package)
+    (if (< emacs-major-version 28)
+	(add-to-list 'package-archives
+		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t)
+
+       (add-to-list 'package-archives
+		     '("melpa" . "https://stable.melpa.org/packages/") t))
+
+    (unless package-archive-contents
+      (package-refresh-contents))
+  #+end_src
+  
+* Use Package
+- declarative way to setup package
+- allow gathering all config of package in one place
+- reduce code duplication
+- make startup time short
+- errors during startup only disable specific package causing error
+- allow byte compilation of init file
+** Basics
+- load package unconditionally like require. Package should be already
+  installed
+  #+begin_quote
+    (use-package foo)
+  #+end_quote
+- evaluate before package is loaded with :init
+  #+begin_quote
+    (use-package foo
+      :init
+      (setq foo-variable t))
+  #+end_quote
+- execute code after package is loaded. for lazy loading defer this
+  execution until load actually occurs
+  #+begin_quote
+    (use-package foo
+      :init
+      (setq foo-variable t)
+      :config
+      (foo-mode 1))
+  #+end_quote
+- load package only when needed to speed up Emacs startup
+  #+begin_quote
+    (use-package foo
+    :defer t)
+  #+end_quote
+- provide your own autoload with :commands and bind keys
+  #+begin_quote
+    (use-package color-moccur
+      :commands (isearch-moccur isearch-all)
+      :bind (("M-s O" . moccur)
+             :map isearch-mode-map
+	     ("M-o" . isearch-moccur)
+	     ("M-O" . isearch-moccur-all))
+      :init
+      (setq isearch-lazy-highlight t)
+      :config
+      (use-package moccur-edit))
+  #+end_quote
+** Loading
+- use package loads a library. if package has more than one library,
+  it should be loaded with another use-package declaration
+- A non nil value to :defer stops immediate loading of package
+  A numeric value N indicates package should be loaded after Emacs is
+  idle for N seconds
+- Package can be force loaded with :demand t. If both :demand and
+  :defer are used, :defer takes precedence
+- conditional loading can be done with :if, :when and :unless by
+  passing emacs lisp form. Common use cases are shown below
+  #+begin_quote
+    :if (eq system-type 'gnu/linux)
+    :if (memq window-system '(ns x))
+    :if (package-installed-p 'foo)
+  #+end_quote
+- load packages in sequence with dependency using :after. This
+  guarantees package is not loaded until it's dependents are also
+  loaded
+  #+begin_quote
+    :after (foo bar) ; load the package after foo and bar are loaded
+    :after (:all foo bar) ; same as above
+    :after (:any foo bar) ; load package when either foo or bar are loaded
+  #+end_quote
+- never load a package if dependencies are not met with :require
+  #+begin_quote
+    (use-package abbrev
+      :requires foo)
+  #+end_quote
+** Configuring
+- Evaluates :preface first(only after :disabled and :ensure). Avoid
+  side effects in :preface since it is evaluated twice: during load
+  and byte compilation
+- :init is evaluated before package load. It is run unconditionally
+  even if package does not exist.
+- :config is evaluated after package load
+- Avoid :preface, :config and :init. Instead prefer auto-loading
+  keywords like :bind, :hook, :mode
+** Key Binding
+*** Global
+- bind keys globally with :bind and passing a cons of the form (KEY
+  . COMMAND). This creates an autoload and defers loading the
+  package. It bind the key globally
+  #+begin_quote
+    (use-package ace-jump-mode
+      :bind ("C-." . ace-jump-mode))
+  #+end_quote
+- Multiple key-binds can be done
+  #+begin_quote
+    (use-package hi-lock
+      :bind (("M-o l" . highlight-lines-matching-regeexp)
+             ("M-o w" . highlight-phrase))
+  #+end_quote
+- special keys should be written in angle brackets. standalone special
+  keys can be written in square brackets
+  #+begin_quote
+    (use-package helm
+      :bind (("M-<f5>" . helm-M-x)
+             ([f10] . helm-recentf))
+  #+end_quote
+- remapping works. following will rebind fill-paragraph to
+  unfill-toggle
+  #+begin_quote
+    (use-package unfill
+      :bind ([remap fill-paragraph] . unfill-toggle))
+  #+end_quote
+*** Local
+- Key can be mapped to local keymap using :map. Any bind before first
+  map are applied to global map
+  #+begin_quote
+     (use-package term
+       :bind (("C-c t" . term)
+              :map term-mode-map
+              ("M-p" . term-send-up)
+              ("M-n" . term-send-down)
+              :map term-raw-map
+              ("M-o" . other-window)
+              ("M-p" . term-send-up)
+              ("M-n" . term-send-down)))
+  #+end_quote
+
+*** Keymaps
+- keys can be mapped to keymaps instead of commands using :bind-keymap
+  #+begin_quote
+     (use-package foo
+       :bind-keymap ("C-c p" . foo-command-map))
+  #+end_quote
+*** Repeat Maps
+- Using :repeat-map and passing a map name, will bind all following
+  keys inside that map and set repeat-map property for each bound
+  command. Specifying :exit will allow keys defined after it to be
+  used in repeat-map but after using it, repeat-map won't be
+  available. Specifying :continue forces setting repeat-map
+  property. Both snippets below are equivalent
+  #+begin_quote
+     (use-package git-gutter+
+       :bind
+       (:repeat-map my/git-gutter+-repeat-map
+        ("n" . git-gutter+-next-hunk)
+        ("p" . git-gutter+-previous-hunk)
+        ("s" . git-gutter+-stage-hunks)
+        ("r" . git-gutter+-revert-hunk)
+        :exit
+        ("c" . magit-commit-create)
+        ("C" . magit-commit)
+        ("b" . magit-blame)))
+     (use-package git-gutter+
+       :bind
+       (:repeat-map my/git-gutter+-repeat-map
+        :exit
+        ("c" . magit-commit-create)
+        ("C" . magit-commit)
+        ("b" . magit-blame)
+        :continue
+        ("n" . git-gutter+-next-hunk)
+        ("p" . git-gutter+-previous-hunk)
+        ("s" . git-gutter+-stage-hunks)
+        ("r" . git-gutter+-revert-hunk)))
+  #+end_quote
+*** Display personal keybindings
+- M-x describe-personal-keybindings
+** Hooks
+- Add functions to hook using :hook. Exclude -hook suffix
+  #+begin_quote
+    (use-package company
+      :hook (prog-mode . company-mode))
+  #+end_quote
+- If package name is same as hook, it can be further simplified
+  #+begin_quote
+    (use-package company
+      :hook (prog-mode text-mode))
+  #+end_quote
+** User Options
+- Similar to M-x customize, variables can be set using :custom. This
+  is better than setq in :config
+  #+begin_quote
+     (use-package comint
+       :defer t
+       :custom
+       (comint-buffer-maximum-size 20000 "Increase comint buffer size.")
+       (comint-prompt-read-only t "Make the prompt read only."))
+  #+end_quote
+** Installing
+- The :ensure makes use-package to install a package using Emacs
+  package manager
+- Package can be pinned to specific archive - gnu and nongnu
+  #+begin_quote
+     (use-package company
+       :ensure t
+       :pin gnu)   ; GNU ELPA
+  #+end_quote
+- Disabling a package can be done with :disabled
+  #+begin_quote
+     (use-package foo
+       :disabled)
+  #+end_quote
+* Theme
+** Solarized
+#+begin_src
+    (unless (package-installed-p 'solarized-theme)
+      (package-refresh-contents)
+      (package-install 'solarized-theme))
+
+    (setq solarized-distinct-fringe-background t ; make the fringe stand out from the background
+	  solarized-use-variable-pitch nil       ; Don't change the font for some headings and titles
+	  solarized-high-contrast-mode-line nil  ; make the modeline high contrast
+	  solarized-use-less-bold t              ; Use less bolding
+	  solarized-use-more-italic t            ; Use more italics
+	  solarized-emphasize-indicators nil     ; Use less colors for indicators like flycheck
+	  solarized-scale-org-headlines t        ; Change size of org-mode headlines
+	  solarized-scale-markdown-headlines t   ; Change the size of markdown-mode headlines (off by default)
+	  x-underline-at-descent-line t
+	  solarized-height-minus-1 1.0
+	  solarized-height-plus-1 1.1
+	  solarized-height-plus-2 1.2
+	  solarized-height-plus-3 1.3
+	  solarized-height-plus-4 1.4)
+    (load-theme 'solarized-dark t)
+#+end_src
+
+** DOOM
+#+begin_src
+     (unless (package-installed-p 'doom-themes)
+       (package-refresh-contents)
+       (package-install 'doom-themes))
+     (require 'doom-themes)
+     (setq doom-themes-enable-bold t
+	   doom-themes-enable-italic t)
+     (load-theme 'doom-dracula t)
+     (doom-themes-visual-bell-config)
+     (doom-themes-org-config)
+#+end_src
+** Mods
+#+begin_src emacs-lisp
+  (use-package modus-themes
+    :ensure t
+    :defer nil
+    :custom
+    (modus-themes-inhibit-reload nil "reload active theme when an option is changed through the Customize UI")
+    (modus-themes-bold-constructs t  "Use bold for code syntax highlighting and related")
+    (modus-themes-italic-constructs t "Use bold for code syntax highlighting and related ")
+    (modus-themes-mode-line '(accented borderless (padding 4) (height 0.9)) "Model")
+    (modus-themes-hl-line '(intense) "amplify color in use for hl-line-mode heading sizes and colors")
+    :config
+    (setq modus-themes-headings '((1 . (bold rainbow 1.5))
+			    (2 . (bold rainbow 1.4))
+			    (3 . (bold rainbow 1.2))
+			    (t . (monochrome ))))
+    (load-theme 'modus-vivendi t))
+#+end_src
+
+* Eglot
+- eglot is Emacs LSP client
+- Refer [[*Xref][Xref]]
+  #+begin_src emacs-lisp
+    (use-package eglot
+      :ensure nil
+      :custom
+      (eglot-autoreconnect t "Automatically reconnect to LSP server")
+      (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
+      (eglot-confirm-server-initiated-edits nil "don't confirm server initiated edits with user")
+      (eglot-extend-to-xref t "activate eglot in non-project cross-referenced files")
+      :bind
+      ("C-c l a" . eglot-code-actions)
+      ("C-c l e" . eglot-events-buffer)
+      ("C-c l r" . eglot-rename)
+      ("C-c l f f" . eglot-format)
+      ("C-c l f b" . eglot-format-buffer)
+      ("C-c l l" . eglot)
+      ("C-c l c" . eglot-reconnect)
+      ("C-c l s" . eglot-shutdown)
+      ("C-c l i" . eglot-inlay-hints-mode)
+      :config
+      (add-to-list 'eglot-server-programs '(python-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
+
+  #+end_src
+
+** Python
+#+begin_src emacs-lisp
+  (use-package pyvenv
+    :ensure t
+    ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
+    :hook
+    (python-mode python-ts-mode))
+#+end_src
+
+Create a .dir-locals.el file in root of folder with contents like 
+((python-mode . ((pyvenv-activate . "~/.cache/venv/project-name"))))
+
+#+begin_src emacs-lisp
+    (use-package python
+      :ensure nil
+      :init
+      (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
+      (unless (file-directory-p pylspdir)
+	(make-directory pylspdir t)
+	(shell-command (concat "python3 -m venv " pylspdir))
+	(shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))
+      :config
+      (add-hook 'python-mode-hook 'eglot-ensure)
+      (add-hook 'python-ts-mode-hook 'eglot-ensure))
+#+end_src
+** C
+#+begin_src
+  (add-hook 'c-mode-hook 'eglot-ensure)
+#+end_src
+** Go
+#+begin_src
+  (let ((goplsdir (expand-file-name "lsp/gopls" user-emacs-directory)))
+    (unless (file-directory-p goplsdir)
+      (make-directory goplsdir t)
+      (setenv "GOPATH" goplsdir)
+      (shell-command "go install golang.org/x/tools/gopls@latest")))
+
+  (add-hook 'go-mode-hook
+	    (progn
+	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/gopls" user-emacs-directory)))
+	      (setq exec-path (split-string (getenv "PATH") path-separator))
+	      (with-eval-after-load 'eglot
+		(add-to-list 'eglot-server-programs '(go-mode "~/.cache/emacs/lsp/gopls/bin/gopls" "-verbose")))
+	      'eglot-ensure))
+
+  (unless (package-installed-p 'go-mode)
+    (package-refresh-contents)
+    (package-install 'go-mode))
+
+  ;;  The project package does not natively know about GOPATH or Go
+  ;;  modules. Fortunately, you can give it a custom hook to tell it to
+  ;;  look for the nearest parent go.mod file (that is, the root of the
+  ;;  Go module) as the project root
+  (require 'project)
+  (defun project-find-go-module (dir)
+    (when-let ((root (locate-dominating-file dir "go.mod")))
+      (cons 'go-module root)))
+  (cl-defmethod project-root ((project (head go-module)))
+    (cdr project))
+  (add-hook 'project-find-functions #'project-find-go-module)
+
+
+  ;; Optional: install eglot-format-buffer as a save hook.
+  ;; The depth of -10 places this before eglot's willSave notification,
+  ;; so that that notification reports the actual contents that will be saved.
+  (defun eglot-format-buffer-on-save ()
+    (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
+  (add-hook 'go-mode-hook #'eglot-format-buffer-on-save)
+
+#+end_src
+
+** Java
+#+begin_src
+  (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory))
+	(mvndir (expand-file-name "lsp/mvn" user-emacs-directory)))
+    (unless (file-directory-p jdtlsdir)
+      (make-directory jdtlsdir t)
+      (url-copy-file "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz" "/tmp/jdtls.tar.gz" t t)
+      (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  jdtlsdir)))
+    (unless (file-directory-p mvndir)
+      (make-directory mvndir t)
+      (url-copy-file "https://dlcdn.apache.org/maven/maven-3/3.8.7/binaries/apache-maven-3.8.7-bin.tar.gz" "/tmp/mvn.tar.gz" t t)
+      (shell-command (concat "tar -xzf /tmp/mvn.tar.gz -C"  mvndir))))
+
+  (let ((jdtlsdir (expand-file-name "lsp/jdtls/bin" user-emacs-directory))
+	(mvndir (expand-file-name "lsp/mvn/apache-maven-3.8.7/bin" user-emacs-directory)))
+    (add-to-list 'tramp-remote-path jdtlsdir)
+    (add-to-list 'tramp-remote-path mvndir)
+    (setenv "PATH" (concat (getenv "PATH") ":" jdtlsdir))
+    (setenv "PATH" (concat (getenv "PATH") ":" mvndir))
+    (setq exec-path (split-string (getenv "PATH") path-separator)))
+
+  (add-hook 'java-mode-hook
+	    (with-eval-after-load 'eglot
+	      (add-to-list 'eglot-server-programs '(java-mode "jdtls" "-verbose"))
+	      'eglot-ensure))
+
+  (defun my-mvn-create ()
+    "Create a new Maven project."
+    (interactive)
+    (let ((mvn-project-parent-dir    (read-directory-name "Enter parent directory: "))
+	  (mvn-group-id              (read-string         "Enter group id: "))
+	  (mvn-artifact-id           (read-string         "Enter artifact id: "))
+	  (mvn-archetype-artifact-id (read-string         "Enter archetype artifact id: " "maven-archetype-quickstart"))
+	  (mvn-archetype-version     (read-string         "Enter archetype verion: " "1.4"))
+	  (mvn-version               (read-string         "Enter version: " "1.0")))
+      (make-directory mvn-project-parent-dir t)
+      (cd mvn-project-parent-dir)
+      (message (concat "mvn archetype:generate" " -DgroupId=" mvn-group-id " -DartifactId=" mvn-artifact-id " -DarchetypeArtifactId=" mvn-archetype-artifact-id " -DarchetypeVersion=" mvn-archetype-version " -Dversion=" mvn-version " -DinteractiveMode=false"))
+      (compile (concat "mvn archetype:generate" " -DgroupId=" mvn-group-id " -DartifactId=" mvn-artifact-id " -DarchetypeArtifactId=" mvn-archetype-artifact-id " -DarchetypeVersion=" mvn-archetype-version " -Dversion=" mvn-version " -DinteractiveMode=false"))))
+
+  (defun my-mvn-compile ()
+    "Compile Maven project"
+    (interactive)
+    (let ((pom-dir (locate-dominating-file (file-name-directory (buffer-file-name)) "pom.xml")))
+      (cd pom-dir)
+      (compile "mvn compile")))
+
+  (defun my-java-get-symbol (symbols symbol-type)
+    "Extract the symbol value for a given SYMBOL-TYPE from a symbol table SYMBOLS."
+    (let ((symbol-details (cl-find-if
+			   (lambda (elem)
+			     (let* ((elem-kind (plist-get elem :kind))
+				    (elem-type (cdr (assoc elem-kind eglot--symbol-kind-names))))
+			       (string= elem-type symbol-type)))
+			   symbols)))
+      (if symbol-details
+	  (plist-get symbol-details :name)
+	"")))
+
+  (defun my-mvn-execute ()
+    "Run the main program"
+    (interactive)
+    (let* ((document-symbols  (jsonrpc-request
+			       (eglot--current-server-or-lose)
+			       :textDocument/documentSymbol
+			       (list :textDocument (list :uri (eglot--path-to-uri (buffer-file-name))))))
+	   (package-name       (my-java-get-symbol document-symbols "Package"))
+	   (class-name         (my-java-get-symbol document-symbols "Class"))
+	   (package-suffix   (if (string= "" package-name)
+				 package-name
+			       "."))
+	   (fqcn               (format "%s%s%s" package-name package-suffix class-name))
+	   (args               (read-string     "Enter arguments: " ""))
+	   (pom-dir (locate-dominating-file (file-name-directory (buffer-file-name)) "pom.xml")))
+      (message pom-dir)
+      (cd pom-dir)
+      (message (concat "mvn compile exec:java -Dexec.mainClass=" fqcn " -Dexec.args=" args))
+      (compile (concat "mvn compile exec:java -Dexec.mainClass=" fqcn " -Dexec.args=" args))))
+
+#+end_src
+
+#+begin_src
+  (unless (package-installed-p 'eglot-java)
+    (package-refresh-contents)
+    (package-install 'eglot-java))
+  (add-hook 'java-mode-hook 'eglot-java-mode)
+#+end_src
+
+* Keybindings
+[[http://xahlee.info/emacs/emacs/emacs_keybinding_power_of_keys_sequence.html][Define Key Sequence]]
+#+begin_src
+  (defun my-repeat-command (command)
+    "Repeat COMMAND."
+    (require 'repeat)
+    (let ((repeat-previous-repeated-command  command)
+	  (repeat-message-function           #'ignore)
+	  (last-repeatable-command           'repeat))
+      (repeat nil)))
+  (defun my-other-window (&optional arg)
+    "Repeatable version of other-window"
+    (interactive "P")
+    (my-repeat-command 'other-window))
+  (global-set-key (kbd "M-o") 'my-other-window)
+
+  ;; (global-set-key (kbd "M-<SPC>") ctl-x-map)
+  (define-prefix-command 'my-prefix-map)
+  (global-set-key (kbd "M-<SPC>") 'my-prefix-map)
+
+  (define-key 'my-prefix-map (kbd "<SPC>") 'just-one-space)
+  (define-key 'my-prefix-map (kbd "a") 'my-core-map)
+  (define-key 'my-prefix-map (kbd "e") 'my-embark-map)
+  (define-key 'my-prefix-map (kbd "g") 'my-grep-map)
+  (define-key 'my-prefix-map (kbd "l") 'my-lsp-map)
+  (define-key 'my-prefix-map (kbd "w") 'my-window-map)
+
+  (defalias 'my-core-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "e") 'eshell)
+      (define-key map (kbd "i") 'imenu)
+      (define-key map (kbd "r") 'recentf-open-files)
+      (define-key map (kbd "s") 'shell)
+      (define-key map (kbd "t") 'treemacs)
+      map)
+    "Core Emacs")
+
+  (defalias 'my-grep-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "g") 'grep)
+      (define-key map (kbd "f") 'grep-find)
+      (define-key map (kbd "r") 'rgrep)	; interactive grep-find
+      (define-key map (kbd "z") 'zgrep)
+      map)
+    "Grep")
+
+  (defalias 'my-lsp-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "a") 'eglot-code-actions)
+      (define-key map (kbd "e") 'eglot-events-buffer)
+      (define-key map (kbd "f") 'eglot-format)
+      (define-key map (kbd "r") 'eglot-rename)
+      map)
+    "LSP Eglot")
+
+  (defalias 'my-embark-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "a") 'embark-act)
+      (define-key map (kbd "b") 'embark-become)
+      map)
+    "Embark")
+
+  (defalias 'my-window-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "b") 'my-split-below)
+      (define-key map (kbd "d") 'my-toggle-window-dedication)
+      (define-key map (kbd "o") 'my-other-window)
+      (define-key map (kbd "r") 'my-rotate-windows)
+      (define-key map (kbd "t") 'my-toggle-window-split)
+      map)
+    "Window")
+#+end_src
+
+
+* LSP Mode
+#+begin_src
+  (unless (package-installed-p 'lsp-mode)
+    (package-refresh-contents)
+    (package-install 'lsp-mode))
+
+  (setq lsp-keymap-prefix "<M-SPC> l"
+	lsp-idle-delay 0.2
+	lsp-log-io nil
+	lsp-modeline-diagnostics-mode t
+	lsp-modeline-code-actions-segments '(count icon name))
+  (require 'lsp-mode)
+  (add-hook 'lsp-mode-hook 'lsp-enable-which-key-integration)
+
+  ;; (unless (package-installed-p 'lsp-ui)
+  ;;   (package-refresh-contents)
+  ;;   (package-install 'lsp-ui))
+  ;; (require 'lsp-ui)
+
+  ;; (setq lsp-ui-sideline-show-diagnostics t
+  ;;       lsp-ui-sideline-show-hover t
+  ;;       lsp-ui-sideline-update-mode 'line
+  ;;       lsp-ui-sideline-delay 0.5
+  ;;       lsp-ui-doc-enable t
+  ;;       lsp-ui-doc-delay 0.5
+  ;;       lsp-ui-doc-show-with-cursor t
+  ;;       lsp-ui-doc-show-with-mouse t)
+  ;; (lsp-ui-mode 1)
+#+end_src
+
+** Python
+#+begin_src
+    (unless (package-installed-p 'pyvenv)
+      (package-refresh-contents)
+      (package-install 'pyvenv))
+    (add-hook 'python-mode-hook #'lsp-deferred)
+#+end_src
+
+** Java
+#+begin_src
+    (unless (package-installed-p 'lsp-java)
+      (package-refresh-contents)
+      (package-install 'lsp-java))
+    (add-hook 'java-mode-hook #'lsp-deferred)
+#+end_src
+* Yasnippet
+- Use tab key for snippet completion
+  |-----------+--------------------------------------------------|
+  | TAB       | yas-next-field-or-maybe-expand                   |
+  | C-c & C-n | yas-new-snippet (allows to write new snippet)    |
+  | C-c & C-s | yas-insert-snippet (chose a snippet to expand)   |
+  | C-c & C-v | yas-visit-snippet-file (chose a snippet to edit) |
+  |           |                                                  |
+
+  #+begin_src
+    (unless (package-installed-p 'yasnippet)
+      (package-refresh-contents)
+      (package-install 'yasnippet)
+      (package-install 'yasnippet-snippets))
+    (require 'yasnippet)
+    (yas-reload-all)
+    (add-hook 'prog-mode-hook #'yas-minor-mode)
+  #+end_src
+
+* YAML Mode
+#+begin_src
+  (unless (package-installed-p 'yaml-mode)
+    (package-refresh-contents)
+    (package-install 'yaml-mode))
+  (require 'yaml-mode)
+  (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-mode))
+#+end_src
+
+* Neotree
+#+begin_src
+  (unless (package-installed-p 'neotree)
+    (package-refresh-contents)
+    (package-install 'neotree))
+  (setq neo-autorefresh t
+	neo-create-file-auto-open t
+	neo-show-hidden-files t
+	neo-toggle-window-keep-p t
+	neo-window-fixed-size nil
+	neo-smart-open t
+	neo-theme 'nerd
+	neo-vc-integration '(char))
+
+  (add-hook 'neo-enter-hook (lambda(&rest _) (setq-local display-line-numbers nil)))
+#+end_src
+
+* Treemacs
+#+begin_src
+  (unless (package-installed-p 'treemacs)
+    (package-refresh-contents)
+    (package-install 'treemacs))
+  (require 'treemacs)
+  (setq treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
+	treemacs-deferred-git-apply-delay        0.5
+	treemacs-directory-name-transformer      #'identity
+	treemacs-display-in-side-window          t
+	treemacs-eldoc-display                   'simple
+	treemacs-expand-after-init               t
+	treemacs-file-event-delay                2000
+	treemacs-file-extension-regex            treemacs-last-period-regex-value
+	treemacs-file-follow-delay               0.2
+	treemacs-file-name-transformer           #'identity
+	treemacs-find-workspace-method           'find-for-file-or-pick-first
+	treemacs-follow-after-init               t
+	treemacs-git-command-pipe                ""
+	treemacs-goto-tag-strategy               'refetch-index
+	treemacs-header-scroll-indicators        '(nil . "^^^^^^")
+	treemacs-hide-dot-git-directory          t
+	treemacs-indentation                     2
+	treemacs-indentation-string              " "
+	treemacs-is-never-other-window           nil
+	treemacs-litter-directories              '("/node_modules" "/.venv" "/.cask")
+	treemacs-max-git-entries                 5000
+	treemacs-missing-project-action          'ask
+	treemacs-move-forward-on-expand          nil
+	treemacs-no-delete-other-windows         t
+	treemacs-no-png-images                   nil
+	treemacs-persist-file                    (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+	treemacs-position                        'left
+	treemacs-project-follow-cleanup          nil
+	treemacs-project-follow-into-home        nil
+	treemacs-read-string-input               'from-child-frame
+	treemacs-recenter-after-file-follow      nil
+	treemacs-recenter-after-project-expand   'on-distance
+	treemacs-recenter-after-project-jump     'always
+	treemacs-recenter-after-tag-follow       nil
+	treemacs-recenter-distance               0.1
+	treemacs-select-when-already-in-treemacs 'move-back
+	treemacs-show-cursor                     nil
+	treemacs-show-hidden-files               t
+	treemacs-silent-filewatch                nil
+	treemacs-silent-refresh                  nil
+	treemacs-sorting                         'alphabetic-asc
+	treemacs-space-between-root-nodes        t
+	treemacs-tag-follow-cleanup              t
+	treemacs-tag-follow-delay                1.5
+	treemacs-text-scale                      nil
+	treemacs-user-header-line-format         nil
+	treemacs-user-mode-line-format           nil
+	treemacs-wide-toggle-width               70
+	treemacs-width                           35
+	treemacs-width-increment                 1
+	treemacs-width-is-initially-locked       t
+	treemacs-workspace-switch-cleanup        nil)
+
+  ;; The default width and height of the icons is 22 pixels. If you are
+  ;; using a Hi-DPI display, uncomment this to double the icon size.
+  ;;(treemacs-resize-icons 44)
+
+  (treemacs-follow-mode t)
+  (treemacs-filewatch-mode t)
+  (treemacs-fringe-indicator-mode 'always)
+  (when treemacs-python-executable
+    (treemacs-git-commit-diff-mode t))
+
+  (pcase (cons (not (null (executable-find "git")))
+	       (not (null treemacs-python-executable)))
+    (`(t . t)
+     (treemacs-git-mode 'deferred))
+    (`(t . _)
+     (treemacs-git-mode 'simple)))
+
+  (treemacs-hide-gitignored-files-mode nil)
+  (add-hook 'treemacs-mode-hook (lambda(&rest _) (setq-local display-line-numbers nil)))
+#+end_src
+
+* Youtube-dl
+#+begin_src
+  (unless (package-installed-p 'ytdl)
+    (package-refresh-contents)
+    (package-install 'ytdl))
+  (require 'ytdl)
+  (setq ytdl-always-query-default-filename 'yes-confirm
+	ytdl-music-folder "~/Downloads/Music"
+	ytdl-video-folder "~/Downloads/Videos")
+#+end_src
+
+* Useful functions
+[[http://whattheemacsd.com/][Move Lines]]
+#+begin_src
+  (defun my-move-line-down ()
+    (interactive)
+    (let ((col (current-column)))
+      (save-excursion
+	(forward-line)
+	(transpose-lines 1))
+      (forward-line)
+      (move-to-column col)))
+  (defun my-move-line-up ()
+    (interactive)
+    (let ((col (current-column)))
+      (save-excursion
+	(forward-line)
+	(transpose-lines -1))
+      (move-to-column col)))
+  ;; both shortcuts can be emulated with C-x C-t C-x z z z... and C-1 C-x C-t z z z..
+  ;; (global-set-key (kbd "<C-M-down>") 'my-move-line-down)
+  ;; (global-set-key (kbd "<C-M-up>") 'my-move-line-up)
+#+end_src
+[[http://whattheemacsd.com/][Rename file and buffer]]
+#+begin_src
+  (defun my-rename-current-buffer-file ()
+    "Renames current buffer and file it is visiting."
+    (interactive)
+    (let ((name (buffer-name))
+	  (filename (buffer-file-name)))
+      (if (not (and filename (file-exists-p filename)))
+	  (error "Buffer '%s' is not visiting a file!" name)
+	(let ((new-name (read-file-name "New name: " filename)))
+	  (if (get-buffer new-name)
+	      (error "A buffer named '%s' already exists!" new-name)
+	    (rename-file filename new-name 1)
+	    (rename-buffer new-name)
+	    (set-visited-file-name new-name)
+	    (set-buffer-modified-p nil)
+	    (message "File '%s' successfully renamed to '%s'"
+		     name (file-name-nondirectory new-name)))))))
+#+end_src
+[[http://whattheemacsd.com/][Window Layout]]
+#+begin_src
+
+  (defun my-split-below (arg)
+    "Split window below from the parent or from root with ARG."
+    (interactive "P")
+    (split-window (if arg (frame-root-window)
+		    (window-parent (selected-window)))
+		  nil 'below nil))
+  (defun my-toggle-window-dedication ()
+    "Toggles window dedication in the selected window."
+    (interactive)
+    (set-window-dedicated-p (selected-window)
+			    (not (window-dedicated-p (selected-window)))))
+
+  (defun my-rotate-windows ()
+    "Rotate your windows"
+    (interactive)
+    (cond ((not (> (count-windows)1))
+	   (message "You can't rotate a single window!"))
+	  (t
+	   (setq i 1)
+	   (setq numWindows (count-windows))
+	   (while  (< i numWindows)
+	     (let* (
+		    (w1 (elt (window-list) i))
+		    (w2 (elt (window-list) (+ (% i numWindows) 1)))
+
+		    (b1 (window-buffer w1))
+		    (b2 (window-buffer w2))
+
+		    (s1 (window-start w1))
+		    (s2 (window-start w2))
+		    )
+	       (set-window-buffer w1  b2)
+	       (set-window-buffer w2 b1)
+	       (set-window-start w1 s2)
+	       (set-window-start w2 s1)
+	       (setq i (1+ i)))))))
+  (defun my-toggle-window-split ()
+    (interactive)
+    (if (= (count-windows) 2)
+	(let* ((this-win-buffer (window-buffer))
+	       (next-win-buffer (window-buffer (next-window)))
+	       (this-win-edges (window-edges (selected-window)))
+	       (next-win-edges (window-edges (next-window)))
+	       (this-win-2nd (not (and (<= (car this-win-edges)
+					   (car next-win-edges))
+				       (<= (cadr this-win-edges)
+					   (cadr next-win-edges)))))
+	       (splitter
+		(if (= (car this-win-edges)
+		       (car (window-edges (next-window))))
+		    'split-window-horizontally
+		  'split-window-vertically)))
+	  (delete-other-windows)
+	  (let ((first-win (selected-window)))
+	    (funcall splitter)
+	    (if this-win-2nd (other-window 1))
+	    (set-window-buffer (selected-window) this-win-buffer)
+	    (set-window-buffer (next-window) next-win-buffer)
+	    (select-window first-win)
+	    (if this-win-2nd (other-window 1))))))
+#+end_src
+
+* International
+* Ediff
+[[https://www.youtube.com/watch?v=9S2pMZ6U5Tc][Youtube]]
+- When ediff is launched it starts a control window where ediff
+  commands are entered.
+  |----------------------------+---------------------------------------------------------------------------|
+  | M-x ediff                  | compare two files                                                         |
+  | M-x ediff-backup           | compare a file with its backup                                            |
+  | M-x ediff-current-file     | compare buffer with its file on disk                                      |
+  | M-x ediff-buffers          | compare two buffers                                                       |
+  | M-x ediff3                 | compare 3 files                                                           |
+  | M-x ediff-buffers3         | compare 3 buffers                                                         |
+  | M-x edirs                  | compare files in two directories                                          |
+  | M-x edirs3                 | compare files in 3 directories                                            |
+  | M-x ediff-windows-wordwise | compare word by word                                                      |
+  | M-x ediff-windows-linewise | compare line by line                                                      |
+  | M-x ediff-regions-wordwise | compare regions word by word.                                             |
+  |                            | prompted for buffer and regions to compare. regions can be in same buffer |
+  | M-x ediff-regions-linewise | compare regions linewise                                                  |
+  | M-x ediff-revision         | compare versions of current buffer. buffer must be visiting               |
+  |                            | version controlled file                                                   |
+  | M-x epatch                 | patch a file or multiple files and then compare                           |
+  |                            | interactively patch if multiple files                                     |
+  | M-x epatch-buffer          | patch a buffer and compare                                                |
+  |                            | the buffer and file visited are not modified                              |
+  |                            | a separate buffer ending with patched is created                          |
+  |                            | only allows single file patch                                             |
+  | M-x ediff-merge            | merge two files                                                           |
+  | M-x ediff-merge-buffers    | merge two buffers                                                         |
+  | M-x edirs-merge            | merge files common to both directories                                    |
+  | M-x ediff-merge-revisions  | merge two versions of the file visited by buffer                          |
+  | M-x eregistry              | open ediff session registry to quickly find and restart active ediff      |
+  |                            | sessions                                                                  |
+  |----------------------------+---------------------------------------------------------------------------|
+
+  - All Ediff commands are displayed in Quick Help Window. Use ? to
+    show or hide help. Ediff commands take prefix that mostly refer
+    to hunks
+    |-----+-----------------------------------------------------------------------------|
+    | ?   | toggle Ediff Quick Window                                                   |
+    | G   | prepares a mail buffer                                                      |
+    | v   | scroll up both buffers in a coordinated manner                              |
+    | V   | scroll buffer down                                                          |
+    | <   | scroll buffer left                                                          |
+    | >   | scroll buffer right                                                         |
+    | wd  | writes diff output                                                          |
+    | wa  | save buffer a if modified                                                   |
+    | wb  | save buffer b if modified                                                   |
+    | wc  | save buffer c if modified                                                   |
+    | a   | during comparison: copy current difference region from buffer A to buffer B |
+    |     | old contents of B's region are saved and can be restored with rb            |
+    |     | during merge: copy current difference region from A to merge buffer         |
+    |     | old contents for region in C can be restored with r                         |
+    | b   | same as a but other way                                                     |
+    | p   | make previous difference region current                                     |
+    | n   | make next difference region current                                         |
+    | j   | make first difference region current                                        |
+    | -j  | make last difference region current                                         |
+    | Nj  | make Nth difference region current                                          |
+    | '!' | recompute difference. useful if files are edited in ediff session           |
+    | ¦   | toggle horizontal/vertical split                                            |
+    | @   | toggle auto refinement (highlight exact words that differ)                  |
+    | r   | restore old contents of region in merge buffer                              |
+    | ra  | restore old contents of current difference region in A                      |
+    | rb  | restore old contents of current difference region in B                      |
+    | ##  | skip regions that only differ in whitespace                                 |
+    | #c  | toggle case sensitivity                                                     |
+    | A   | toggle read only property of buffer A                                       |
+    | B   | toggle read only property of buffer B                                       |
+    | i   | display useful info about current ediff session                             |
+    | R   | display ediff registry                                                      |
+    | z   | suspend current ediff session hiding all ediff related buffers              |
+    | q   | terminate ediff session                                                     |
+    |     | with prefix asks if buffers should be deleted                               |
+    | %   | toggle narrowing                                                            |
+    | C-l | ediff-recenter (restore usual ediff window setup)                           |
+    | M   | go back to session group buffer                                             |
+    |-----+-----------------------------------------------------------------------------|
+
+    - session commands
+    |-----------------------------------------------+---------------------------------------------------------------------------|
+    | M-x eregistry                                 | bring up registry of active ediff sessions                                |
+    |                                               | can be used to resume previous ediff session or switch to another session |
+    | M-x ediff-toggle-multiframe                   | toggle quick help window being in same of separate frame                  |
+    | M-x ediff-revert-buffers-then-recompute-diffs | recomputes difference                                                     |
+    | RET or v                                      | resume session                                                            |
+    |-----------------------------------------------+---------------------------------------------------------------------------|
+
+    - ediff commands that operate on directories open a dired like
+      buffer called session group that lists files common to
+      directories as a separate session
+    |-----+----------------------------------------------------------------------|
+    | RET | open ediff session on these files.                                   |
+    | D   | display directory difference buffer                                  |
+    | C   | in directory difference buffer, copy missing file to other directory |
+    | h   | mark session for hiding (with prefix unmark)                         |
+    | x   | hide marked session (with prefix unhide)                             |
+    | m   | mark session                                                         |
+    |-----+----------------------------------------------------------------------|
+
+    - customization
+    |-----------------------------------------+---------------------------------------------------------------|
+    | 'ediff-use-long-help-message'           | if non nil use long help message in quick help window         |
+    | 'ediff-control-frame-position-function' | specify position of control frame                             |
+    | 'ediff-window-setup-function'           | how window is setup                                           |
+    |                                         | nediff-setup-windows-multiframe - in a separate frame         |
+    |                                         | ediff-setup-windows-plain - in the same frame                 |
+    | 'ediff-ignore-similar-regions'          | if t, skip white space differences                            |
+    | 'ediff-split-window-function'           | controls horizontal or vertical split                         |
+    | 'ediff-use-last-dir'                    | if nil, present default directory of current buffer in prompt |
+    |                                         | if t, use directory used in previously                        |
+    | 'ediff-keep-variants'                   | if t, preserve buffers after quitting ediff                   |
+    |                                         | if nil, offer to delete the buffers if they are not modified  |
+    |                                         |                                                               |
+    |-----------------------------------------+---------------------------------------------------------------|
+
+    #+begin_src
+      (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+      (setq split-window-function 'split-window-horizontally)
+      (setq ediff-keep-variants nil)
     #+end_src
 * Dired
 - Dired creates an Emacs buffer containing directory listing which
@@ -3716,69 +4837,6 @@ preceding line.
   | *c r* | doc-view-reset-slice                                                              |
   |-------+-----------------------------------------------------------------------------------|
 
-* Shell
-|--------------------------------------+-----------------------------------------------------------------------------|
-| *M-!*                                | shell-command (run shell command and display output in echo area            |
-|                                      | or separate buffer based on size)                                           |
-|                                      | with prefix, put result at point                                            |
-| *M-\vert*                            | shell-command-on-region                                                     |
-|                                      | run shell command with region as input and display result in echo area      |
-|                                      | if prefixed, replace region with result                                     |
-| *M-&*                                | async-shell-command (run command as if it is ended with &)                  |
-|                                      | result will be sent to Async Shell Command                                  |
-| M-x shell                            | run sub-shell with input and output via Emacs buffer                        |
-| M-x term                             | run subshell with input and output via Emacs buffer. Supports full terminal |
-|                                      | emulation                                                                   |
-| M-x eshell                           | shell implemented entirely in Emacs                                         |
-| 'async-shell-command-buffer'         | tells what to do when more than one async command are run                   |
-| 'async-shell-command-display-buffer' | nil - wait till there is output to display to display output buffer         |
-| 'shell-command-prompt-show-cwd'      | show current directory in prompt                                            |
-| ~/.emacs_SHELLNAME                   | execute the files based on shell used after M-x shell                       |
-| ~/.emacs.d/init_SHELLNAME.sh         | if ~/.emacs_SHELLNAME is not found, use this one                            |
-|--------------------------------------+-----------------------------------------------------------------------------|
-
-- Shell mode Most shell commands will need to be prefixed by
-  C-c. Ex: to run C-c to kill, C-c C-c. Similarly to kill word
-  before point C-c C-w etc
-  |-----+--------------------------------------------------------------------------|
-  | RET | comint-send-input (send current line as input to subshell)               |
-  |     | can also invoke RET anywhere in buffer                                   |
-  | TAB | completion-at-point (complete file name, variables, command history etc) |
-  | C-d | comint-delchar-or-maybe-eof                                              |
-  |-----+--------------------------------------------------------------------------|
-
-  - Shell history
-  |---------+--------------------------------------------------------------|
-  | M-p     | comint-previous-input                                        |
-  | M-n     | comint-next-input                                            |
-  | M-r     | comint-history-isearch-backward-regexp                       |
-  | C-c C-l | comint-dynamic-list-input-ring                               |
-  |         | display buffer's history of shell commands in another window |
-  | C-c C-p | comint-previous-prompt                                       |
-  | C-c C-n | comint-next-prompt                                           |
-  |---------+--------------------------------------------------------------|
-
-  - Terminal Emulator
-  |-----------------+------------------------------------------------------------------------------------|
-  | M-x term        | run subshell in terminal emulator                                                  |
-  |                 | creates *terminal* buffer and uses Term mode which has line mode and char mode     |
-  |                 | line mode acts like shell mode. In char mode, each char is sent to shell directly  |
-  |                 | Term mode recognizes ansi standard VT100 style escape sequences like xterm         |
-  |                 | we can run emacs inside of term                                                    |
-  | C-c C-j         | term-line-mode                                                                     |
-  | C-c C-k         | term-char-mode                                                                     |
-  | C-c C-c         | term-interrupt-subjob (send C-c to subshell in - char mode only)                   |
-  | C-c CHAR        | like C-x CHAR in normal emacs (C-c o is like C-x o - char mode only)               |
-  | C-c C-q         | term-pager-toggle (both in line and char mode)                                     |
-  |                 | each time term receive more output, display one screen at a time like more command |
-  | M-x serial-term | prompt for serial port name and speed and open new Term mode buffer                |
-  |-----------------+------------------------------------------------------------------------------------|
-
-  #+begin_src
-    (setq async-shell-command-display-buffer nil
-	  shell-command-prompt-show-cwd t)
-  #+end_src
-
 * Printing
 |------------------+----------------------------------------------------------------|
 | M-x print-buffer | print hardcopy of current buffer with page heaading containing |
@@ -3820,66 +4878,6 @@ preceding line.
 |                         | right of the rectangle moves along with the text inside the rectangle      |
 | M-x reverse-region      | reverse the order of lines in region                                       |
 |-------------------------+----------------------------------------------------------------------------|
-
-* Saving Emacs Sessions
-|-----------------------------+-------------------------------------------------------------------|
-| 'desktop-restore-frames'    | restore window and frame configs also along with buffers          |
-| 'desktop-files-not-to-save' | regexp telling what files to ignore. set to nil to save all files |
-| M-x desktop-save            | manually save desktop                                             |
-| desktop-save-mode           | setting t will save and restore automatically                     |
-| 'desktop-path'              | directory where desktop is saved                                  |
-| 'desktop-save'              | t - always save                                                   |
-|                             | ask - always ask                                                  |
-| 'desktop-restore-eager'     | number of buffers to load immediately. others are loaded lazily   |
-| M-x desktop-clear           |                                                                   |
-| savehist-mode               | save minibuffer history                                           |
-| 'savehist-file'             | file where minibuffer history is saved                            |
-| 'desktop-auto-save-timeout' | how frequently to save desktops                                   |
-|-----------------------------+-------------------------------------------------------------------|
-
-#+begin_src
-  (setq desktop-restore-eager 2
-	desktop-load-locked-desktop 'ask
-	desktop-restore-frames 1
-	desktop-save t
-	desktop-path (list user-emacs-directory)
-	desktop-auto-save-timeout 60
-	desktop-base-file-name "emacs.desktop"
-	desktop-globals-to-save
-	'(desktop-missing-file-warning tags-file-name tags-table-list search-ring regexp-search-ring register-alist file-name-history)
-	desktop-locals-to-save
-	'(eww-history-position desktop-locals-to-save truncate-lines case-fold-search case-replace fill-column overwrite-mode change-log-default-name line-number-mode column-number-mode size-indication-mode buffer-file-coding-system buffer-display-time indent-tabs-mode tab-width indicate-buffer-boundaries indicate-empty-lines show-trailing-whitespace))
-  (desktop-save-mode t)
-
-  (setq savehist-file (expand-file-name "savehist" user-emacs-directory))
-  (savehist-mode 1)
-
-#+end_src
-
-[[https://www.emacswiki.org/emacs/SavePlace][Emacs Wiki]]
-- When you visit a file, point goes to the last place where it was when you previously visited the same file.
-  #+begin_src
-    (save-place-mode 1)
-    (setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
-    (setq save-place-forget-unreadable-files t) ; set to nil if emacs is slow to exit
-  #+end_src
-
-* Recursive Editing
-- A “recursive edit” is a situation in which you are using Emacs
-  commands to perform arbitrary editing while in the middle of
-  another Emacs command.  For example, when you type ‘C-r’ inside of
-  a ‘query-replace’, you enter a recursive edit in which you can
-  change the current buffer. On exiting from the recursive edit, you
-  go back to the ‘query-replace’.
-  |---------------+-------------------------------------------------------------------------------|
-  | *C-M-c*       | exit-recursive-edit                                                           |
-  |               | exit recursive edit returning to unfinished command which continues execution |
-  | *C-]*         | abort-recursive-edit                                                          |
-  |               | like exiting but also quits the unfinished command                            |
-  |               | mode line displays square brackets around parenthesis that surround modes     |
-  |               | each nested level of recursive edit displays a pair of square brackets        |
-  | M-x top-level | abort all recursive edits returning to top level command                      |
-  |---------------+-------------------------------------------------------------------------------|
 
 * Hyperlinking
 ** FFAP
@@ -4176,62 +5174,6 @@ Linebreaks
   (setq browse-url-browser-function 'eww-browse-url)
   (add-hook 'eww-mode-hook 'visual-line-mode)
 #+end_src
-
-* Theme
-** Solarized
-#+begin_src
-    (unless (package-installed-p 'solarized-theme)
-      (package-refresh-contents)
-      (package-install 'solarized-theme))
-
-    (setq solarized-distinct-fringe-background t ; make the fringe stand out from the background
-	  solarized-use-variable-pitch nil       ; Don't change the font for some headings and titles
-	  solarized-high-contrast-mode-line nil  ; make the modeline high contrast
-	  solarized-use-less-bold t              ; Use less bolding
-	  solarized-use-more-italic t            ; Use more italics
-	  solarized-emphasize-indicators nil     ; Use less colors for indicators like flycheck
-	  solarized-scale-org-headlines t        ; Change size of org-mode headlines
-	  solarized-scale-markdown-headlines t   ; Change the size of markdown-mode headlines (off by default)
-	  x-underline-at-descent-line t
-	  solarized-height-minus-1 1.0
-	  solarized-height-plus-1 1.1
-	  solarized-height-plus-2 1.2
-	  solarized-height-plus-3 1.3
-	  solarized-height-plus-4 1.4)
-    (load-theme 'solarized-dark t)
-#+end_src
-
-** DOOM
-#+begin_src
-     (unless (package-installed-p 'doom-themes)
-       (package-refresh-contents)
-       (package-install 'doom-themes))
-     (require 'doom-themes)
-     (setq doom-themes-enable-bold t
-	   doom-themes-enable-italic t)
-     (load-theme 'doom-dracula t)
-     (doom-themes-visual-bell-config)
-     (doom-themes-org-config)
-#+end_src
-** Modus
-#+begin_src
-  (unless (package-installed-p 'modus-themes)
-    (package-refresh-contents)
-    (package-install 'modus-themes))
-  (require 'modus-themes)
-  (setq modus-themes-inhibit-reload nil   ; reload active theme when an option is changed through the Customize UI
-	modus-themes-bold-constructs t    ; Use bold for code syntax highlighting and related
-	modus-themes-italic-constructs t  ; Use bold for code syntax highlighting and related
-	modus-themes-mode-line '(accented borderless (padding 4) (height 0.9))
-	modus-themes-hl-line '(intense)   ; amplify color in use for hl-line-mode
-					  ; heading sizes and colors
-	modus-themes-headings '((1 . (bold rainbow 1.5))
-				(2 . (bold rainbow 1.4))
-				(3 . (bold rainbow 1.2))
-				(t . (monochrome ))))
-  (load-theme 'modus-vivendi t)
-#+end_src
-
 * Evil
 :PROPERTIES:
 :ORDERED:  t
@@ -4397,64 +5339,6 @@ Linebreaks
 	    (lambda ()
 	      (ibuffer-switch-to-saved-filter-groups "default")))
 #+end_src
-* Packages
-- Packages are Emacs Lisp libraries. For a package to be available
-  in future sessions, compile it and put it in path of lisp
-  libraries
-- Packages can also be provided by package-archives which are large
-  collection of Emacs Lisp packages. Emacs includes a facility to
-  easily download and install packages from such archives
-  |----------------------------------+-----------------------------------------------------------------------------------------|
-  | M-x list-packages                | List all available packages in archive in Packages buffer                               |
-  |                                  | install or uninstall of package can be done via this buffer                             |
-  | C-h P                            | describe-package                                                                        |
-  | h                                | package-menu-quick-help                                                                 |
-  | RET                              | package-menu-describe-package                                                           |
-  | i                                | package-menu-mark-install (adds I flag at the start)                                    |
-  | d                                | package-menu-mark-delete (add D flag)                                                   |
-  | ~                                | package-menu-mark-obsolete-for-deletion                                                 |
-  | u                                | package-menu-mark-unmark (remove any install or delete marks on current line)           |
-  | U                                | package-menu-mark-upgrades (mark all packages with newer available version for upgrade) |
-  | x                                | package-menu-execute (delete packages marked for delete and install packages marked for |
-  |                                  | upgrade)                                                                                |
-  | g                                | revert-buffer (refresh package list)                                                    |
-  | / k                              | package-menu-filter-by-keyword                                                          |
-  | / n                              | package-menu-filter-by-name                                                             |
-  | / /                              | package-menu-clear-filter                                                               |
-  | M-x package-install              | prompt for package and install                                                          |
-  |                                  | automatically installs dependencies                                                     |
-  | 'package-archives'               | list of packages archives known to Emacs                                                |
-  | 'package-pinned-packages'        | if a packages is in multiple archives with different version, then tell which one       |
-  |                                  | to install. it is a list of package/archive pairs                                       |
-  | 'package-archive-priorities'     | set priority of archives (higher number is high priority)                               |
-  | 'package-menu-hide-low-priority' | hide package if high priority version of it is available from other archives            |
-  | 'load-path'                      | list of directories to search for files to load                                         |
-  |                                  | package-install updates it with path of package location                                |
-  | -q or --no-init-file             | if Emacs is started with this option, don't load any packages                           |
-  | 'package-enable-at-startup'      | nil - don't load packages at start                                                      |
-  | M-x package-activate-all         | make installed packages available                                                       |
-  | 'package-load-list'              | decides which packages to load                                                          |
-  | M-x package-install-file         | each package downloaded from archive is a single file or a tar file with                |
-  |                                  | multiple Lisp sources and other files. This command installs package                    |
-  |                                  | directly from a package file                                                            |
-  | 'package-user-dir'               | location where package files are placed                                                 |
-  | 'package-directory-list'         | used for system-wide packages                                                           |
-  |----------------------------------+-----------------------------------------------------------------------------------------|
-
-  #+begin_src emacs-lisp
-    (require 'package)
-    (package-initialize)
-    (if (< emacs-major-version 28)
-	(add-to-list 'package-archives
-		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
-
-    ;;    (add-to-list 'package-archives
-    ;;		 '("melpa" . "https://stable.melpa.org/packages/") t)
-
-    (unless package-archive-contents
-      (package-refresh-contents))
-  #+end_src
-  
 * Marginalia
 - Marginalia adds annotations like type of completion, short
   documentation etc to the completion candidates
@@ -4605,657 +5489,24 @@ Linebreaks
   (define-key corfu-map (kbd "S-TAB") 'corfu-previous)
 
 #+end_src
-
-* Eglot
-- Refer [[*Xref][Xref]]
-  #+begin_src
-    (unless (package-installed-p 'eglot)
-      (package-refresh-contents)
-      (package-install 'eglot))
-    (require 'eglot)
-
-    (setq eglot-autoreconnect t
-	  eglot-send-changes-idle-time 1
-	  eglot-confirm-server-initiated-edits nil
-	  eglot-extend-to-xref t)
-  #+end_src
-
-** Python
-#+begin_src
-  (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
-    (unless (file-directory-p pylspdir)
-      (make-directory pylspdir t)
-      (shell-command (concat "python3 -m venv " pylspdir))
-      (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))
-
-  (unless (package-installed-p 'pyvenv)
-    (package-refresh-contents)
-    (package-install 'pyvenv))
-  (pyvenv-mode 1)
-#+end_src
-
-Create a .dir-locals.el file in root of folder with contents like 
-((python-mode . ((pyvenv-activate . "~/.cache/venv/project-name"))))
-
-#+begin_src
-  (add-hook 'python-mode-hook
-	    (progn
-	      (with-eval-after-load 'eglot
-		(push '(python-mode "~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose") eglot-server-programs))
-	      'eglot-ensure))
-#+end_src
-** C
-#+begin_src
-  (add-hook 'c-mode-hook 'eglot-ensure)
-#+end_src
-** Go
-#+begin_src
-  (let ((goplsdir (expand-file-name "lsp/gopls" user-emacs-directory)))
-    (unless (file-directory-p goplsdir)
-      (make-directory goplsdir t)
-      (setenv "GOPATH" goplsdir)
-      (shell-command "go install golang.org/x/tools/gopls@latest")))
-
-  (add-hook 'go-mode-hook
-	    (progn
-	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/gopls" user-emacs-directory)))
-	      (setq exec-path (split-string (getenv "PATH") path-separator))
-	      (with-eval-after-load 'eglot
-		(add-to-list 'eglot-server-programs '(go-mode "~/.cache/emacs/lsp/gopls/bin/gopls" "-verbose")))
-	      'eglot-ensure))
-
-  (unless (package-installed-p 'go-mode)
-    (package-refresh-contents)
-    (package-install 'go-mode))
-
-  ;;  The project package does not natively know about GOPATH or Go
-  ;;  modules. Fortunately, you can give it a custom hook to tell it to
-  ;;  look for the nearest parent go.mod file (that is, the root of the
-  ;;  Go module) as the project root
-  (require 'project)
-  (defun project-find-go-module (dir)
-    (when-let ((root (locate-dominating-file dir "go.mod")))
-      (cons 'go-module root)))
-  (cl-defmethod project-root ((project (head go-module)))
-    (cdr project))
-  (add-hook 'project-find-functions #'project-find-go-module)
+* Recursive Editing
+- A “recursive edit” is a situation in which you are using Emacs
+  commands to perform arbitrary editing while in the middle of
+  another Emacs command.  For example, when you type ‘C-r’ inside of
+  a ‘query-replace’, you enter a recursive edit in which you can
+  change the current buffer. On exiting from the recursive edit, you
+  go back to the ‘query-replace’.
+  |---------------+-------------------------------------------------------------------------------|
+  | *C-M-c*       | exit-recursive-edit                                                           |
+  |               | exit recursive edit returning to unfinished command which continues execution |
+  | *C-]*         | abort-recursive-edit                                                          |
+  |               | like exiting but also quits the unfinished command                            |
+  |               | mode line displays square brackets around parenthesis that surround modes     |
+  |               | each nested level of recursive edit displays a pair of square brackets        |
+  | M-x top-level | abort all recursive edits returning to top level command                      |
+  |---------------+-------------------------------------------------------------------------------|
 
 
-  ;; Optional: install eglot-format-buffer as a save hook.
-  ;; The depth of -10 places this before eglot's willSave notification,
-  ;; so that that notification reports the actual contents that will be saved.
-  (defun eglot-format-buffer-on-save ()
-    (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
-  (add-hook 'go-mode-hook #'eglot-format-buffer-on-save)
 
-#+end_src
 
-** Java
-#+begin_src
-  (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory))
-	(mvndir (expand-file-name "lsp/mvn" user-emacs-directory)))
-    (unless (file-directory-p jdtlsdir)
-      (make-directory jdtlsdir t)
-      (url-copy-file "https://download.eclipse.org/jdtls/milestones/1.16.0/jdt-language-server-1.16.0-202209291445.tar.gz" "/tmp/jdtls.tar.gz" t t)
-      (shell-command (concat "tar -xzf /tmp/jdtls.tar.gz -C"  jdtlsdir)))
-    (unless (file-directory-p mvndir)
-      (make-directory mvndir t)
-      (url-copy-file "https://dlcdn.apache.org/maven/maven-3/3.8.7/binaries/apache-maven-3.8.7-bin.tar.gz" "/tmp/mvn.tar.gz" t t)
-      (shell-command (concat "tar -xzf /tmp/mvn.tar.gz -C"  mvndir))))
-
-  (let ((jdtlsdir (expand-file-name "lsp/jdtls/bin" user-emacs-directory))
-	(mvndir (expand-file-name "lsp/mvn/apache-maven-3.8.7/bin" user-emacs-directory)))
-    (add-to-list 'tramp-remote-path jdtlsdir)
-    (add-to-list 'tramp-remote-path mvndir)
-    (setenv "PATH" (concat (getenv "PATH") ":" jdtlsdir))
-    (setenv "PATH" (concat (getenv "PATH") ":" mvndir))
-    (setq exec-path (split-string (getenv "PATH") path-separator)))
-
-  (add-hook 'java-mode-hook
-	    (with-eval-after-load 'eglot
-	      (add-to-list 'eglot-server-programs '(java-mode "jdtls" "-verbose"))
-	      'eglot-ensure))
-
-  (defun my-mvn-create ()
-    "Create a new Maven project."
-    (interactive)
-    (let ((mvn-project-parent-dir    (read-directory-name "Enter parent directory: "))
-	  (mvn-group-id              (read-string         "Enter group id: "))
-	  (mvn-artifact-id           (read-string         "Enter artifact id: "))
-	  (mvn-archetype-artifact-id (read-string         "Enter archetype artifact id: " "maven-archetype-quickstart"))
-	  (mvn-archetype-version     (read-string         "Enter archetype verion: " "1.4"))
-	  (mvn-version               (read-string         "Enter version: " "1.0")))
-      (make-directory mvn-project-parent-dir t)
-      (cd mvn-project-parent-dir)
-      (message (concat "mvn archetype:generate" " -DgroupId=" mvn-group-id " -DartifactId=" mvn-artifact-id " -DarchetypeArtifactId=" mvn-archetype-artifact-id " -DarchetypeVersion=" mvn-archetype-version " -Dversion=" mvn-version " -DinteractiveMode=false"))
-      (compile (concat "mvn archetype:generate" " -DgroupId=" mvn-group-id " -DartifactId=" mvn-artifact-id " -DarchetypeArtifactId=" mvn-archetype-artifact-id " -DarchetypeVersion=" mvn-archetype-version " -Dversion=" mvn-version " -DinteractiveMode=false"))))
-
-  (defun my-mvn-compile ()
-    "Compile Maven project"
-    (interactive)
-    (let ((pom-dir (locate-dominating-file (file-name-directory (buffer-file-name)) "pom.xml")))
-      (cd pom-dir)
-      (compile "mvn compile")))
-
-  (defun my-java-get-symbol (symbols symbol-type)
-    "Extract the symbol value for a given SYMBOL-TYPE from a symbol table SYMBOLS."
-    (let ((symbol-details (cl-find-if
-			   (lambda (elem)
-			     (let* ((elem-kind (plist-get elem :kind))
-				    (elem-type (cdr (assoc elem-kind eglot--symbol-kind-names))))
-			       (string= elem-type symbol-type)))
-			   symbols)))
-      (if symbol-details
-	  (plist-get symbol-details :name)
-	"")))
-
-  (defun my-mvn-execute ()
-    "Run the main program"
-    (interactive)
-    (let* ((document-symbols  (jsonrpc-request
-			       (eglot--current-server-or-lose)
-			       :textDocument/documentSymbol
-			       (list :textDocument (list :uri (eglot--path-to-uri (buffer-file-name))))))
-	   (package-name       (my-java-get-symbol document-symbols "Package"))
-	   (class-name         (my-java-get-symbol document-symbols "Class"))
-	   (package-suffix   (if (string= "" package-name)
-				 package-name
-			       "."))
-	   (fqcn               (format "%s%s%s" package-name package-suffix class-name))
-	   (args               (read-string     "Enter arguments: " ""))
-	   (pom-dir (locate-dominating-file (file-name-directory (buffer-file-name)) "pom.xml")))
-      (message pom-dir)
-      (cd pom-dir)
-      (message (concat "mvn compile exec:java -Dexec.mainClass=" fqcn " -Dexec.args=" args))
-      (compile (concat "mvn compile exec:java -Dexec.mainClass=" fqcn " -Dexec.args=" args))))
-
-#+end_src
-
-#+begin_src
-  (unless (package-installed-p 'eglot-java)
-    (package-refresh-contents)
-    (package-install 'eglot-java))
-  (add-hook 'java-mode-hook 'eglot-java-mode)
-#+end_src
-
-* LSP Mode
-#+begin_src
-  (unless (package-installed-p 'lsp-mode)
-    (package-refresh-contents)
-    (package-install 'lsp-mode))
-
-  (setq lsp-keymap-prefix "<M-SPC> l"
-	lsp-idle-delay 0.2
-	lsp-log-io nil
-	lsp-modeline-diagnostics-mode t
-	lsp-modeline-code-actions-segments '(count icon name))
-  (require 'lsp-mode)
-  (add-hook 'lsp-mode-hook 'lsp-enable-which-key-integration)
-
-  ;; (unless (package-installed-p 'lsp-ui)
-  ;;   (package-refresh-contents)
-  ;;   (package-install 'lsp-ui))
-  ;; (require 'lsp-ui)
-
-  ;; (setq lsp-ui-sideline-show-diagnostics t
-  ;;       lsp-ui-sideline-show-hover t
-  ;;       lsp-ui-sideline-update-mode 'line
-  ;;       lsp-ui-sideline-delay 0.5
-  ;;       lsp-ui-doc-enable t
-  ;;       lsp-ui-doc-delay 0.5
-  ;;       lsp-ui-doc-show-with-cursor t
-  ;;       lsp-ui-doc-show-with-mouse t)
-  ;; (lsp-ui-mode 1)
-#+end_src
-
-** Python
-#+begin_src
-    (unless (package-installed-p 'pyvenv)
-      (package-refresh-contents)
-      (package-install 'pyvenv))
-    (add-hook 'python-mode-hook #'lsp-deferred)
-#+end_src
-
-** Java
-#+begin_src
-    (unless (package-installed-p 'lsp-java)
-      (package-refresh-contents)
-      (package-install 'lsp-java))
-    (add-hook 'java-mode-hook #'lsp-deferred)
-#+end_src
-* Yasnippet
-- Use tab key for snippet completion
-  |-----------+--------------------------------------------------|
-  | TAB       | yas-next-field-or-maybe-expand                   |
-  | C-c & C-n | yas-new-snippet (allows to write new snippet)    |
-  | C-c & C-s | yas-insert-snippet (chose a snippet to expand)   |
-  | C-c & C-v | yas-visit-snippet-file (chose a snippet to edit) |
-  |           |                                                  |
-
-  #+begin_src
-    (unless (package-installed-p 'yasnippet)
-      (package-refresh-contents)
-      (package-install 'yasnippet)
-      (package-install 'yasnippet-snippets))
-    (require 'yasnippet)
-    (yas-reload-all)
-    (add-hook 'prog-mode-hook #'yas-minor-mode)
-  #+end_src
-
-* YAML Mode
-#+begin_src
-  (unless (package-installed-p 'yaml-mode)
-    (package-refresh-contents)
-    (package-install 'yaml-mode))
-  (require 'yaml-mode)
-  (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-mode))
-#+end_src
-
-* Neotree
-#+begin_src
-  (unless (package-installed-p 'neotree)
-    (package-refresh-contents)
-    (package-install 'neotree))
-  (setq neo-autorefresh t
-	neo-create-file-auto-open t
-	neo-show-hidden-files t
-	neo-toggle-window-keep-p t
-	neo-window-fixed-size nil
-	neo-smart-open t
-	neo-theme 'nerd
-	neo-vc-integration '(char))
-
-  (add-hook 'neo-enter-hook (lambda(&rest _) (setq-local display-line-numbers nil)))
-#+end_src
-
-* Treemacs
-#+begin_src
-  (unless (package-installed-p 'treemacs)
-    (package-refresh-contents)
-    (package-install 'treemacs))
-  (require 'treemacs)
-  (setq treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
-	treemacs-deferred-git-apply-delay        0.5
-	treemacs-directory-name-transformer      #'identity
-	treemacs-display-in-side-window          t
-	treemacs-eldoc-display                   'simple
-	treemacs-expand-after-init               t
-	treemacs-file-event-delay                2000
-	treemacs-file-extension-regex            treemacs-last-period-regex-value
-	treemacs-file-follow-delay               0.2
-	treemacs-file-name-transformer           #'identity
-	treemacs-find-workspace-method           'find-for-file-or-pick-first
-	treemacs-follow-after-init               t
-	treemacs-git-command-pipe                ""
-	treemacs-goto-tag-strategy               'refetch-index
-	treemacs-header-scroll-indicators        '(nil . "^^^^^^")
-	treemacs-hide-dot-git-directory          t
-	treemacs-indentation                     2
-	treemacs-indentation-string              " "
-	treemacs-is-never-other-window           nil
-	treemacs-litter-directories              '("/node_modules" "/.venv" "/.cask")
-	treemacs-max-git-entries                 5000
-	treemacs-missing-project-action          'ask
-	treemacs-move-forward-on-expand          nil
-	treemacs-no-delete-other-windows         t
-	treemacs-no-png-images                   nil
-	treemacs-persist-file                    (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
-	treemacs-position                        'left
-	treemacs-project-follow-cleanup          nil
-	treemacs-project-follow-into-home        nil
-	treemacs-read-string-input               'from-child-frame
-	treemacs-recenter-after-file-follow      nil
-	treemacs-recenter-after-project-expand   'on-distance
-	treemacs-recenter-after-project-jump     'always
-	treemacs-recenter-after-tag-follow       nil
-	treemacs-recenter-distance               0.1
-	treemacs-select-when-already-in-treemacs 'move-back
-	treemacs-show-cursor                     nil
-	treemacs-show-hidden-files               t
-	treemacs-silent-filewatch                nil
-	treemacs-silent-refresh                  nil
-	treemacs-sorting                         'alphabetic-asc
-	treemacs-space-between-root-nodes        t
-	treemacs-tag-follow-cleanup              t
-	treemacs-tag-follow-delay                1.5
-	treemacs-text-scale                      nil
-	treemacs-user-header-line-format         nil
-	treemacs-user-mode-line-format           nil
-	treemacs-wide-toggle-width               70
-	treemacs-width                           35
-	treemacs-width-increment                 1
-	treemacs-width-is-initially-locked       t
-	treemacs-workspace-switch-cleanup        nil)
-
-  ;; The default width and height of the icons is 22 pixels. If you are
-  ;; using a Hi-DPI display, uncomment this to double the icon size.
-  ;;(treemacs-resize-icons 44)
-
-  (treemacs-follow-mode t)
-  (treemacs-filewatch-mode t)
-  (treemacs-fringe-indicator-mode 'always)
-  (when treemacs-python-executable
-    (treemacs-git-commit-diff-mode t))
-
-  (pcase (cons (not (null (executable-find "git")))
-	       (not (null treemacs-python-executable)))
-    (`(t . t)
-     (treemacs-git-mode 'deferred))
-    (`(t . _)
-     (treemacs-git-mode 'simple)))
-
-  (treemacs-hide-gitignored-files-mode nil)
-  (add-hook 'treemacs-mode-hook (lambda(&rest _) (setq-local display-line-numbers nil)))
-#+end_src
-
-* Youtube-dl
-#+begin_src
-  (unless (package-installed-p 'ytdl)
-    (package-refresh-contents)
-    (package-install 'ytdl))
-  (require 'ytdl)
-  (setq ytdl-always-query-default-filename 'yes-confirm
-	ytdl-music-folder "~/Downloads/Music"
-	ytdl-video-folder "~/Downloads/Videos")
-#+end_src
-
-* Useful functions
-[[http://whattheemacsd.com/][Move Lines]]
-#+begin_src
-  (defun my-move-line-down ()
-    (interactive)
-    (let ((col (current-column)))
-      (save-excursion
-	(forward-line)
-	(transpose-lines 1))
-      (forward-line)
-      (move-to-column col)))
-  (defun my-move-line-up ()
-    (interactive)
-    (let ((col (current-column)))
-      (save-excursion
-	(forward-line)
-	(transpose-lines -1))
-      (move-to-column col)))
-  ;; both shortcuts can be emulated with C-x C-t C-x z z z... and C-1 C-x C-t z z z..
-  ;; (global-set-key (kbd "<C-M-down>") 'my-move-line-down)
-  ;; (global-set-key (kbd "<C-M-up>") 'my-move-line-up)
-#+end_src
-[[http://whattheemacsd.com/][Rename file and buffer]]
-#+begin_src
-  (defun my-rename-current-buffer-file ()
-    "Renames current buffer and file it is visiting."
-    (interactive)
-    (let ((name (buffer-name))
-	  (filename (buffer-file-name)))
-      (if (not (and filename (file-exists-p filename)))
-	  (error "Buffer '%s' is not visiting a file!" name)
-	(let ((new-name (read-file-name "New name: " filename)))
-	  (if (get-buffer new-name)
-	      (error "A buffer named '%s' already exists!" new-name)
-	    (rename-file filename new-name 1)
-	    (rename-buffer new-name)
-	    (set-visited-file-name new-name)
-	    (set-buffer-modified-p nil)
-	    (message "File '%s' successfully renamed to '%s'"
-		     name (file-name-nondirectory new-name)))))))
-#+end_src
-[[http://whattheemacsd.com/][Window Layout]]
-#+begin_src
-
-  (defun my-split-below (arg)
-    "Split window below from the parent or from root with ARG."
-    (interactive "P")
-    (split-window (if arg (frame-root-window)
-		    (window-parent (selected-window)))
-		  nil 'below nil))
-  (defun my-toggle-window-dedication ()
-    "Toggles window dedication in the selected window."
-    (interactive)
-    (set-window-dedicated-p (selected-window)
-			    (not (window-dedicated-p (selected-window)))))
-
-  (defun my-rotate-windows ()
-    "Rotate your windows"
-    (interactive)
-    (cond ((not (> (count-windows)1))
-	   (message "You can't rotate a single window!"))
-	  (t
-	   (setq i 1)
-	   (setq numWindows (count-windows))
-	   (while  (< i numWindows)
-	     (let* (
-		    (w1 (elt (window-list) i))
-		    (w2 (elt (window-list) (+ (% i numWindows) 1)))
-
-		    (b1 (window-buffer w1))
-		    (b2 (window-buffer w2))
-
-		    (s1 (window-start w1))
-		    (s2 (window-start w2))
-		    )
-	       (set-window-buffer w1  b2)
-	       (set-window-buffer w2 b1)
-	       (set-window-start w1 s2)
-	       (set-window-start w2 s1)
-	       (setq i (1+ i)))))))
-  (defun my-toggle-window-split ()
-    (interactive)
-    (if (= (count-windows) 2)
-	(let* ((this-win-buffer (window-buffer))
-	       (next-win-buffer (window-buffer (next-window)))
-	       (this-win-edges (window-edges (selected-window)))
-	       (next-win-edges (window-edges (next-window)))
-	       (this-win-2nd (not (and (<= (car this-win-edges)
-					   (car next-win-edges))
-				       (<= (cadr this-win-edges)
-					   (cadr next-win-edges)))))
-	       (splitter
-		(if (= (car this-win-edges)
-		       (car (window-edges (next-window))))
-		    'split-window-horizontally
-		  'split-window-vertically)))
-	  (delete-other-windows)
-	  (let ((first-win (selected-window)))
-	    (funcall splitter)
-	    (if this-win-2nd (other-window 1))
-	    (set-window-buffer (selected-window) this-win-buffer)
-	    (set-window-buffer (next-window) next-win-buffer)
-	    (select-window first-win)
-	    (if this-win-2nd (other-window 1))))))
-#+end_src
-
-* Keybindings
-[[http://xahlee.info/emacs/emacs/emacs_keybinding_power_of_keys_sequence.html][Define Key Sequence]]
-#+begin_src
-  (defun my-repeat-command (command)
-    "Repeat COMMAND."
-    (require 'repeat)
-    (let ((repeat-previous-repeated-command  command)
-	  (repeat-message-function           #'ignore)
-	  (last-repeatable-command           'repeat))
-      (repeat nil)))
-  (defun my-other-window (&optional arg)
-    "Repeatable version of other-window"
-    (interactive "P")
-    (my-repeat-command 'other-window))
-  (global-set-key (kbd "M-o") 'my-other-window)
-
-  ;; (global-set-key (kbd "M-<SPC>") ctl-x-map)
-  (define-prefix-command 'my-prefix-map)
-  (global-set-key (kbd "M-<SPC>") 'my-prefix-map)
-
-  (define-key 'my-prefix-map (kbd "<SPC>") 'just-one-space)
-  (define-key 'my-prefix-map (kbd "a") 'my-core-map)
-  (define-key 'my-prefix-map (kbd "e") 'my-embark-map)
-  (define-key 'my-prefix-map (kbd "g") 'my-grep-map)
-  (define-key 'my-prefix-map (kbd "l") 'my-lsp-map)
-  (define-key 'my-prefix-map (kbd "w") 'my-window-map)
-
-  (defalias 'my-core-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "e") 'eshell)
-      (define-key map (kbd "i") 'imenu)
-      (define-key map (kbd "r") 'recentf-open-files)
-      (define-key map (kbd "s") 'shell)
-      (define-key map (kbd "t") 'treemacs)
-      map)
-    "Core Emacs")
-
-  (defalias 'my-grep-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "g") 'grep)
-      (define-key map (kbd "f") 'grep-find)
-      (define-key map (kbd "r") 'rgrep)	; interactive grep-find
-      (define-key map (kbd "z") 'zgrep)
-      map)
-    "Grep")
-
-  (defalias 'my-lsp-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "a") 'eglot-code-actions)
-      (define-key map (kbd "e") 'eglot-events-buffer)
-      (define-key map (kbd "f") 'eglot-format)
-      (define-key map (kbd "r") 'eglot-rename)
-      map)
-    "LSP Eglot")
-
-  (defalias 'my-embark-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "a") 'embark-act)
-      (define-key map (kbd "b") 'embark-become)
-      map)
-    "Embark")
-
-  (defalias 'my-window-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "b") 'my-split-below)
-      (define-key map (kbd "d") 'my-toggle-window-dedication)
-      (define-key map (kbd "o") 'my-other-window)
-      (define-key map (kbd "r") 'my-rotate-windows)
-      (define-key map (kbd "t") 'my-toggle-window-split)
-      map)
-    "Window")
-#+end_src
-* International
-* Ediff
-[[https://www.youtube.com/watch?v=9S2pMZ6U5Tc][Youtube]]
-- When ediff is launched it starts a control window where ediff
-  commands are entered.
-  |----------------------------+---------------------------------------------------------------------------|
-  | M-x ediff                  | compare two files                                                         |
-  | M-x ediff-backup           | compare a file with its backup                                            |
-  | M-x ediff-current-file     | compare buffer with its file on disk                                      |
-  | M-x ediff-buffers          | compare two buffers                                                       |
-  | M-x ediff3                 | compare 3 files                                                           |
-  | M-x ediff-buffers3         | compare 3 buffers                                                         |
-  | M-x edirs                  | compare files in two directories                                          |
-  | M-x edirs3                 | compare files in 3 directories                                            |
-  | M-x ediff-windows-wordwise | compare word by word                                                      |
-  | M-x ediff-windows-linewise | compare line by line                                                      |
-  | M-x ediff-regions-wordwise | compare regions word by word.                                             |
-  |                            | prompted for buffer and regions to compare. regions can be in same buffer |
-  | M-x ediff-regions-linewise | compare regions linewise                                                  |
-  | M-x ediff-revision         | compare versions of current buffer. buffer must be visiting               |
-  |                            | version controlled file                                                   |
-  | M-x epatch                 | patch a file or multiple files and then compare                           |
-  |                            | interactively patch if multiple files                                     |
-  | M-x epatch-buffer          | patch a buffer and compare                                                |
-  |                            | the buffer and file visited are not modified                              |
-  |                            | a separate buffer ending with patched is created                          |
-  |                            | only allows single file patch                                             |
-  | M-x ediff-merge            | merge two files                                                           |
-  | M-x ediff-merge-buffers    | merge two buffers                                                         |
-  | M-x edirs-merge            | merge files common to both directories                                    |
-  | M-x ediff-merge-revisions  | merge two versions of the file visited by buffer                          |
-  | M-x eregistry              | open ediff session registry to quickly find and restart active ediff      |
-  |                            | sessions                                                                  |
-  |----------------------------+---------------------------------------------------------------------------|
-
-  - All Ediff commands are displayed in Quick Help Window. Use ? to
-    show or hide help. Ediff commands take prefix that mostly refer
-    to hunks
-    |-----+-----------------------------------------------------------------------------|
-    | ?   | toggle Ediff Quick Window                                                   |
-    | G   | prepares a mail buffer                                                      |
-    | v   | scroll up both buffers in a coordinated manner                              |
-    | V   | scroll buffer down                                                          |
-    | <   | scroll buffer left                                                          |
-    | >   | scroll buffer right                                                         |
-    | wd  | writes diff output                                                          |
-    | wa  | save buffer a if modified                                                   |
-    | wb  | save buffer b if modified                                                   |
-    | wc  | save buffer c if modified                                                   |
-    | a   | during comparison: copy current difference region from buffer A to buffer B |
-    |     | old contents of B's region are saved and can be restored with rb            |
-    |     | during merge: copy current difference region from A to merge buffer         |
-    |     | old contents for region in C can be restored with r                         |
-    | b   | same as a but other way                                                     |
-    | p   | make previous difference region current                                     |
-    | n   | make next difference region current                                         |
-    | j   | make first difference region current                                        |
-    | -j  | make last difference region current                                         |
-    | Nj  | make Nth difference region current                                          |
-    | '!' | recompute difference. useful if files are edited in ediff session           |
-    | ¦   | toggle horizontal/vertical split                                            |
-    | @   | toggle auto refinement (highlight exact words that differ)                  |
-    | r   | restore old contents of region in merge buffer                              |
-    | ra  | restore old contents of current difference region in A                      |
-    | rb  | restore old contents of current difference region in B                      |
-    | ##  | skip regions that only differ in whitespace                                 |
-    | #c  | toggle case sensitivity                                                     |
-    | A   | toggle read only property of buffer A                                       |
-    | B   | toggle read only property of buffer B                                       |
-    | i   | display useful info about current ediff session                             |
-    | R   | display ediff registry                                                      |
-    | z   | suspend current ediff session hiding all ediff related buffers              |
-    | q   | terminate ediff session                                                     |
-    |     | with prefix asks if buffers should be deleted                               |
-    | %   | toggle narrowing                                                            |
-    | C-l | ediff-recenter (restore usual ediff window setup)                           |
-    | M   | go back to session group buffer                                             |
-    |-----+-----------------------------------------------------------------------------|
-
-    - session commands
-    |-----------------------------------------------+---------------------------------------------------------------------------|
-    | M-x eregistry                                 | bring up registry of active ediff sessions                                |
-    |                                               | can be used to resume previous ediff session or switch to another session |
-    | M-x ediff-toggle-multiframe                   | toggle quick help window being in same of separate frame                  |
-    | M-x ediff-revert-buffers-then-recompute-diffs | recomputes difference                                                     |
-    | RET or v                                      | resume session                                                            |
-    |-----------------------------------------------+---------------------------------------------------------------------------|
-
-    - ediff commands that operate on directories open a dired like
-      buffer called session group that lists files common to
-      directories as a separate session
-    |-----+----------------------------------------------------------------------|
-    | RET | open ediff session on these files.                                   |
-    | D   | display directory difference buffer                                  |
-    | C   | in directory difference buffer, copy missing file to other directory |
-    | h   | mark session for hiding (with prefix unmark)                         |
-    | x   | hide marked session (with prefix unhide)                             |
-    | m   | mark session                                                         |
-    |-----+----------------------------------------------------------------------|
-
-    - customization
-    |-----------------------------------------+---------------------------------------------------------------|
-    | 'ediff-use-long-help-message'           | if non nil use long help message in quick help window         |
-    | 'ediff-control-frame-position-function' | specify position of control frame                             |
-    | 'ediff-window-setup-function'           | how window is setup                                           |
-    |                                         | nediff-setup-windows-multiframe - in a separate frame         |
-    |                                         | ediff-setup-windows-plain - in the same frame                 |
-    | 'ediff-ignore-similar-regions'          | if t, skip white space differences                            |
-    | 'ediff-split-window-function'           | controls horizontal or vertical split                         |
-    | 'ediff-use-last-dir'                    | if nil, present default directory of current buffer in prompt |
-    |                                         | if t, use directory used in previously                        |
-    | 'ediff-keep-variants'                   | if t, preserve buffers after quitting ediff                   |
-    |                                         | if nil, offer to delete the buffers if they are not modified  |
-    |                                         |                                                               |
-    |-----------------------------------------+---------------------------------------------------------------|
-
-    #+begin_src
-      (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-      (setq split-window-function 'split-window-horizontally)
-      (setq ediff-keep-variants nil)
-    #+end_src
 

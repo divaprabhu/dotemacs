@@ -42,13 +42,19 @@
 (setq confirm-nonexistent-file-or-buffer nil) ;; don't ask confirmation
 
 (setq completion-styles '(initials partial-completion flex basic))
-(setq completion-auto-help nil) ;; don't show completion list buffer
-(setq completion-auto-select nil) ;; don't switch to completion list buffer when displayed
+(setq completion-auto-help 'always)
+(setq completion-auto-select 'second-tab) 
 (setq completion-cycle-threshold t) ;; always cycle through completion candidates
-(setq completions-format 'horizontal) ;; completion list buffer format
-(setq completions-sort 'alphabetical) ;; sort candidatate alphabetically
+(setq completions-format 'one-column) ;; completion list buffer format
+(setq completions-sort nil) ;; sort candidatate alphabetically
 (setq completions-max-height nil) ;; no height limit for completion list buffer
 (setq completions-header-format nil) ;; no header in completion list buffer
+(define-key minibuffer-local-map (kbd "M-p") #'minibuffer-previous-completion)
+(define-key minibuffer-local-map (kbd "M-n") #'minibuffer-next-completion)
+
+;; Up/down when competing in a normal buffer
+(define-key completion-in-region-mode-map (kbd "M-p") #'minibuffer-previous-completion)
+(define-key completion-in-region-mode-map (kbd "M-n") #'minibuffer-next-completion)
 
 (setq minibuffer-eldef-shorten-default t)
 
@@ -225,7 +231,7 @@
 	 (side . bottom)
 	 (window-height . 0.4)
 	 (slot . 0))
-	("\\*\\(vc-\\).*"
+	("\\*\\(vc-\\|Annotate\\).*"
 	 (display-buffer-in-side-window)
 	 (side . bottom)
 	 (window-height . 0.4)
@@ -390,14 +396,109 @@
 
 (define-key org-mode-map (kbd "C-M-x") 'my/ielm-send-line-or-region)
 
+(setq vc-revert-show-diff t)
+
+(setq vc-follow-symlinks t)
+(setq vc-command-messages t)
+
+(setq read-file-name-completion-ignore-case t
+      xref-search-program-alist '((grep . "xargs -0 grep <C> -snHE -e <R>")))
+
+(setq abbrev-file-name (expand-file-name "abbrev_defs" user-emacs-directory))
+(setq save-abbrevs 'silently)
+(if
+    (file-exists-p abbrev-file-name)
+    (quietly-read-abbrev-file))
+(abbrev-mode -1)			; don't expand automatically on space or punctuation
+(setq abbrev-suggest t)
+
+(global-set-key (kbd "M-/") 'hippie-expand)
+
+(setq async-shell-command-display-buffer nil
+      async-shell-command-buffer 'new-buffer
+      shell-command-prompt-show-cwd t)
+
+(setq desktop-restore-eager 2
+      desktop-load-locked-desktop 'ask
+      desktop-restore-frames 1
+      desktop-save t
+      desktop-path (list user-emacs-directory)
+      desktop-auto-save-timeout 60
+      desktop-base-file-name "emacs.desktop"
+      desktop-globals-to-save
+      '(desktop-missing-file-warning tags-file-name tags-table-list search-ring regexp-search-ring register-alist file-name-history)
+      desktop-locals-to-save
+      '(eww-history-position desktop-locals-to-save truncate-lines case-fold-search case-replace fill-column overwrite-mode change-log-default-name line-number-mode column-number-mode size-indication-mode buffer-file-coding-system buffer-display-time indent-tabs-mode tab-width indicate-buffer-boundaries indicate-empty-lines show-trailing-whitespace))
+(desktop-save-mode t)
+
+(setq savehist-file (expand-file-name "savehist" user-emacs-directory))
+(savehist-mode 1)
+
+(save-place-mode 1)
+(setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
+(setq save-place-forget-unreadable-files t) ; set to nil if emacs is slow to exit
+
 (require 'package)
-(package-initialize)
 (if (< emacs-major-version 28)
     (add-to-list 'package-archives
-		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
+		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t)
 
-;;    (add-to-list 'package-archives
-;;		 '("melpa" . "https://stable.melpa.org/packages/") t)
+   (add-to-list 'package-archives
+		 '("melpa" . "https://stable.melpa.org/packages/") t))
 
 (unless package-archive-contents
   (package-refresh-contents))
+
+(use-package modus-themes
+  :ensure t
+  :defer nil
+  :custom
+  (modus-themes-inhibit-reload nil "reload active theme when an option is changed through the Customize UI")
+  (modus-themes-bold-constructs t  "Use bold for code syntax highlighting and related")
+  (modus-themes-italic-constructs t "Use bold for code syntax highlighting and related ")
+  (modus-themes-mode-line '(accented borderless (padding 4) (height 0.9)) "Model")
+  (modus-themes-hl-line '(intense) "amplify color in use for hl-line-mode heading sizes and colors")
+  :config
+  (setq modus-themes-headings '((1 . (bold rainbow 1.5))
+			  (2 . (bold rainbow 1.4))
+			  (3 . (bold rainbow 1.2))
+			  (t . (monochrome ))))
+  (load-theme 'modus-vivendi t))
+
+(use-package eglot
+  :ensure nil
+  :custom
+  (eglot-autoreconnect t "Automatically reconnect to LSP server")
+  (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
+  (eglot-confirm-server-initiated-edits nil "don't confirm server initiated edits with user")
+  (eglot-extend-to-xref t "activate eglot in non-project cross-referenced files")
+  :bind
+  ("C-c l a" . eglot-code-actions)
+  ("C-c l e" . eglot-events-buffer)
+  ("C-c l r" . eglot-rename)
+  ("C-c l f f" . eglot-format)
+  ("C-c l f b" . eglot-format-buffer)
+  ("C-c l l" . eglot)
+  ("C-c l c" . eglot-reconnect)
+  ("C-c l s" . eglot-shutdown)
+  ("C-c l i" . eglot-inlay-hints-mode)
+  :config
+  (add-to-list 'eglot-server-programs '(python-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
+
+(use-package pyvenv
+  :ensure t
+  ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
+  :hook
+  (python-mode python-ts-mode))
+
+(use-package python
+  :ensure nil
+  :init
+  (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
+  (unless (file-directory-p pylspdir)
+    (make-directory pylspdir t)
+    (shell-command (concat "python3 -m venv " pylspdir))
+    (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))
+  :config
+  (add-hook 'python-mode-hook 'eglot-ensure)
+  (add-hook 'python-ts-mode-hook 'eglot-ensure))
