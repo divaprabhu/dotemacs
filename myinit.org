@@ -392,20 +392,6 @@
     + C-<SPC> or C-x C-x does not highlight region
     + Commands that depend on active region does not work and may behave differently
     + Activate transient mode temporarily               C-<SPC> C-<SPC> or C-u C-x C-x
-** Expand Region
-[[https://emacsrocks.com/e09.html][Emacs Rocks - Expand Region]]
-- Expand region increases the selected region by semantic
-  units. Just keep pressing the key until it selects what you want.
-- Passing a negative prefix runs er/contract-region
-  #+begin_src emacs-lisp
-    (unless (package-installed-p 'expand-region)
-      (package-refresh-contents)
-      (package-install 'expand-region))
-
-    (global-set-key (kbd "C-+") 'er/expand-region)
-    (global-set-key (kbd "C-_") 'er/contract-region)
-  #+end_src
-
 * Killing and Moving text
 ** Delete and Kill
 - Two or more kill commands in sequence append to kill ring and preserve text order
@@ -3711,17 +3697,17 @@ preceding line.
   | 'package-user-dir'               | location where package files are placed                                  |
   | 'package-directory-list'         | used for system-wide packages                                            |
   |----------------------------------+--------------------------------------------------------------------------|
-
   #+begin_src emacs-lisp
     (require 'package)
     (if (< emacs-major-version 28)
 	(add-to-list 'package-archives
 		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
-       ;; (add-to-list 'package-archives
-       ;; 		 '("melpa" . "https://stable.melpa.org/packages/") t))
+    (add-to-list 'package-archives
+		 '("melpa" . "https://stable.melpa.org/packages/") t)
+    (package-initialize)			; make sure to update load-path for downloaded packages
   #+end_src
-  
+
 * Use Package
 - declarative way to setup package
 - allow gathering all config of package in one place
@@ -3983,31 +3969,30 @@ preceding line.
 - eglot is Emacs LSP client
 - Refer [[*Xref][Xref]]
   #+begin_src emacs-lisp
-    (use-package eglot
-      :ensure nil
-      :custom
-      (eglot-autoreconnect t "Automatically reconnect to LSP server")
-      (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
-      (eglot-confirm-server-initiated-edits nil "don't confirm server initiated edits with user")
-      (eglot-extend-to-xref t "activate eglot in non-project cross-referenced files")
-      :bind
-      ("C-c l a" . eglot-code-actions)
-      ("C-c l e" . eglot-events-buffer)
-      ("C-c l r" . eglot-rename)
-      ("C-c l f f" . eglot-format)
-      ("C-c l f b" . eglot-format-buffer)
-      ("C-c l l" . eglot)
-      ("C-c l c" . eglot-reconnect)
-      ("C-c l s" . eglot-shutdown)
-      ("C-c l i" . eglot-inlay-hints-mode)
-      :config
-      (add-to-list 'eglot-server-programs '(python-mode .  ("~/.cache/emacs/lsp/pyright/bin/pyright-langserver" "--stdio"))))
-
+	(use-package eglot
+	  :ensure nil
+	  :custom
+	  (eglot-autoreconnect t "Automatically reconnect to LSP server")
+	  (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
+	  (eglot-confirm-server-initiated-edits nil "don't confirm server initiated edits with user")
+	  (eglot-extend-to-xref t "activate eglot in non-project cross-referenced files")
+	  :bind
+	  ("C-c l a" . eglot-code-actions)
+	  ("C-c l e" . eglot-events-buffer)
+	  ("C-c l r" . eglot-rename)
+	  ("C-c l f f" . eglot-format)
+	  ("C-c l f b" . eglot-format-buffer)
+	  ("C-c l l" . eglot)
+	  ("C-c l c" . eglot-reconnect)
+	  ("C-c l s" . eglot-shutdown)
+	  ("C-c l i" . eglot-inlay-hints-mode)
+	  :config
+	  (add-to-list 'eglot-server-programs '(python-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
   #+end_src
 
 ** Python
 [[https://robbmann.io/posts/emacs-eglot-pyrightconfig][Virtual Environments with Eglot, Tramp, and Pyright]]
-#+begin_src emacs-lisp
+#+begin_src
 (defun my/pyrightconfig-write (virtualenv)
   (interactive "DEnv: ")
 
@@ -4042,17 +4027,24 @@ preceding line.
 #+end_src
 
 Create a .dir-locals.el file in root of folder with contents like 
-((python-mode . ((pyvenv-activate . "~/.cache/venv/project-name"))))
+((python-mode . ((pyvenv-activate . "~/.cache/venvs/project-name"))))
+#+begin_src emacs-lisp
+  (use-package pyvenv
+    :ensure t
+    ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
+    :hook
+    (python-mode python-ts-mode))
 
+#+end_src
 #+begin_src emacs-lisp
   (use-package python
     :ensure nil
     :init
-    (let ((pylspdir (expand-file-name "lsp/pyright" user-emacs-directory)))
-    (unless (file-directory-p pylspdir)
-      (make-directory pylspdir t)
-      (shell-command (concat "python3 -m venv " pylspdir))
-      (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip pyright"))))
+    (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
+      (unless (file-directory-p pylspdir)
+	(make-directory pylspdir t)
+	(shell-command (concat "python3 -m venv " pylspdir))
+	(shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))
     :config
     (add-hook 'python-mode-hook 'eglot-ensure)
     (add-hook 'python-ts-mode-hook 'eglot-ensure))
@@ -4199,18 +4191,32 @@ Create a .dir-locals.el file in root of folder with contents like
     :config
     (repeat-mode 1)
     :bind
+    ("M-o" . other-window)
     (:repeat-map my/window-repeat-map
 		 ;; Defaults:
 		 ("o" . other-window)	; enters the map here
 		 ;; Resizing:
-		 ("K" . enlarge-window)
-		 ("J" . shrink-window)
+		 ("L" . enlarge-window-horizontally)
+		 ("H" . shrink-window-horizontally)
 		 ("=" . balance-windows)
 		 ;; Adding/Deleting:
 		 ("0" . delete-window)
 		 ("1" . delete-other-windows)))
-  
 #+end_src
+
+* Expand Region
+[[https://emacsrocks.com/e09.html][Emacs Rocks - Expand Region]]
+- Expand region increases the selected region by semantic
+  units. Just keep pressing the key until it selects what you want.
+- Passing a negative prefix runs er/contract-region
+  #+begin_src emacs-lisp
+    (use-package expand-region
+      :ensure t
+      :defer nil
+      :bind
+      ("C-+" . er/expand-region)
+      ("C-_" . er/contract-region))
+  #+end_src
 
 * LSP Mode
 #+begin_src

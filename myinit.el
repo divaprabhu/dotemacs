@@ -92,13 +92,6 @@
       mark-ring-max 512
       global-mark-ring-max 512)
 
-(use-package expand-region
-  :ensure t
-  :defer t
-  :bind
-  (("C-+" . er/expand-region)
-   ("C-_" . er/contract-region)))
-
 (defun my/kill-region-or-backward-word ()
   (interactive)
   (if (region-active-p)
@@ -441,10 +434,11 @@
 (require 'package)
 (if (< emacs-major-version 28)
     (add-to-list 'package-archives
-		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t)
+		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
-   (add-to-list 'package-archives
-		 '("melpa" . "https://stable.melpa.org/packages/") t))
+(add-to-list 'package-archives
+	     '("melpa" . "https://stable.melpa.org/packages/") t)
+(package-initialize)
 
 (use-package modus-themes
   :ensure t
@@ -480,48 +474,46 @@
   ("C-c l s" . eglot-shutdown)
   ("C-c l i" . eglot-inlay-hints-mode)
   :config
-  (add-to-list 'eglot-server-programs '(python-mode .  ("~/.cache/emacs/lsp/pyright/bin/pyright-langserver" "--stdio"))))
+  (add-to-list 'eglot-server-programs '(python-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
 
-(defun my/pyrightconfig-write (virtualenv)
-  (interactive "DEnv: ")
-
-  (let* (;; file-truename and tramp-file-local-name ensure that neither `~' nor
-         ;; the Tramp prefix (e.g. "/ssh:my-host:") wind up in the final
-         ;; absolute directory path.
-         (venv-dir (tramp-file-local-name (file-truename virtualenv)))
-
-         ;; Given something like /path/to/.venv/, this strips off the trailing `/'.
-         (venv-file-name (directory-file-name venv-dir))
-
-         ;; Naming convention for venvPath matches the field for
-         ;; pyrightconfig.json.  `file-name-directory' gets us the parent path
-         ;; (one above .venv).
-         (venvPath (file-name-directory venv-file-name))
-
-         ;; Grabs just the `.venv' off the end of the venv-file-name.
-         (venv (file-name-base venv-file-name))
-
-         ;; Eglot demands that `pyrightconfig.json' is in the project root
-         ;; folder.
-         (base-dir (vc-git-root default-directory))
-         (out-file (expand-file-name "pyrightconfig.json" base-dir))
-
-         ;; Finally, get a string with the JSON payload.
-         (out-contents (json-encode (list :venvPath venvPath :venv venv))))
-
-    ;; Emacs uses buffers for everything.  This creates a temp buffer, inserts
-    ;; the JSON payload, then flushes that content to final `pyrightconfig.json'
-    ;; location
-    (with-temp-file out-file (insert out-contents))))
+(use-package pyvenv
+  :ensure t
+  ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
+  :hook
+  (python-mode python-ts-mode))
 
 (use-package python
   :ensure nil
   :init
-  (let ((pylspdir (expand-file-name "lsp/pyright" user-emacs-directory)))
-  (unless (file-directory-p pylspdir)
-    (make-directory pylspdir t)
-    (shell-command (concat "python3 -m venv " pylspdir))
-    (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip pyright"))))
+  (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
+    (unless (file-directory-p pylspdir)
+      (make-directory pylspdir t)
+      (shell-command (concat "python3 -m venv " pylspdir))
+      (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))
   :config
   (add-hook 'python-mode-hook 'eglot-ensure)
   (add-hook 'python-ts-mode-hook 'eglot-ensure))
+
+(use-package window
+  :ensure nil                           ; built-in
+  :config
+  (repeat-mode 1)
+  :bind
+  ("M-o" . other-window)
+  (:repeat-map my/window-repeat-map
+	       ;; Defaults:
+	       ("o" . other-window)	; enters the map here
+	       ;; Resizing:
+	       ("L" . enlarge-window-horizontally)
+	       ("H" . shrink-window-horizontally)
+	       ("=" . balance-windows)
+	       ;; Adding/Deleting:
+	       ("0" . delete-window)
+	       ("1" . delete-other-windows)))
+
+(use-package expand-region
+  :ensure t
+  :defer nil
+  :bind
+  ("C-+" . er/expand-region)
+  ("C-_" . er/contract-region))
