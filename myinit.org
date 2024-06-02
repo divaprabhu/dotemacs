@@ -4185,6 +4185,7 @@ Create a .dir-locals.el file in root of folder with contents like
 
 * Keybindings
 [[http://xahlee.info/emacs/emacs/emacs_keybinding_power_of_keys_sequence.html][Define Key Sequence]]
+[[https://github.com/jwiegley/use-package/issues/964][use-package repeat mode maps]]
 #+begin_src emacs-lisp
   (use-package window
     :ensure nil                           ; built-in
@@ -4218,7 +4219,8 @@ Create a .dir-locals.el file in root of folder with contents like
       ("C-_" . er/contract-region))
   #+end_src
 
-* LSP Mode
+* Unused
+** LSP Mode
 #+begin_src
   (unless (package-installed-p 'lsp-mode)
     (package-refresh-contents)
@@ -4248,7 +4250,7 @@ Create a .dir-locals.el file in root of folder with contents like
   ;; (lsp-ui-mode 1)
 #+end_src
 
-** Python
+*** Python
 #+begin_src
     (unless (package-installed-p 'pyvenv)
       (package-refresh-contents)
@@ -4256,14 +4258,14 @@ Create a .dir-locals.el file in root of folder with contents like
     (add-hook 'python-mode-hook #'lsp-deferred)
 #+end_src
 
-** Java
+*** Java
 #+begin_src
     (unless (package-installed-p 'lsp-java)
       (package-refresh-contents)
       (package-install 'lsp-java))
     (add-hook 'java-mode-hook #'lsp-deferred)
 #+end_src
-* Yasnippet
+** Yasnippet
 - Use tab key for snippet completion
   |-----------+--------------------------------------------------|
   | TAB       | yas-next-field-or-maybe-expand                   |
@@ -4282,7 +4284,7 @@ Create a .dir-locals.el file in root of folder with contents like
     (add-hook 'prog-mode-hook #'yas-minor-mode)
   #+end_src
 
-* YAML Mode
+** YAML Mode
 #+begin_src
   (unless (package-installed-p 'yaml-mode)
     (package-refresh-contents)
@@ -4291,7 +4293,7 @@ Create a .dir-locals.el file in root of folder with contents like
   (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-mode))
 #+end_src
 
-* Neotree
+** Neotree
 #+begin_src
   (unless (package-installed-p 'neotree)
     (package-refresh-contents)
@@ -4308,7 +4310,7 @@ Create a .dir-locals.el file in root of folder with contents like
   (add-hook 'neo-enter-hook (lambda(&rest _) (setq-local display-line-numbers nil)))
 #+end_src
 
-* Treemacs
+** Treemacs
 #+begin_src
   (unless (package-installed-p 'treemacs)
     (package-refresh-contents)
@@ -4388,7 +4390,7 @@ Create a .dir-locals.el file in root of folder with contents like
   (add-hook 'treemacs-mode-hook (lambda(&rest _) (setq-local display-line-numbers nil)))
 #+end_src
 
-* Youtube-dl
+** Youtube-dl
 #+begin_src
   (unless (package-installed-p 'ytdl)
     (package-refresh-contents)
@@ -4399,7 +4401,7 @@ Create a .dir-locals.el file in root of folder with contents like
 	ytdl-video-folder "~/Downloads/Videos")
 #+end_src
 
-* Useful functions
+** Useful functions
 [[http://whattheemacsd.com/][Move Lines]]
 #+begin_src
   (defun my-move-line-down ()
@@ -4505,8 +4507,8 @@ Create a .dir-locals.el file in root of folder with contents like
 	    (if this-win-2nd (other-window 1))))))
 #+end_src
 
-* International
-* Ediff
+** International
+** Ediff
 [[https://www.youtube.com/watch?v=9S2pMZ6U5Tc][Youtube]]
 - When ediff is launched it starts a control window where ediff
   commands are entered.
@@ -4626,7 +4628,7 @@ Create a .dir-locals.el file in root of folder with contents like
       (setq split-window-function 'split-window-horizontally)
       (setq ediff-keep-variants nil)
     #+end_src
-* Dired
+** Dired
 - Dired creates an Emacs buffer containing directory listing which
   can be used for file and directory operations
 - You flag files for deletion. You mark files for everything else
@@ -4775,7 +4777,7 @@ Create a .dir-locals.el file in root of folder with contents like
     (define-key dired-mode-map (kbd "M-+") 'dired-create-empty-file)
   #+end_src
   
-* Document Viewing
+** Document Viewing
 - major mode for viewing DVI, PS PDF formats
 - opening a document that can be viewed in DocView mode, Emacs
   automatically uses the mode
@@ -4815,7 +4817,7 @@ Create a .dir-locals.el file in root of folder with contents like
   | *c r* | doc-view-reset-slice                                                              |
   |-------+-----------------------------------------------------------------------------------|
 
-* Printing
+** Printing
 |------------------+----------------------------------------------------------------|
 | M-x print-buffer | print hardcopy of current buffer with page heaading containing |
 |                  | file name and page number                                      |
@@ -4827,7 +4829,7 @@ Create a .dir-locals.el file in root of folder with contents like
 | 'printer-name'   | printer to use (nil means default printer)                     |
 |------------------+----------------------------------------------------------------|
 
-* Sorting
+** Sorting
 |-------------------------+----------------------------------------------------------------------------|
 | 'sort-fold-case'        | ignore case difference                                                     |
 | M-x sort-lines          | sort lines in region                                                       |
@@ -4857,8 +4859,8 @@ Create a .dir-locals.el file in root of folder with contents like
 | M-x reverse-region      | reverse the order of lines in region                                       |
 |-------------------------+----------------------------------------------------------------------------|
 
-* Hyperlinking
-** FFAP
+** Hyperlinking
+*** FFAP
 - FFAP package remaps certain commands with ffap variants such
   that it provides better defaults
 - We can still run non ffap version by passing a prefix
@@ -4877,7 +4879,7 @@ Create a .dir-locals.el file in root of folder with contents like
   | M-x ffap-menu | display a menu of files and URLs in current buffer        |
   |---------------+-----------------------------------------------------------|
 
-* Gnus
+** Gnus
 - Gnus is Emacs package for reading and posting Usenet news and
   mails
 - Gnus has group buffer, summary buffer and article buffer
@@ -4909,7 +4911,7 @@ Create a .dir-locals.el file in root of folder with contents like
   | *q*                             | quit group buffer updating .newsrc and .newsrc.eld    |
   |---------------------------------+-------------------------------------------------------|
 
-** Basic Settings
+*** Basic Settings
 [[https://www.bounga.org/tips/2020/05/03/multiple-smtp-accounts-in-gnus-without-external-tools/][Source]]
 #+begin_src
   ;; don't create newsrc file that other clients may use
@@ -4930,7 +4932,7 @@ Create a .dir-locals.el file in root of folder with contents like
   (setq gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\”]\”[#’()]")
 #+end_src
 
-** Accounts
+*** Accounts
 #+begin_src
   ;; define everything via secondary method
   ;; read credentials from authinfo.gpg
@@ -4942,7 +4944,7 @@ Create a .dir-locals.el file in root of folder with contents like
       (load-file "~/etc/gnus_mail.el"))
 #+end_src
 
-** Group buffer
+*** Group buffer
 Buffer where all the mail folders like inbox from all servers will be shown
 |-----------+-----------------------------------------------------------------------------|
 | *SPC*     | gnus-group-read-group                                                       |
@@ -4966,7 +4968,7 @@ Buffer where all the mail folders like inbox from all servers will be shown
 | #         | mark a group                                                                |
 |-----------+-----------------------------------------------------------------------------|
 
-** Topic mode
+*** Topic mode
 Categorize multiple groups based on topic
 
 |---------+---------------------|
@@ -4979,7 +4981,7 @@ Categorize multiple groups based on topic
   (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
 #+end_src
 
-** Summary and article buffer
+*** Summary and article buffer
 When a group is entered, a summary buffer showing all article is entered
 |---------+-------------------------------------------------------------------------------|
 | *SPC*   | gnus-summary-next-page                                                        |
@@ -5007,7 +5009,7 @@ When a group is entered, a summary buffer showing all article is entered
 | W w     | wordwrap current article                                                      |
 | ^       | fetch parent article                                                          |
 |---------+-------------------------------------------------------------------------------|
-** Message buffer
+*** Message buffer
 Write body after the line "--text follows this line--"
 Linebreaks
 #+begin_src
@@ -5024,7 +5026,7 @@ Linebreaks
 | M-q       | reformat paragraph |
 |-----------+--------------------|
 
-** Terminology
+*** Terminology
 - select method - another term for server
 - primary server is specified using gnus-select-method
 - secondary servers are specified using gnus-secondary-select-methods
@@ -5042,11 +5044,11 @@ Linebreaks
   | 0     |            | Message was read in previous session                   |
   |-------+------------+--------------------------------------------------------|
 
-** Mail
+*** Mail
 - Mail is fetched from mail sources whereas mail backend tells how to store them
 - For imap - mail is not fetched
 
-** Expiry
+*** Expiry
 - On news servers, as messages grow disk usage increases.
 - News servers are configured per group to tell after how many days the message should be deleted
 - In case of mail server, the expiry should be in your control
@@ -5074,7 +5076,7 @@ Linebreaks
 
     - Article and summary buffer have similar keybindings
 
-** Format
+*** Format
 #+begin_src
   (setq-default
    gnus-summary-line-format "%U%R%z%I%(%&user-date; [%4L: %-23,23f%]%) %s\n"
@@ -5089,7 +5091,7 @@ Linebreaks
    gnus-sum-thread-tree-vertical "│")
 #+end_src
 
-** Custom keybinding
+*** Custom keybinding
 - Press e to mark expired and then go to next article
   #+begin_src
     (add-hook 'gnus-summary-mode-hook 'my-summary-mode-map)
@@ -5110,7 +5112,7 @@ Linebreaks
     (setq nnmail-expiry-wait 'immediate)
   #+end_src
 
-** Windows
+*** Windows
 [[https://www.emacswiki.org/emacs/GnusWindowLayout][GnusWindowLayout]]
 #+begin_src
   (gnus-add-configuration
@@ -5133,12 +5135,12 @@ Linebreaks
 
 #+end_src
 
-* EPG
+** EPG
 #+begin_src
   (setq epg-pinentry-mode 'loopback)
 #+end_src
 
-* Keepass mode
+** Keepass mode
 #+begin_src
     (unless (package-installed-p 'keepass-mode)
       (package-refresh-contents)
@@ -5146,13 +5148,13 @@ Linebreaks
     (require 'keepass-mode)
 #+end_src
 
-* EWW
+** EWW
 #+begin_src
   (setq url-configuration-directory user-emacs-directory)
   (setq browse-url-browser-function 'eww-browse-url)
   (add-hook 'eww-mode-hook 'visual-line-mode)
 #+end_src
-* Evil
+** Evil
 :PROPERTIES:
 :ORDERED:  t
 :END:
@@ -5208,7 +5210,7 @@ Linebreaks
 
   #+end_src
 
-* Ibuffer
+** Ibuffer
 [[https://www.youtube.com/watch?v=6KN_oSLFf-k][Youtube]]
 |---------+------------------------------------------------------------------------|
 | *RET*   | open buffer at point                                                   |
@@ -5287,7 +5289,7 @@ Linebreaks
   (define-key ibuffer-mode-map (kbd "/ g") #'ibuffer-filter-by-content)
   (define-key ctl-x-map (kbd "C-b") 'ibuffer)
 #+end_src
-** Grouping
+*** Grouping
 [[https://www.emacswiki.org/emacs/IbufferMode][emacswiki]]
 #+begin_src
   (setq ibuffer-saved-filter-groups
@@ -5317,7 +5319,7 @@ Linebreaks
 	    (lambda ()
 	      (ibuffer-switch-to-saved-filter-groups "default")))
 #+end_src
-* Marginalia
+** Marginalia
 - Marginalia adds annotations like type of completion, short
   documentation etc to the completion candidates
   #+begin_src
@@ -5329,7 +5331,7 @@ Linebreaks
     (marginalia-mode 1)
   #+end_src
 
-* Orderless
+** Orderless
 - divides patterns into space separated components where each
   component can be of different type like literal, string, initials
   etc. The components can appear in any order
@@ -5381,7 +5383,7 @@ Linebreaks
 
 #+end_src
 
-* Vertico
+** Vertico
 - Vertico provides a performant and minimalistic vertical completion
   UI based on the default completion system. The main focus of
   Vertico is to provide a UI which behaves correctly under all
@@ -5416,7 +5418,7 @@ Linebreaks
   #+RESULTS:
   : t
 
-* Which Key
+** Which Key
 - which-key is a minor mode for Emacs that displays the key bindings
   following your currently entered incomplete command (a prefix) in
   a pop-up 
@@ -5427,7 +5429,7 @@ Linebreaks
     (which-key-mode 1)
   #+end_src
 
-* Embark
+** Embark
 - provides a contextual actions on a given target
   - In the minibuffer, the target is the current top completion candidate.
   - In the *Completions* buffer the target is the completion at point.
@@ -5443,7 +5445,7 @@ Linebreaks
     (setq prefix-help-command #'embark-prefix-help-command)
   #+end_src
 
-* Corfu
+** Corfu
 #+begin_src
   (unless (package-installed-p 'corfu)
     (package-refresh-contents)
@@ -5467,7 +5469,7 @@ Linebreaks
   (define-key corfu-map (kbd "S-TAB") 'corfu-previous)
 
 #+end_src
-* Recursive Editing
+** Recursive Editing
 - A “recursive edit” is a situation in which you are using Emacs
   commands to perform arbitrary editing while in the middle of
   another Emacs command.  For example, when you type ‘C-r’ inside of
