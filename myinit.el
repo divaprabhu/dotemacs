@@ -42,9 +42,9 @@
 (setq confirm-nonexistent-file-or-buffer nil) ;; don't ask confirmation
 
 (setq completion-styles '(initials partial-completion flex basic))
-(setq completion-auto-help 'always)
+(setq completion-auto-help t)
 (setq completion-auto-select 'second-tab) 
-(setq completion-cycle-threshold t) ;; always cycle through completion candidates
+(setq completion-cycle-threshold nil) ;; always cycle through completion candidates
 (setq completions-format 'one-column) ;; completion list buffer format
 (setq completions-sort nil) ;; sort candidatate alphabetically
 (setq completions-max-height nil) ;; no height limit for completion list buffer
@@ -92,12 +92,12 @@
       mark-ring-max 512
       global-mark-ring-max 512)
 
-(unless (package-installed-p 'expand-region)
-  (package-refresh-contents)
-  (package-install 'expand-region))
-
-(global-set-key (kbd "C-+") 'er/expand-region)
-(global-set-key (kbd "C-_") 'er/contract-region)
+(use-package expand-region
+  :ensure t
+  :defer t
+  :bind
+  (("C-+" . er/expand-region)
+   ("C-_" . er/contract-region)))
 
 (defun my/kill-region-or-backward-word ()
   (interactive)
@@ -446,9 +446,6 @@
    (add-to-list 'package-archives
 		 '("melpa" . "https://stable.melpa.org/packages/") t))
 
-(unless package-archive-contents
-  (package-refresh-contents))
-
 (use-package modus-themes
   :ensure t
   :defer nil
@@ -483,22 +480,48 @@
   ("C-c l s" . eglot-shutdown)
   ("C-c l i" . eglot-inlay-hints-mode)
   :config
-  (add-to-list 'eglot-server-programs '(python-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
+  (add-to-list 'eglot-server-programs '(python-mode .  ("~/.cache/emacs/lsp/pyright/bin/pyright-langserver" "--stdio"))))
 
-(use-package pyvenv
-  :ensure t
-  ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
-  :hook
-  (python-mode python-ts-mode))
+(defun my/pyrightconfig-write (virtualenv)
+  (interactive "DEnv: ")
+
+  (let* (;; file-truename and tramp-file-local-name ensure that neither `~' nor
+         ;; the Tramp prefix (e.g. "/ssh:my-host:") wind up in the final
+         ;; absolute directory path.
+         (venv-dir (tramp-file-local-name (file-truename virtualenv)))
+
+         ;; Given something like /path/to/.venv/, this strips off the trailing `/'.
+         (venv-file-name (directory-file-name venv-dir))
+
+         ;; Naming convention for venvPath matches the field for
+         ;; pyrightconfig.json.  `file-name-directory' gets us the parent path
+         ;; (one above .venv).
+         (venvPath (file-name-directory venv-file-name))
+
+         ;; Grabs just the `.venv' off the end of the venv-file-name.
+         (venv (file-name-base venv-file-name))
+
+         ;; Eglot demands that `pyrightconfig.json' is in the project root
+         ;; folder.
+         (base-dir (vc-git-root default-directory))
+         (out-file (expand-file-name "pyrightconfig.json" base-dir))
+
+         ;; Finally, get a string with the JSON payload.
+         (out-contents (json-encode (list :venvPath venvPath :venv venv))))
+
+    ;; Emacs uses buffers for everything.  This creates a temp buffer, inserts
+    ;; the JSON payload, then flushes that content to final `pyrightconfig.json'
+    ;; location
+    (with-temp-file out-file (insert out-contents))))
 
 (use-package python
   :ensure nil
   :init
-  (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
+  (let ((pylspdir (expand-file-name "lsp/pyright" user-emacs-directory)))
   (unless (file-directory-p pylspdir)
     (make-directory pylspdir t)
     (shell-command (concat "python3 -m venv " pylspdir))
-    (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))
+    (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip pyright"))))
   :config
   (add-hook 'python-mode-hook 'eglot-ensure)
   (add-hook 'python-ts-mode-hook 'eglot-ensure))

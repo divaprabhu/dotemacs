@@ -3716,13 +3716,10 @@ preceding line.
     (require 'package)
     (if (< emacs-major-version 28)
 	(add-to-list 'package-archives
-		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t)
+		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
-       (add-to-list 'package-archives
-		     '("melpa" . "https://stable.melpa.org/packages/") t))
-
-    (unless package-archive-contents
-      (package-refresh-contents))
+       ;; (add-to-list 'package-archives
+       ;; 		 '("melpa" . "https://stable.melpa.org/packages/") t))
   #+end_src
   
 * Use Package
@@ -3982,6 +3979,7 @@ preceding line.
 #+end_src
 
 * Eglot
+
 - eglot is Emacs LSP client
 - Refer [[*Xref][Xref]]
   #+begin_src emacs-lisp
@@ -4003,34 +4001,61 @@ preceding line.
       ("C-c l s" . eglot-shutdown)
       ("C-c l i" . eglot-inlay-hints-mode)
       :config
-      (add-to-list 'eglot-server-programs '(python-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
+      (add-to-list 'eglot-server-programs '(python-mode .  ("~/.cache/emacs/lsp/pyright/bin/pyright-langserver" "--stdio"))))
 
   #+end_src
 
 ** Python
+[[https://robbmann.io/posts/emacs-eglot-pyrightconfig][Virtual Environments with Eglot, Tramp, and Pyright]]
 #+begin_src emacs-lisp
-  (use-package pyvenv
-    :ensure t
-    ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
-    :hook
-    (python-mode python-ts-mode))
+(defun my/pyrightconfig-write (virtualenv)
+  (interactive "DEnv: ")
+
+  (let* (;; file-truename and tramp-file-local-name ensure that neither `~' nor
+         ;; the Tramp prefix (e.g. "/ssh:my-host:") wind up in the final
+         ;; absolute directory path.
+         (venv-dir (tramp-file-local-name (file-truename virtualenv)))
+
+         ;; Given something like /path/to/.venv/, this strips off the trailing `/'.
+         (venv-file-name (directory-file-name venv-dir))
+
+         ;; Naming convention for venvPath matches the field for
+         ;; pyrightconfig.json.  `file-name-directory' gets us the parent path
+         ;; (one above .venv).
+         (venvPath (file-name-directory venv-file-name))
+
+         ;; Grabs just the `.venv' off the end of the venv-file-name.
+         (venv (file-name-base venv-file-name))
+
+         ;; Eglot demands that `pyrightconfig.json' is in the project root
+         ;; folder.
+         (base-dir (vc-git-root default-directory))
+         (out-file (expand-file-name "pyrightconfig.json" base-dir))
+
+         ;; Finally, get a string with the JSON payload.
+         (out-contents (json-encode (list :venvPath venvPath :venv venv))))
+
+    ;; Emacs uses buffers for everything.  This creates a temp buffer, inserts
+    ;; the JSON payload, then flushes that content to final `pyrightconfig.json'
+    ;; location
+    (with-temp-file out-file (insert out-contents))))
 #+end_src
 
 Create a .dir-locals.el file in root of folder with contents like 
 ((python-mode . ((pyvenv-activate . "~/.cache/venv/project-name"))))
 
 #+begin_src emacs-lisp
-    (use-package python
-      :ensure nil
-      :init
-      (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
-      (unless (file-directory-p pylspdir)
-	(make-directory pylspdir t)
-	(shell-command (concat "python3 -m venv " pylspdir))
-	(shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))
-      :config
-      (add-hook 'python-mode-hook 'eglot-ensure)
-      (add-hook 'python-ts-mode-hook 'eglot-ensure))
+  (use-package python
+    :ensure nil
+    :init
+    (let ((pylspdir (expand-file-name "lsp/pyright" user-emacs-directory)))
+    (unless (file-directory-p pylspdir)
+      (make-directory pylspdir t)
+      (shell-command (concat "python3 -m venv " pylspdir))
+      (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip pyright"))))
+    :config
+    (add-hook 'python-mode-hook 'eglot-ensure)
+    (add-hook 'python-ts-mode-hook 'eglot-ensure))
 #+end_src
 ** C
 #+begin_src
@@ -4168,77 +4193,24 @@ Create a .dir-locals.el file in root of folder with contents like
 
 * Keybindings
 [[http://xahlee.info/emacs/emacs/emacs_keybinding_power_of_keys_sequence.html][Define Key Sequence]]
-#+begin_src
-  (defun my-repeat-command (command)
-    "Repeat COMMAND."
-    (require 'repeat)
-    (let ((repeat-previous-repeated-command  command)
-	  (repeat-message-function           #'ignore)
-	  (last-repeatable-command           'repeat))
-      (repeat nil)))
-  (defun my-other-window (&optional arg)
-    "Repeatable version of other-window"
-    (interactive "P")
-    (my-repeat-command 'other-window))
-  (global-set-key (kbd "M-o") 'my-other-window)
-
-  ;; (global-set-key (kbd "M-<SPC>") ctl-x-map)
-  (define-prefix-command 'my-prefix-map)
-  (global-set-key (kbd "M-<SPC>") 'my-prefix-map)
-
-  (define-key 'my-prefix-map (kbd "<SPC>") 'just-one-space)
-  (define-key 'my-prefix-map (kbd "a") 'my-core-map)
-  (define-key 'my-prefix-map (kbd "e") 'my-embark-map)
-  (define-key 'my-prefix-map (kbd "g") 'my-grep-map)
-  (define-key 'my-prefix-map (kbd "l") 'my-lsp-map)
-  (define-key 'my-prefix-map (kbd "w") 'my-window-map)
-
-  (defalias 'my-core-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "e") 'eshell)
-      (define-key map (kbd "i") 'imenu)
-      (define-key map (kbd "r") 'recentf-open-files)
-      (define-key map (kbd "s") 'shell)
-      (define-key map (kbd "t") 'treemacs)
-      map)
-    "Core Emacs")
-
-  (defalias 'my-grep-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "g") 'grep)
-      (define-key map (kbd "f") 'grep-find)
-      (define-key map (kbd "r") 'rgrep)	; interactive grep-find
-      (define-key map (kbd "z") 'zgrep)
-      map)
-    "Grep")
-
-  (defalias 'my-lsp-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "a") 'eglot-code-actions)
-      (define-key map (kbd "e") 'eglot-events-buffer)
-      (define-key map (kbd "f") 'eglot-format)
-      (define-key map (kbd "r") 'eglot-rename)
-      map)
-    "LSP Eglot")
-
-  (defalias 'my-embark-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "a") 'embark-act)
-      (define-key map (kbd "b") 'embark-become)
-      map)
-    "Embark")
-
-  (defalias 'my-window-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "b") 'my-split-below)
-      (define-key map (kbd "d") 'my-toggle-window-dedication)
-      (define-key map (kbd "o") 'my-other-window)
-      (define-key map (kbd "r") 'my-rotate-windows)
-      (define-key map (kbd "t") 'my-toggle-window-split)
-      map)
-    "Window")
+#+begin_src emacs-lisp
+  (use-package window
+    :ensure nil                           ; built-in
+    :config
+    (repeat-mode 1)
+    :bind
+    (:repeat-map my/window-repeat-map
+		 ;; Defaults:
+		 ("o" . other-window)	; enters the map here
+		 ;; Resizing:
+		 ("K" . enlarge-window)
+		 ("J" . shrink-window)
+		 ("=" . balance-windows)
+		 ;; Adding/Deleting:
+		 ("0" . delete-window)
+		 ("1" . delete-other-windows)))
+  
 #+end_src
-
 
 * LSP Mode
 #+begin_src
