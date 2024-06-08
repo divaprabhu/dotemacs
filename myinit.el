@@ -43,8 +43,8 @@
 
 (setq completion-styles '(initials partial-completion flex basic))
 (setq completion-auto-help t)
-(setq completion-auto-select 'second-tab) 
-(setq completion-cycle-threshold nil) ;; always cycle through completion candidates
+(setq completion-auto-select nil) 
+(setq completion-cycle-threshold 5) ;; always cycle through completion candidates
 (setq completions-format 'one-column) ;; completion list buffer format
 (setq completions-sort nil) ;; sort candidatate alphabetically
 (setq completions-max-height nil) ;; no height limit for completion list buffer
@@ -55,6 +55,7 @@
 ;; Up/down when competing in a normal buffer
 (define-key completion-in-region-mode-map (kbd "M-p") #'minibuffer-previous-completion)
 (define-key completion-in-region-mode-map (kbd "M-n") #'minibuffer-next-completion)
+;; M-RET will select the completion. minibuffer-chose-completion
 
 (setq minibuffer-eldef-shorten-default t)
 
@@ -191,9 +192,13 @@
 (require 'tramp)
 (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
 
+(require 'recentf)
+(recentf-mode 1)			; keybinding in keybindings section toward the end
+
 (setq completion-styles '(initials partial-completion flex basic))
 (if (>= emacs-major-version 29)
     (progn
+      (setq icomplete-in-buffer t)
       (icomplete-vertical-mode 1)
       (fido-vertical-mode 1)))
 
@@ -438,7 +443,7 @@
 
 (add-to-list 'package-archives
 	     '("melpa" . "https://stable.melpa.org/packages/") t)
-(package-initialize)
+(package-initialize)			; make sure to update load-path for downloaded packages
 
 (use-package modus-themes
   :ensure t
@@ -517,3 +522,5 @@
   :bind
   ("C-+" . er/expand-region)
   ("C-_" . er/contract-region))
+
+(setq doc-view-resolution 300)
