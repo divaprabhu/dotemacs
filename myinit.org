@@ -4028,7 +4028,10 @@ Create a .dir-locals.el file in root of folder with contents like
     :ensure t
     ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
     :hook
-    (python-mode python-ts-mode))
+    (python-mode python-ts-mode)
+    :config
+    (setenv "WORKON_HOME" "~/.cache/venvs")
+    (pyvenv-tracking-mode 1))
 
 #+end_src
 #+begin_src emacs-lisp
