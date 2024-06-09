@@ -1,19 +1,3 @@
-(setq user-emacs-directory (expand-file-name "~/.cache/emacs/"))
-(setq custom-file (concat user-emacs-directory "custom.el"))
-(setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
-
-(when (file-exists-p custom-file)
-  (load custom-file))
-(when (boundp 'native-comp-eln-load-path)
-  (setcar native-comp-eln-load-path
-	  (expand-file-name (convert-standard-filename "eln-cache/")
-			    user-emacs-directory)))
-
-(setq inhibit-startup-screen t)
-
-(setq gc-cons-threshold 100000000)
-(setq read-process-output-max (* 1024 1024)) ;; 1mb
-
 (setq message-log-max 100000)
 
 (setq line-move-visual t) ;; C-n C-p move by screenlines
@@ -198,9 +182,11 @@
 (setq completion-styles '(initials partial-completion flex basic))
 (if (>= emacs-major-version 29)
     (progn
-      (setq icomplete-in-buffer t)
       (icomplete-vertical-mode 1)
       (fido-vertical-mode 1)))
+(if (>= emacs-major-version 30)
+    (progn
+      (setq icomplete-in-buffer t)))
 
 (setq help-window-select t ;; select help window
       ;; in strongly dedicate windows behave like pop-to-buffer
@@ -341,6 +327,22 @@
 (setq hs-isearch-open t
       hs-hide-comments-when-hiding-all t)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
+
+(if (>= emacs-major-version 30)
+  (progn
+    (require 'completion-preview)
+    (add-hook 'prog-mode-hook #'completion-preview-mode)
+    (add-hook 'text-mode-hook #'completion-preview-mode)
+    (add-hook 'comint-mode-hook #'completion-preview-mode)
+    ;; Show the preview already after two symbol characters
+    (setq completion-preview-minimum-symbol-length 2)
+    ;; Org mode has a custom `self-insert-command'
+    (push 'org-self-insert-command completion-preview-commands)
+    ;; Cycle the completion candidate that the preview shows
+    (keymap-set completion-preview-active-mode-map "M-n" #'completion-preview-next-candidate)
+    (keymap-set completion-preview-active-mode-map "M-p" #'completion-preview-prev-candidate)
+    ;; Convenient alternative to C-i or TAB after typing one of the above
+    (keymap-set completion-preview-active-mode-map "M-i" #'completion-preview-insert)))
 
 (add-hook 'prog-mode-hook 'superword-mode)
 
