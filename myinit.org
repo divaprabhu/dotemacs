@@ -975,30 +975,31 @@
 #+end_src
 *** DOOM Modeline
 #+begin_src
-      (unless (package-installed-p 'doom-modeline)
-	(package-refresh-contents)
-	(package-install 'doom-modeline))
-      (require 'doom-modeline)
-      (setq doom-modeline-support-imenu t
-	    doom-modeline-height 20
-	    doom-modeline-bar-width 5   ; used to show HUD
-	    doom-modeline-hud t         ; small graphical indicator showing position in current buffer
-	    doom-modeline-window-width-limit 0.25
-	    doom-modeline-project-detection 'auto
-	    doom-modeline-buffer-file-name-style 'truncate-with-project
-	    doom-modeline-icon nil
-	    doom-modeline-unicode-fallback nil
-	    doom-modeline-minor-modes nil
-	    doom-modeline-enable-word-count t
-	    doom-modeline-buffer-encoding t
-	    doom-modeline-indent-info t
-	    doom-modeline-vcs-max-length 8
-	    doom-modeline-lsp t
-	    doom-modeline-gnus t
-	    doom-modeline-gnus-timer 60
-	    doom-modeline-env-version t)
-      (doom-modeline-mode 1)
-
+  (use-package doom-modeline
+    :ensure t
+    :config
+    (setq doom-modeline-support-imenu t
+	  doom-modeline-height 20
+	  doom-modeline-bar-width 5
+	  doom-modeline-hud t    ; small graphical indicator showing position in current buffer
+	  doom-modeline-window-width-limit 0.25
+	  doom-modeline-project-detection 'auto
+	  doom-modeline-buffer-file-name-style 'truncate-with-project
+	  doom-modeline-icon nil
+	  doom-modeline-unicode-fallback nil
+	  doom-modeline-buffer-name t
+	  doom-modeline-highlight-modified-buffer-name t
+	  doom-modeline-column-zero-based t
+	  doom-modeline-minor-modes t
+	  doom-modeline-enable-word-count t
+	  doom-modeline-buffer-encoding t
+	  doom-modeline-indent-info t
+	  doom-modeline-total-line-number t
+	  doom-modeline-vcs-max-length 8
+	  doom-modeline-lsp t
+	  doom-modeline-display-misc-in-all-mode-lines t
+	  doom-modeline-env-version t)
+    (doom-modeline-mode 1))
 #+end_src
 ** Cursor
 |-----------------------+-----------------------------------------------|
@@ -3943,7 +3944,6 @@ preceding line.
 ** Mods
 #+begin_src emacs-lisp
   (use-package modus-themes
-    :ensure t
     :defer nil
     :custom
     (modus-themes-inhibit-reload nil "reload active theme when an option is changed through the Customize UI")
@@ -3965,7 +3965,6 @@ preceding line.
 - Refer [[*Xref][Xref]]
   #+begin_src emacs-lisp
 	(use-package eglot
-	  :ensure nil
 	  :custom
 	  (eglot-autoreconnect t "Automatically reconnect to LSP server")
 	  (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
@@ -4022,7 +4021,7 @@ preceding line.
 #+end_src
 
 Create a .dir-locals.el file in root of folder with contents like 
-((python-mode . ((pyvenv-activate . "~/.cache/venvs/project-name"))))
+((python-mode . ((pyvenv-workon . "pyspark"))))
 #+begin_src emacs-lisp
   (use-package pyvenv
     :ensure t
@@ -4036,7 +4035,6 @@ Create a .dir-locals.el file in root of folder with contents like
 #+end_src
 #+begin_src emacs-lisp
   (use-package python
-    :ensure nil
     :init
     (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
       (unless (file-directory-p pylspdir)
@@ -4186,7 +4184,6 @@ Create a .dir-locals.el file in root of folder with contents like
 [[https://github.com/jwiegley/use-package/issues/964][use-package repeat mode maps]]
 #+begin_src emacs-lisp
   (use-package window
-    :ensure nil                           ; built-in
     :config
     (repeat-mode 1)
     :bind

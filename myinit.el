@@ -448,7 +448,7 @@
 (package-initialize)			; make sure to update load-path for downloaded packages
 
 (use-package modus-themes
-  :ensure t
+  :ensure nil
   :defer nil
   :custom
   (modus-themes-inhibit-reload nil "reload active theme when an option is changed through the Customize UI")
@@ -487,7 +487,10 @@
   :ensure t
   ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
   :hook
-  (python-mode python-ts-mode))
+  (python-mode python-ts-mode)
+  :config
+  (setenv "WORKON_HOME" "~/.cache/venvs")
+  (pyvenv-tracking-mode 1))
 
 (use-package python
   :ensure nil
