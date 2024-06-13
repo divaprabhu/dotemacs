@@ -278,6 +278,9 @@
 
 (tooltip-mode -1)
 
+(setq frame-title-format '(multiple-frames "%b"
+	       ("" "%b")))
+
 (setq tab-always-indent 'complete)
 ;; distance between tab stops in columns. control width of tab characters to display
 ;; it should be positive integer and default is 8
@@ -448,7 +451,6 @@
 (package-initialize)			; make sure to update load-path for downloaded packages
 
 (use-package modus-themes
-  :ensure nil
   :defer nil
   :custom
   (modus-themes-inhibit-reload nil "reload active theme when an option is changed through the Customize UI")
@@ -464,7 +466,6 @@
   (load-theme 'modus-vivendi t))
 
 (use-package eglot
-  :ensure nil
   :custom
   (eglot-autoreconnect t "Automatically reconnect to LSP server")
   (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
@@ -493,7 +494,6 @@
   (pyvenv-tracking-mode 1))
 
 (use-package python
-  :ensure nil
   :init
   (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
     (unless (file-directory-p pylspdir)
@@ -505,7 +505,6 @@
   (add-hook 'python-ts-mode-hook 'eglot-ensure))
 
 (use-package window
-  :ensure nil                           ; built-in
   :config
   (repeat-mode 1)
   :bind

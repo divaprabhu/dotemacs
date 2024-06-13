@@ -2110,6 +2110,12 @@
       (w32-send-sys-command 61488)))
   (add-hook 'window-setup-hook 'maximize-frame t)
 #+end_src
+** Frame Title
+#+begin_src emacs-lisp
+  (setq frame-title-format '(multiple-frames "%b"
+		 ("" "%b")))
+
+#+end_src
 * Modes
 A mode is a set of definitions that customize Emacs behavior in
 useful ways. There are two varieties of modes: minor modes, which
