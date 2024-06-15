@@ -1299,6 +1299,8 @@
 | *C-.*                  |      | flyspell-auto-correct-word                             |
 | *C-c $*                |      | flyspell-correct-word-before-point                     |
 |                        |      | display a popup of possible corrections                |
+| *C-,*                  |      | flyspell-goto-next-error                               |
+|                        |      | goto previous error with prefix                        |
 |------------------------+------+--------------------------------------------------------|
 
 - enable automatic spell check in text mode
@@ -2693,7 +2695,8 @@ preceding line.
 |-------------------------------------+--------------------------------------------------|
 #+begin_src emacs-lisp
   (setq eldoc-echo-area-display-truncation-message t
-	eldoc-echo-area-use-multiline-p t
+	eldoc-idle-delay 0.5
+	eldoc-echo-area-use-multiline-p nil
 	eldoc-echo-area-prefer-doc-buffer t)
   (global-eldoc-mode 1)
 #+end_src

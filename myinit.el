@@ -325,7 +325,8 @@
 (add-hook 'prog-mode-hook 'electric-pair-local-mode)
 
 (setq eldoc-echo-area-display-truncation-message t
-      eldoc-echo-area-use-multiline-p t
+      eldoc-idle-delay 0.5
+      eldoc-echo-area-use-multiline-p nil
       eldoc-echo-area-prefer-doc-buffer t)
 (global-eldoc-mode 1)
 
