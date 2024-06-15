@@ -1,7 +1,6 @@
 ;;; initialization
 
 (setq user-emacs-directory (expand-file-name "~/.cache/emacs/"))
-(setq custom-file (concat user-emacs-directory "custom.el"))
 (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
 
 
@@ -13,9 +12,6 @@
 
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
-
-(when (file-exists-p custom-file)
-  (load custom-file))
 
 (require 'package)
 (if (< emacs-major-version 28)

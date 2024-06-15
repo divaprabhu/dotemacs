@@ -477,13 +477,14 @@
   ("C-c l s" . eglot-shutdown)
   ("C-c l i" . eglot-inlay-hints-mode)
   :config
-  (add-to-list 'eglot-server-programs '(python-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
+  (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
+  ;; (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/basedpyright/bin/basedpyright-langserver" "--stdio"))))
 
 (use-package pyvenv
   :ensure t
   ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
   :hook
-  (python-mode python-ts-mode)
+  (python-base-mode)
   :config
   (setenv "WORKON_HOME" "~/.cache/venvs")
   (pyvenv-tracking-mode 1))
@@ -496,8 +497,7 @@
       (shell-command (concat "python3 -m venv " pylspdir))
       (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))
   :config
-  (add-hook 'python-mode-hook 'eglot-ensure)
-  (add-hook 'python-ts-mode-hook 'eglot-ensure))
+  (add-hook 'python-base-mode-hook 'eglot-ensure))
 
 (use-package window
   :config
@@ -521,5 +521,9 @@
   :bind
   ("C-+" . er/expand-region)
   ("C-_" . er/contract-region))
+
+(setq custom-file (concat user-emacs-directory "custom.el"))
+(when (file-exists-p custom-file)
+  (load custom-file))
 
 (setq doc-view-resolution 300)

@@ -3982,24 +3982,25 @@ preceding line.
 - eglot is Emacs LSP client
 - Refer [[*Xref][Xref]]
   #+begin_src emacs-lisp
-	(use-package eglot
-	  :custom
-	  (eglot-autoreconnect t "Automatically reconnect to LSP server")
-	  (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
-	  (eglot-confirm-server-initiated-edits nil "don't confirm server initiated edits with user")
-	  (eglot-extend-to-xref t "activate eglot in non-project cross-referenced files")
-	  :bind
-	  ("C-c l a" . eglot-code-actions)
-	  ("C-c l e" . eglot-events-buffer)
-	  ("C-c l r" . eglot-rename)
-	  ("C-c l f f" . eglot-format)
-	  ("C-c l f b" . eglot-format-buffer)
-	  ("C-c l l" . eglot)
-	  ("C-c l c" . eglot-reconnect)
-	  ("C-c l s" . eglot-shutdown)
-	  ("C-c l i" . eglot-inlay-hints-mode)
-	  :config
-	  (add-to-list 'eglot-server-programs '(python-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
+    (use-package eglot
+      :custom
+      (eglot-autoreconnect t "Automatically reconnect to LSP server")
+      (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
+      (eglot-confirm-server-initiated-edits nil "don't confirm server initiated edits with user")
+      (eglot-extend-to-xref t "activate eglot in non-project cross-referenced files")
+      :bind
+      ("C-c l a" . eglot-code-actions)
+      ("C-c l e" . eglot-events-buffer)
+      ("C-c l r" . eglot-rename)
+      ("C-c l f f" . eglot-format)
+      ("C-c l f b" . eglot-format-buffer)
+      ("C-c l l" . eglot)
+      ("C-c l c" . eglot-reconnect)
+      ("C-c l s" . eglot-shutdown)
+      ("C-c l i" . eglot-inlay-hints-mode)
+      :config
+      (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
+      ;; (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/basedpyright/bin/basedpyright-langserver" "--stdio"))))
   #+end_src
 
 ** Python
@@ -4039,13 +4040,13 @@ preceding line.
 #+end_src
 
 Create a .dir-locals.el file in root of folder with contents like 
-((python-mode . ((pyvenv-workon . "pyspark"))))
+((python-base-mode . ((pyvenv-workon . "pyspark"))))
 #+begin_src emacs-lisp
   (use-package pyvenv
     :ensure t
     ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
     :hook
-    (python-mode python-ts-mode)
+    (python-base-mode)
     :config
     (setenv "WORKON_HOME" "~/.cache/venvs")
     (pyvenv-tracking-mode 1))
@@ -4060,8 +4061,7 @@ Create a .dir-locals.el file in root of folder with contents like
 	(shell-command (concat "python3 -m venv " pylspdir))
 	(shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))
     :config
-    (add-hook 'python-mode-hook 'eglot-ensure)
-    (add-hook 'python-ts-mode-hook 'eglot-ensure))
+    (add-hook 'python-base-mode-hook 'eglot-ensure))
 #+end_src
 ** C
 #+begin_src
@@ -4231,6 +4231,12 @@ Create a .dir-locals.el file in root of folder with contents like
       ("C-+" . er/expand-region)
       ("C-_" . er/contract-region))
   #+end_src
+* Custom File
+#+begin_src emacs-lisp
+  (setq custom-file (concat user-emacs-directory "custom.el"))
+  (when (file-exists-p custom-file)
+    (load custom-file))
+#+end_src
 
 * Unused
 ** LSP Mode
@@ -4268,7 +4274,7 @@ Create a .dir-locals.el file in root of folder with contents like
     (unless (package-installed-p 'pyvenv)
       (package-refresh-contents)
       (package-install 'pyvenv))
-    (add-hook 'python-mode-hook #'lsp-deferred)
+    (add-hook 'python-base-mode-hook #'lsp-deferred)
 #+end_src
 
 *** Java
@@ -5313,7 +5319,7 @@ Linebreaks
 	   ("dired" (mode . dired-mode))
 	   ("perl" (mode . cperl-mode))
 	   ("c" (mode . c-mode))
-	   ("python" (mode . python-mode))
+	   ("python" (mode . python-base-mode))
 	   ("org" (mode . org-mode))
 	   ("vc" (or
 		  (name . "vc-.*")
@@ -5342,6 +5348,7 @@ Linebreaks
     (unless (package-installed-p 'marginalia)
       (package-refresh-contents)
       (package-install 'marginalia))
+    
     (require 'marginalia)
     (setq marginalia-max-relative-age 0)
     (marginalia-mode 1)
