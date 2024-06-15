@@ -4222,6 +4222,9 @@ Create a .dir-locals.el file in root of folder with contents like
     (repeat-mode 1)
     :bind
     ("M-o" . other-window)
+    ("C-c t t" . term)
+    ("C-c t s" . shell)
+    ("C-c t e" . eshell)
     (:repeat-map my/window-repeat-map
 		 ;; Defaults:
 		 ("o" . other-window)	; enters the map here
@@ -4252,6 +4255,116 @@ Create a .dir-locals.el file in root of folder with contents like
   (setq custom-file (concat user-emacs-directory "custom.el"))
   (when (file-exists-p custom-file)
     (load custom-file))
+#+end_src
+
+* Ibuffer
+[[https://www.youtube.com/watch?v=6KN_oSLFf-k][Youtube]]
+|---------+------------------------------------------------------------------------|
+| *RET*   | open buffer at point                                                   |
+| *o*     | open buffer at point in other window                                   |
+| *C-o*   | open buffer at point in other window but don't select it               |
+|---------+------------------------------------------------------------------------|
+| */n*    | filter buffer list by buffer name                                      |
+| */m*    | filter buffer by major mode                                            |
+| */f*    | filter by file path                                                    |
+| */c*    | filter by buffer content                                               |
+| */<*    | filter by buffer size                                                  |
+| */>*    | filter by buffer size                                                  |
+| */!*    | invert the last filter                                                 |
+| *//*    | clear filter                                                           |
+|---------+------------------------------------------------------------------------|
+| */g*    | create a filter group from active filters                              |
+| */\*    | remove all active filters                                              |
+| *TAB*   | move to next filter group                                              |
+| *S-TAB* | move to previous filter group                                          |
+| */S*    | save current group with name (goes to custom.el)                       |
+| */R*    | restore previously saved group                                         |
+| */X*    | delete previous saved group                                            |
+|---------+------------------------------------------------------------------------|
+| *s f*   | sort by filename                                                       |
+| *s v*   | sort by last viewed time                                               |
+| *s m*   | sort by major mode                                                     |
+| *s s*   | sort by size                                                           |
+| *s i*   | sort in inverse                                                        |
+| *,*     | rotate between different sorting                                       |
+|---------+------------------------------------------------------------------------|
+| *g*     | refresh buffer                                                         |
+| *m*     | mark buffer                                                            |
+| *k*     | remove marked items from list (don't actually kill buffers)            |
+| *t*     | toggle mark (marked items become unmarked and unmarked becomes marked) |
+| **n*    | mark by name using regexp                                              |
+| **m*    | mark by mode using regexp                                              |
+| **f*    | mark by file path using regexp                                         |
+| *u*     | unmark buffer at point                                                 |
+| *U*     | unmark all marks                                                       |
+| *O*     | search regexp in all marked buffer in occur mode                       |
+| *s*     | sort buffer                                                            |
+|---------+------------------------------------------------------------------------|
+| *A*     | view marked buffers                                                    |
+| *S*     | save marked buffers                                                    |
+| *D*     | kill marked buffers                                                    |
+| *V*     | revert marked buffers                                                  |
+|---------+------------------------------------------------------------------------|
+
+#+begin_src emacs-lisp
+  (require 'ibuffer)
+  (setq ibuffer-expert t
+	ibuffer-display-summary nil
+	ibuffer-use-other-window nil
+	ibuffer-show-empty-filter-groups nil
+	ibuffer-movement-cycle nil
+	ibuffer-default-sorting-mode 'filename/process
+	ibuffer-use-header-line t
+	ibuffer-default-shrink-to-minimum-size nil
+	ibuffer-formats
+	'((mark modified read-only locked " "
+		(name 40 40 :left :elide)
+		" "
+		(size 9 -1 :right)
+		" "
+		(mode 16 16 :left :elide)
+		" " filename-and-process)
+	  (mark " "
+		(name 16 -1)
+		" " filename))
+	ibuffer-saved-filter-groups nil
+	ibuffer-old-time 48)
+  (define-key ibuffer-mode-map (kbd "* f") #'ibuffer-mark-by-file-name-regexp)
+  (define-key ibuffer-mode-map (kbd "* g") #'ibuffer-mark-by-content-regexp) ; "g" is for "grep"
+  (define-key ibuffer-mode-map (kbd "* n") #'ibuffer-mark-by-name-regexp)
+  (define-key ibuffer-mode-map (kbd "s n") #'ibuffer-do-sort-by-alphabetic)  ; "sort name" mnemonic
+  (define-key ibuffer-mode-map (kbd "/ g") #'ibuffer-filter-by-content)
+  (define-key ctl-x-map (kbd "C-b") 'ibuffer-jump)
+#+end_src
+*** Grouping
+[[https://www.emacswiki.org/emacs/IbufferMode][emacswiki]]
+#+begin_src
+  (setq ibuffer-saved-filter-groups
+	'(("default"
+	   ("dired" (mode . dired-mode))
+	   ("perl" (mode . cperl-mode))
+	   ("c" (mode . c-mode))
+	   ("python" (mode . python-base-mode))
+	   ("org" (mode . org-mode))
+	   ("vc" (or
+		  (name . "vc-.*")
+		  (name . "^\\*log-edit-files\\*$")))
+	   ("emacs" (or
+		     (name . "^\\*scratch\\*$")
+		     (name . "^\\*Messages\\*$")))
+	   ("svg" (name . "\\.svg")) ; group by file extension
+	   ("gnus" (or
+		    (mode . message-mode)
+		    (mode . bbdb-mode)
+		    (mode . mail-mode)
+		    (mode . gnus-group-mode)
+		    (mode . gnus-summary-mode)
+		    (mode . gnus-article-mode)
+		    (name . "^\\.bbdb$")
+		    (name . "^\\.newsrc-dribble"))))))
+  (add-hook 'ibuffer-mode-hook
+	    (lambda ()
+	      (ibuffer-switch-to-saved-filter-groups "default")))
 #+end_src
 
 * Unused
@@ -5248,115 +5361,6 @@ Linebreaks
 
   #+end_src
 
-** Ibuffer
-[[https://www.youtube.com/watch?v=6KN_oSLFf-k][Youtube]]
-|---------+------------------------------------------------------------------------|
-| *RET*   | open buffer at point                                                   |
-| *o*     | open buffer at point in other window                                   |
-| *C-o*   | open buffer at point in other window but don't select it               |
-|---------+------------------------------------------------------------------------|
-| */n*    | filter buffer list by buffer name                                      |
-| */m*    | filter buffer by major mode                                            |
-| */f*    | filter by file path                                                    |
-| */c*    | filter by buffer content                                               |
-| */<*    | filter by buffer size                                                  |
-| */>*    | filter by buffer size                                                  |
-| */!*    | invert the last filter                                                 |
-| *//*    | clear filter                                                           |
-|---------+------------------------------------------------------------------------|
-| */g*    | create a filter group from active filters                              |
-| */\*    | remove all active filters                                              |
-| *TAB*   | move to next filter group                                              |
-| *S-TAB* | move to previous filter group                                          |
-| */S*    | save current group with name (goes to custom.el)                       |
-| */R*    | restore previously saved group                                         |
-| */X*    | delete previous saved group                                            |
-|---------+------------------------------------------------------------------------|
-| *s f*   | sort by filename                                                       |
-| *s v*   | sort by last viewed time                                               |
-| *s m*   | sort by major mode                                                     |
-| *s s*   | sort by size                                                           |
-| *s i*   | sort in inverse                                                        |
-| *,*     | rotate between different sorting                                       |
-|---------+------------------------------------------------------------------------|
-| *g*     | refresh buffer                                                         |
-| *m*     | mark buffer                                                            |
-| *k*     | remove marked items from list (don't actually kill buffers)            |
-| *t*     | toggle mark (marked items become unmarked and unmarked becomes marked) |
-| **n*    | mark by name using regexp                                              |
-| **m*    | mark by mode using regexp                                              |
-| **f*    | mark by file path using regexp                                         |
-| *u*     | unmark buffer at point                                                 |
-| *U*     | unmark all marks                                                       |
-| *O*     | search regexp in all marked buffer in occur mode                       |
-| *s*     | sort buffer                                                            |
-|---------+------------------------------------------------------------------------|
-| *A*     | view marked buffers                                                    |
-| *S*     | save marked buffers                                                    |
-| *D*     | kill marked buffers                                                    |
-| *V*     | revert marked buffers                                                  |
-|---------+------------------------------------------------------------------------|
-
-#+begin_src
-  (require 'ibuffer)
-  (setq ibuffer-expert t
-	ibuffer-display-summary nil
-	ibuffer-use-other-window nil
-	ibuffer-show-empty-filter-groups nil
-	ibuffer-movement-cycle nil
-	ibuffer-default-sorting-mode 'filename/process
-	ibuffer-use-header-line t
-	ibuffer-default-shrink-to-minimum-size nil
-	ibuffer-formats
-	'((mark modified read-only locked " "
-		(name 40 40 :left :elide)
-		" "
-		(size 9 -1 :right)
-		" "
-		(mode 16 16 :left :elide)
-		" " filename-and-process)
-	  (mark " "
-		(name 16 -1)
-		" " filename))
-	ibuffer-saved-filter-groups nil
-	ibuffer-old-time 48)
-  (define-key ibuffer-mode-map (kbd "* f") #'ibuffer-mark-by-file-name-regexp)
-  (define-key ibuffer-mode-map (kbd "* g") #'ibuffer-mark-by-content-regexp) ; "g" is for "grep"
-  (define-key ibuffer-mode-map (kbd "* n") #'ibuffer-mark-by-name-regexp)
-  (define-key ibuffer-mode-map (kbd "s n") #'ibuffer-do-sort-by-alphabetic)  ; "sort name" mnemonic
-  (define-key ibuffer-mode-map (kbd "/ g") #'ibuffer-filter-by-content)
-  (define-key ctl-x-map (kbd "C-b") 'ibuffer)
-#+end_src
-*** Grouping
-[[https://www.emacswiki.org/emacs/IbufferMode][emacswiki]]
-#+begin_src
-  (setq ibuffer-saved-filter-groups
-	'(("default"
-	   ("dired" (mode . dired-mode))
-	   ("perl" (mode . cperl-mode))
-	   ("c" (mode . c-mode))
-	   ("python" (mode . python-base-mode))
-	   ("org" (mode . org-mode))
-	   ("vc" (or
-		  (name . "vc-.*")
-		  (name . "^\\*log-edit-files\\*$")))
-	   ("emacs" (or
-		     (name . "^\\*scratch\\*$")
-		     (name . "^\\*Messages\\*$")))
-	   ("svg" (name . "\\.svg")) ; group by file extension
-	   ("gnus" (or
-		    (mode . message-mode)
-		    (mode . bbdb-mode)
-		    (mode . mail-mode)
-		    (mode . gnus-group-mode)
-		    (mode . gnus-summary-mode)
-		    (mode . gnus-article-mode)
-		    (name . "^\\.bbdb$")
-		    (name . "^\\.newsrc-dribble"))))))
-  (add-hook 'ibuffer-mode-hook
-	    (lambda ()
-	      (ibuffer-switch-to-saved-filter-groups "default")))
-#+end_src
 ** Marginalia
 - Marginalia adds annotations like type of completion, short
   documentation etc to the completion candidates

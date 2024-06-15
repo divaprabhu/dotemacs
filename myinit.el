@@ -543,4 +543,33 @@
 (when (file-exists-p custom-file)
   (load custom-file))
 
+(require 'ibuffer)
+(setq ibuffer-expert t
+      ibuffer-display-summary nil
+      ibuffer-use-other-window nil
+      ibuffer-show-empty-filter-groups nil
+      ibuffer-movement-cycle nil
+      ibuffer-default-sorting-mode 'filename/process
+      ibuffer-use-header-line t
+      ibuffer-default-shrink-to-minimum-size nil
+      ibuffer-formats
+      '((mark modified read-only locked " "
+	      (name 40 40 :left :elide)
+	      " "
+	      (size 9 -1 :right)
+	      " "
+	      (mode 16 16 :left :elide)
+	      " " filename-and-process)
+	(mark " "
+	      (name 16 -1)
+	      " " filename))
+      ibuffer-saved-filter-groups nil
+      ibuffer-old-time 48)
+(define-key ibuffer-mode-map (kbd "* f") #'ibuffer-mark-by-file-name-regexp)
+(define-key ibuffer-mode-map (kbd "* g") #'ibuffer-mark-by-content-regexp) ; "g" is for "grep"
+(define-key ibuffer-mode-map (kbd "* n") #'ibuffer-mark-by-name-regexp)
+(define-key ibuffer-mode-map (kbd "s n") #'ibuffer-do-sort-by-alphabetic)  ; "sort name" mnemonic
+(define-key ibuffer-mode-map (kbd "/ g") #'ibuffer-filter-by-content)
+(define-key ctl-x-map (kbd "C-b") 'ibuffer-jump)
+
 (setq doc-view-resolution 300)
