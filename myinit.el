@@ -441,15 +441,6 @@
 (setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
 (setq save-place-forget-unreadable-files t) ; set to nil if emacs is slow to exit
 
-(require 'package)
-(if (< emacs-major-version 28)
-    (add-to-list 'package-archives
-		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
-
-(add-to-list 'package-archives
-	     '("melpa" . "https://stable.melpa.org/packages/") t)
-(package-initialize)			; make sure to update load-path for downloaded packages
-
 (use-package modus-themes
   :defer nil
   :custom

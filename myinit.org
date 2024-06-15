@@ -11,6 +11,10 @@
 |                             |            | in GUI)                                    |
 | *M-x recover-file*          | *:e!*      | recover from autosave file                 |
 |-----------------------------+------------+--------------------------------------------|
+#+begin_src emacs-lisp
+  (setq inhibit-startup-screen t)
+#+end_src
+
 ** Prompts
 |-----+-------------------------|
 | y   | save this file          |
@@ -21,7 +25,6 @@
 | C-r | view this file          |
 | C-h | display help            |
 |-----+-------------------------|
-
 * Editing
 - POINT is before cursor position
 - REGION is all chars between MARK and POINT
@@ -100,10 +103,11 @@
 |----------+-----------+---------------------------------------|
 
 ** Undo
-|-----------------------------------+-------+------|
-| C-x u OR C-_ or *C-/*             | *u*   | undo |
-| *C-g C-/* OR C-g C-_ OR C-g C-x u | *C-r* | redo |
-|-----------------------------------+-------+------|
+|-----------------------------------+-------+-----------|
+| C-x u OR C-_ or *C-/*             | *u*   | undo      |
+| *C-g C-/* OR C-g C-_ OR C-g C-x u | *C-r* | redo      |
+| *C-?* (Emacs > 28)                |       | undo-redo |
+|-----------------------------------+-------+-----------|
 
 ** Blank lines
 |-----------+-----+-------------------------------------------------------------------------|
@@ -259,6 +263,7 @@
 #+begin_src emacs-lisp
   (setq use-short-answers t)
 #+end_src
+
 * Execute command
 |-----+--------------------------|
 | M-x | execute-extended-command |
@@ -1000,6 +1005,19 @@
 	  doom-modeline-display-misc-in-all-mode-lines t
 	  doom-modeline-env-version t)
     (doom-modeline-mode 1))
+#+end_src
+*** Nano Modeline
+#+begin_src
+  (use-package nano-modeline
+    :ensure t
+    :config
+    (add-hook 'prog-mode-hook            #'nano-modeline-prog-mode)
+    (add-hook 'text-mode-hook            #'nano-modeline-text-mode)
+    (add-hook 'org-mode-hook             #'nano-modeline-org-mode)
+    (add-hook 'pdf-view-mode-hook        #'nano-modeline-pdf-mode)
+    (add-hook 'term-mode-hook            #'nano-modeline-term-mode)
+    (add-hook 'messages-buffer-mode-hook #'nano-modeline-message-mode))
+
 #+end_src
 ** Cursor
 |-----------------------+-----------------------------------------------|
@@ -3699,16 +3717,6 @@ preceding line.
   | 'package-user-dir'               | location where package files are placed                                  |
   | 'package-directory-list'         | used for system-wide packages                                            |
   |----------------------------------+--------------------------------------------------------------------------|
-  #+begin_src emacs-lisp
-    (require 'package)
-    (if (< emacs-major-version 28)
-	(add-to-list 'package-archives
-		     '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
-
-    (add-to-list 'package-archives
-		 '("melpa" . "https://stable.melpa.org/packages/") t)
-    (package-initialize)			; make sure to update load-path for downloaded packages
-  #+end_src
 
 * Use Package
 - declarative way to setup package
