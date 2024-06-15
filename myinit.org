@@ -3978,29 +3978,33 @@ preceding line.
 #+end_src
 
 * Eglot
-
 - eglot is Emacs LSP client
 - Refer [[*Xref][Xref]]
   #+begin_src emacs-lisp
     (use-package eglot
       :custom
       (eglot-autoreconnect t "Automatically reconnect to LSP server")
-      (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
+      (eglot-connect-timeout 30 "Time out connection attempt after specified seconds")
+      (eglot-sync-connect nil "Don't block Emacs user interface when connecting")
+      (eglot-events-buffer-size 200000000 "Max number of chars on event buffer")
+      (eglot-autoshutdown t "Shutdown language server when last buffer managed by it is killed")
       (eglot-confirm-server-initiated-edits nil "don't confirm server initiated edits with user")
+      (eglot-ignored-server-capabilities nil "LSP capabilities that should not be used")
       (eglot-extend-to-xref t "activate eglot in non-project cross-referenced files")
+      (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
       :bind
       ("C-c l a" . eglot-code-actions)
-      ("C-c l e" . eglot-events-buffer)
-      ("C-c l r" . eglot-rename)
-      ("C-c l f f" . eglot-format)
-      ("C-c l f b" . eglot-format-buffer)
-      ("C-c l l" . eglot)
       ("C-c l c" . eglot-reconnect)
-      ("C-c l s" . eglot-shutdown)
-      ("C-c l i" . eglot-inlay-hints-mode)
+      ("C-c l b e" . eglot-events-buffer)
+      ("C-c l b s" . eglot-stderr-buffer)
+      ("C-c l f b" . eglot-format-buffer)
+      ("C-c l f f" . eglot-format)
+      ("C-c l l" . eglot)
+      ("C-c l r" . eglot-rename)
+      ("C-c l s" . eglot-shutdown-all)
       :config
       (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
-      ;; (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/basedpyright/bin/basedpyright-langserver" "--stdio"))))
+    ;; (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/basedpyright/bin/basedpyright-langserver" "--stdio"))))
   #+end_src
 
 ** Python
@@ -4061,7 +4065,19 @@ Create a .dir-locals.el file in root of folder with contents like
 	(shell-command (concat "python3 -m venv " pylspdir))
 	(shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))
     :config
-    (add-hook 'python-base-mode-hook 'eglot-ensure))
+    (add-hook 'python-base-mode-hook 'eglot-ensure)
+    :bind
+    ("C-c C-c" . python-shell-send-buffer)
+    ("C-c C-e" . python-shell-send-statement)
+    ("C-c C-r" . python-shell-send-region)
+    ("C-c C-p" . run-python)
+    ("C-c C-z" . python-shell-switch-to-shell)
+    ("C-c C-t c" . python-skeleton-class)
+    ("C-c C-t d" . python-skeleton-def)
+    ("C-c C-t f" . python-skeleton-for)
+    ("C-c C-t i" . python-skeleton-if)
+    ("C-c C-t t" . python-skeleton-import)
+    ("C-c C-t w" . python-skeleton-while))
 #+end_src
 ** C
 #+begin_src
