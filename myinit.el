@@ -1,5 +1,7 @@
 (setq message-log-max 100000)
 
+(setq inhibit-startup-screen t)
+
 (setq line-move-visual t) ;; C-n C-p move by screenlines
 (setq track-eol nil) ;; don't track end of line when moving
 (setq next-line-add-newline nil) ;; C-n at the end of buffer won't add new lines
@@ -422,6 +424,7 @@
       shell-command-prompt-show-cwd t)
 
 (setq desktop-restore-eager 2
+      desktop-lazy-idle-delay 2
       desktop-load-locked-desktop 'ask
       desktop-restore-frames 1
       desktop-save t
@@ -431,7 +434,7 @@
       desktop-globals-to-save
       '(desktop-missing-file-warning tags-file-name tags-table-list search-ring regexp-search-ring register-alist file-name-history)
       desktop-locals-to-save
-      '(eww-history-position desktop-locals-to-save truncate-lines case-fold-search case-replace fill-column overwrite-mode change-log-default-name line-number-mode column-number-mode size-indication-mode buffer-file-coding-system buffer-display-time indent-tabs-mode tab-width indicate-buffer-boundaries indicate-empty-lines show-trailing-whitespace))
+      '(buffer-undo-list eww-history-position desktop-locals-to-save truncate-lines case-fold-search case-replace fill-column overwrite-mode change-log-default-name line-number-mode column-number-mode size-indication-mode buffer-file-coding-system buffer-display-time indent-tabs-mode tab-width indicate-buffer-boundaries indicate-empty-lines show-trailing-whitespace))
 (desktop-save-mode t)
 
 (setq savehist-file (expand-file-name "savehist" user-emacs-directory))
