@@ -482,7 +482,11 @@
   ("C-c l r" . eglot-rename)
   ("C-c l s" . eglot-shutdown-all)
   :config
-  (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
+  (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/bin"))))
+;;   :config
+;;
+;; (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
+
 ;; (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/basedpyright/bin/basedpyright-langserver" "--stdio"))))
 
 (use-package pyvenv
@@ -516,11 +520,19 @@
   ("C-c C-t t" . python-skeleton-import)
   ("C-c C-t w" . python-skeleton-while))
 
+(use-package slime
+  :ensure t
+  :config
+  (setq inferior-lisp-program "/bin/sbcl"))
+
 (use-package window
   :config
   (repeat-mode 1)
   :bind
   ("M-o" . other-window)
+  ("C-c t t" . term)
+  ("C-c t s" . shell)
+  ("C-c t e" . eshell)
   (:repeat-map my/window-repeat-map
 	       ;; Defaults:
 	       ("o" . other-window)	; enters the map here
