@@ -38,6 +38,7 @@
 |                  |                                  | it literally                   |
 | *C-x 8 RET*      | *C-v u HHHH* or *C-v U HHHHHHHH* | insert-char (insert Unicode    |
 |                  |                                  | char with name or code-point   |
+| *C-x 8 e*        |                                  | insert emoji                   |
 | *C-x z [z z...]* | *.*                              | repeat (last command)          |
 |------------------+----------------------------------+--------------------------------|
  
@@ -121,6 +122,7 @@
 | M-x column-number-mode   |      | display column number in modeline                         |
 | *M-=*                    |      | count-word-region (display line, word and chars in region |
 | *C-x =*                  | *ga* | what-cursor-position (display charater code after point)  |
+|                          |      | with prefix, show details of character including name     |
 | M-x hl-line-mode         |      | highlight current line                                    |
 | M-x size-indication-mode |      | display buffer size (lines)                               |
 | what-cursor-show-names   |      | show unicode charater name when C-x =                     |
@@ -441,6 +443,8 @@
   |                 |        | Each kill moves last yank pointer to new entry.                 |
   |                 |        | M-y moves last yank pointer to previous entry.                  |
   |                 |        | M-y takes numeric argument telling how many entries to advance) |
+  | *M-y*           |        | When invoked after command that is not yank,                    |
+  |                 |        | allow selection of previous kills                               |
   | C-h v kill-ring | *:reg* | show values in kill ring                                        |
   |-----------------+--------+-----------------------------------------------------------------|
   
@@ -5542,5 +5546,4 @@ Linebreaks
 
 
 
-
-
+ 

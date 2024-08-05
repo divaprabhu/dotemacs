@@ -520,11 +520,6 @@
   ("C-c C-t t" . python-skeleton-import)
   ("C-c C-t w" . python-skeleton-while))
 
-(use-package slime
-  :ensure t
-  :config
-  (setq inferior-lisp-program "/bin/sbcl"))
-
 (use-package window
   :config
   (repeat-mode 1)
