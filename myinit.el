@@ -482,7 +482,9 @@
   ("C-c l r" . eglot-rename)
   ("C-c l s" . eglot-shutdown-all)
   :config
-  (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/bin"))))
+  (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/bin")))
+  (when (eq system-type 'windows-nt)
+    (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/Scripts")))))
 ;;   :config
 ;;
 ;; (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
@@ -504,7 +506,10 @@
     (unless (file-directory-p pylspdir)
       (make-directory pylspdir t)
       (shell-command (concat "python3 -m venv " pylspdir))
-      (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))
+      (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))
+      (when (eq system-type 'windows-nt)
+	(shell-command (concat "python -m venv " pylspdir))
+	(shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all]")))))
   :config
   (add-hook 'python-base-mode-hook 'eglot-ensure)
   :bind
