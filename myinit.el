@@ -22,13 +22,11 @@
 (setq enable-recursive-minibuffer t)
 (setq minibuffer-depth-indicate-mode t)
 
-;; (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-
 (setq minibuffer-completion-auto-choose t) ;; insert current completion candidate in
 (setq confirm-nonexistent-file-or-buffer nil) ;; don't ask confirmation
 
 (setq completion-styles '(initials partial-completion flex basic))
-(setq completion-auto-help t)
+(setq completion-auto-help nil)
 (setq completion-auto-select nil) 
 (setq completion-cycle-threshold 5) ;; always cycle through completion candidates
 (setq completions-format 'one-column) ;; completion list buffer format
@@ -43,7 +41,8 @@
 (define-key completion-in-region-mode-map (kbd "M-n") #'minibuffer-next-completion)
 ;; M-RET will select the completion. minibuffer-chose-completion
 
-(setq minibuffer-eldef-shorten-default t)
+;; (setq minibuffer-eldef-shorten-default t) ; obsolete
+(setq minibuffer-default-prompt-format " [%s]")
 
 (setq history-length 100
       history-delete-duplicates t
@@ -165,7 +164,7 @@
 (setq auto-revert-verbose nil ;; don't flash echo area message
       global-auto-revert-non-file-buffers nil ;; disable auto revert for dired buffers etc
       auto-revert-remote-files nil)
-(global-auto-revert-mode nil)
+(global-auto-revert-mode 1)
 
 (make-directory (expand-file-name "autosave/" user-emacs-directory) t)
 (setq auto-save-list-file-prefix (expand-file-name "autosave/sessions/" user-emacs-directory)
@@ -279,6 +278,15 @@
 (setq use-dialog-box nil)
 
 (tooltip-mode -1)
+
+(defun maximize-frame ()
+  "Maximizes the active frame in Windows"
+  (interactive)
+  ;; Send a `WM_SYSCOMMAND' message to the active frame with the
+  ;; `SC_MAXIMIZE' parameter.
+  (when (eq system-type 'windows-nt)
+    (w32-send-sys-command 61488)))
+(add-hook 'window-setup-hook 'maximize-frame t)
 
 (setq frame-title-format '(multiple-frames "%b"
 	       ("" "%b")))
@@ -543,6 +551,36 @@
 	       ;; Adding/Deleting:
 	       ("0" . delete-window)
 	       ("1" . delete-other-windows)))
+
+(use-package simple
+  :config
+  (repeat-mode 1)
+  :bind
+  ("C-x C-t" . transpose-lines)
+  ("C-x x a" . append-to-buffer)
+  ("C-x x p" . prepend-to-buffer)
+  ("C-x x c" . copy-to-buffer)
+  ("C-x x i" . insert-buffer)
+  ("C-x x f" . append-to-file)
+  (:repeat-map my/simple-repeat-map
+	       ;; Defaults:
+	       ("C-t" . transpose-lines)))
+
+(use-package org
+  :config
+  (repeat-mode 1)
+  :bind
+  ("C-c C-n" . org-next-visible-heading)
+  ("C-c C-p" . org-previous-visible-heading)
+  ("C-c C-f" . org-forward-heading-same-level)
+  ("C-c C-b" . org-backward-heading-same-level)
+  ("C-c C-u" . outline-up-heading)
+  (:repeat-map my/org-repeat-map
+	       ("C-n" . org-next-visible-heading)
+	       ("C-p" . org-previous-visible-heading)
+	       ("C-f" . org-forward-heading-same-level)
+	       ("C-b" . org-backward-heading-same-level)
+	       ("C-u" . outline-up-heading)))
 
 (use-package expand-region
   :ensure t

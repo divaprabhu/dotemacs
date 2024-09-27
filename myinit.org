@@ -165,7 +165,7 @@
   (setq insert-default-directory t) ;; strat with default directory in minibuffer
   (setq max-mini-window-height 0.25) ;; default value, 25% of frame height
 #+end_src
-- Automaticall shrink or expand minibuffer based on number of lines of text
+- Automatically shrink or expand minibuffer based on number of lines of text
   #+begin_src emacs-lisp
     (setq resize-mini-windows t)
   #+end_src
@@ -175,8 +175,8 @@
     (setq minibuffer-depth-indicate-mode t)
   #+end_src
 - Single escape to quit
-  #+begin_src emacs-lisp
-    ;; (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  #+begin_src
+    (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
   #+end_src
   #+begin_src emacs-lisp
     (setq minibuffer-completion-auto-choose t) ;; insert current completion candidate in
@@ -205,7 +205,7 @@
 |----------------------------------------+-------+----------------------------------------------------------------------------------|
 #+begin_src emacs-lisp
   (setq completion-styles '(initials partial-completion flex basic))
-  (setq completion-auto-help t)
+  (setq completion-auto-help nil)
   (setq completion-auto-select nil) 
   (setq completion-cycle-threshold 5) ;; always cycle through completion candidates
   (setq completions-format 'one-column) ;; completion list buffer format
@@ -233,7 +233,8 @@
 |----------------+-------+----------------------------------------------------------------------------|
 - don't show the "default" text in minibuffer
   #+begin_src emacs-lisp
-    (setq minibuffer-eldef-shorten-default t)
+    ;; (setq minibuffer-eldef-shorten-default t) ; obsolete
+    (setq minibuffer-default-prompt-format " [%s]")
   #+end_src
 - Max length of minibuffer history and remove duplicate entries from history
   #+begin_src emacs-lisp
@@ -278,27 +279,27 @@
   #+end_src
 
 * Help
-|------------------+---+-------------------------------------------------------|
-| C-h C-h OR C-h ? |   | help-for-help                                         |
-| C-h q            |   | help-quit                                             |
-| C-h a            |   | appropos-command (search only commands not functions) |
-| C-h b            |   | describe-bindings                                     |
-| C-h c            |   | describe-key-briefly                                  |
-| *C-h d*          |   | apropos-documentation (search in docstring)           |
-| *C-h f*          |   | describe-function                                     |
-| *C-h F*          |   | Info-goto-emacs-command-node                          |
-| C-h h            |   | view-hello-file (unicode chars in many language)      |
-| *C-h i*          |   | info (manuals)                                        |
-| *C-h 4 i*        |   | info-other-window                                     |
-| *C-h k*          |   | describe-key                                          |
-| *C-h m*          |   | describe-mode (describe keybindings in current mode)  |
-| *C-h r*          |   | info-emacs-manual                                     |
-| *C-h v*          |   | descibe-variable                                      |
-| *C-h w*          |   | where-is (reverse of describe-key)                    |
-| C-h p            |   | find-by-keyword (find a package matching keyword)     |
-| C-h t            |   | help-with-tutorial                                    |
-| C-h 4 i          |   | info-other-window                                     |
-|------------------+---+-------------------------------------------------------|
+|------------------+---+-----------------------------------------------------------|
+| C-h C-h OR C-h ? |   | help-for-help                                             |
+| C-h q            |   | help-quit                                                 |
+| C-h a            |   | appropos-command (search only commands not functions)     |
+| C-h b            |   | describe-bindings                                         |
+| C-h c            |   | describe-key-briefly                                      |
+| *C-h d*          |   | apropos-documentation (search in docstring)               |
+| *C-h f*          |   | describe-function                                         |
+| *C-h F*          |   | Info-goto-emacs-command-node                              |
+| C-h h            |   | view-hello-file (unicode chars in many language)          |
+| *C-h i*          |   | info (manuals)                                            |
+| *C-h 4 i*        |   | info-other-window                                         |
+| *C-h k*          |   | describe-key                                              |
+| *C-h m*          |   | describe-mode (describe keybindings in current mode)      |
+| *C-h o*          |   | describe-symbol (combination of function, variable, face) |
+| *C-h r*          |   | info-emacs-manual                                         |
+| *C-h v*          |   | descibe-variable                                          |
+| *C-h w*          |   | where-is (reverse of describe-key)                        |
+| C-h p            |   | find-by-keyword (find a package matching keyword)         |
+| C-h t            |   | help-with-tutorial                                        |
+|------------------+---+-----------------------------------------------------------|
 #+begin_src emacs-lisp
   (setq help-window-select t) ;; switch to help window when created
   (setq help-window-keep-selected t) ;; reuse same Help buffer
@@ -484,7 +485,7 @@
   | *C-x r c*                       | *r SPC*    | clear rectangle (replace rectangle with spaces)             |
   | M-x delete-whitespace-rectangle |            | delete whitespace at the start if exists                    |
   | *C-x r t STRING RET*            | *r STRING* | string-rectangle                                            |
-  |                                 |            | (replace rectangle with STRING on each line)                |
+  |                                 |            | (replace rectangle with STRING on each line)                 |
   |---------------------------------+------------+-------------------------------------------------------------|
 
 * Registers
@@ -550,7 +551,7 @@
   the next.
   |--------------------------+---------------------------------------------------------------------|
   | *C-x r m RET*            | bookmark-set                                                        |
-  | *C-X r m BOOKMARK <RET>* | bookmarks can be named so that you visit them with C-x r b BOOKMARK |
+  | *C-x r m BOOKMARK <RET>* | bookmarks can be named so that you visit them with C-x r b BOOKMARK |
   | *C-x r b BOOKMARK <RET>* | bookmark-jump                                                       |
   | *C-x r l*                | list-bookmarks                                                      |
   | *M-x bookmark-save*      | Save bookmarks in default file                                      |
@@ -560,7 +561,7 @@
   #+begin_src emacs-lisp
     (setq bookmark-save-flag 1)
   #+end_src
-
+  
 * Display
 ** Scrolling
 - In emacs scroll up means text moves up and scroll down meands text moves down
@@ -1082,7 +1083,7 @@
 | *C-s [C-s ..]* | *n*   | isearch-repeat-forward                           |
 | *C-r [C-r...]* | *N*   | isearch-repeat-backward                          |
 | *M-e*          |       | isearch-edit-string                              |
-| C-f            | *C-w* | add search string characters following point     |
+| *M-e C-f*      | *C-w* | add search string characters following point     |
 |----------------+-------+--------------------------------------------------|
 #+begin_src emacs-lisp
   (setq search-ring-max 1000)
@@ -1139,6 +1140,7 @@
   (setq search-exit-option t
 	isearch-allow-scroll t)
 #+end_src
+
 ** Word search
 |---------+---------------------------------------------------------------------------|
 | M-s w   | isearch-toggle-word                                                       |
@@ -1259,6 +1261,7 @@
 |                       |       | when stars disappear, it means buffer contents are same as in file |
 |                       |       | with active region, undo changes in that region                    |
 | *C-g C-/*             | *C-r* | redo                                                               |
+| *C-?*                 |       | undo-redo (redo last ARG changes)                                  |
 | *M-x revert-buffer*   | *e!*  | discard all changes since buffer was last visited or saved         |
 |-----------------------+-------+--------------------------------------------------------------------|
 
@@ -1366,6 +1369,7 @@
 
 ** Keyboard macro counter
 - each keyboard macro has a counter which is set to zero when defined
+  
 - this counter itself can be used to insert in the buffer (say insert
   0 to 100 using a macro)
   |---------------+-------------------------------------------------------------|
@@ -1551,7 +1555,7 @@
   (setq auto-revert-verbose nil ;; don't flash echo area message
 	global-auto-revert-non-file-buffers nil ;; disable auto revert for dired buffers etc
 	auto-revert-remote-files nil)
-  (global-auto-revert-mode nil)
+  (global-auto-revert-mode 1)
 #+end_src
 
 ** Auto save
@@ -1835,6 +1839,7 @@
 | M-x buffer-menu-other-window | same as buffer-menu but opens in another window |
 |------------------------------+-------------------------------------------------|
 - Buffer Menu is opened by C-x C-b
+
   
 ** Unique names
 |---------------------------------------+---------------------------------------------|
@@ -2025,7 +2030,7 @@
 - Command global-tab-line-mode toggles tab line on top of screen of
   each window. This shows tabs for each buffer that was displayed in a
   window. Mouse click will switch to the buffer
-- Tab Bar is displayed at the top of frame and different from tab bar
+- Tab Bar is displayed at the top of frame and different from tabline
   in that each tab holds window configurations
   [[*Tab bar][Tab bar]]
   |--------------------------+-----------------|
@@ -2035,7 +2040,7 @@
 * Frames
 ** Concepts
 - A frame is window in the desktop terms. A frame is subdivided in to windows by emacs
-- C-x C-x closes all emacs frames in current display
+- C-x C-c closes all emacs frames in current display
 - a file can be drag and dropped to emacs frame to open it
 
 ** Frame commands
@@ -2124,7 +2129,7 @@
   #+end_src
 
 ** Maximize emacs on starup
-#+begin_src
+#+begin_src emacs-lisp
   (defun maximize-frame ()
     "Maximizes the active frame in Windows"
     (interactive)
@@ -2229,7 +2234,7 @@ preceding line.
   |                          | indented then complete                                  |
   |                          | if nil, indent line only if point is at left margin     |
   |                          | else insert tab                                         |
-  | M-x electric-indext-mode | automatically indent line after every RET               |
+  | M-x electric-indent-mode | automatically indent line after every RET               |
   |--------------------------+---------------------------------------------------------|
 
   #+begin_src emacs-lisp
@@ -2403,7 +2408,7 @@ preceding line.
 | S-TAB   | org-shifttab                                                     |
 |         | anywhere in buffer, cycle visibility of entire outline structure |
 | M-UP    | org-metaup                                                       |
-|         | move entire entry(including body and sutree) up                  |
+|         | move entire entry(including body and subtree) up                 |
 | M-DOWN  | org-metadown                                                     |
 | M-LEFT  | org-metaleft                                                     |
 |         | promote a heading                                                |
@@ -2425,21 +2430,24 @@ preceding line.
 | M-x org-agenda      | show list of things to do                                 |
 |---------------------+-----------------------------------------------------------|
 *** Authoring
-|-----------------------------+---------------------------------------|
-| C-c C-e                     | org-export-dispatch                   |
-|                             | export buffer to HTML, LaTex, PDF etc |
-| /emphasized/                |                                       |
-| *bold*                      |                                       |
-| _underlined_                |                                       |
-| =teletype font=             |                                       |
-| #+begin_quote               |                                       |
-| #+end_quote                 |                                       |
-| #+begin_example             |                                       |
-| #+end_example               |                                       |
-| C-c C-c                     | org-ctrl-c-ctrl-c                     |
-|                             | evaluate if cursor is on code block   |
-| 'org-confirm-babel-evaluate | prompt before evaluating              |
-|-----------------------------+---------------------------------------|
+|-----------------------------+-----------------------------------------------|
+| C-c C-e                     | org-export-dispatch                           |
+|                             | export buffer to HTML, LaTex, PDF etc         |
+| C-c '                       | org-edit-special                              |
+|                             | open a separate window for source editing etc |
+| /emphasized/                |                                               |
+| *bold*                      |                                               |
+| _underlined_                |                                               |
+| =teletype font=             |                                               |
+| #+begin_quote               |                                               |
+| #+end_quote                 |                                               |
+| #+begin_example             |                                               |
+| #+end_example               |                                               |
+| C-c C-c                     | org-ctrl-c-ctrl-c                             |
+|                             | evaluate if cursor is on code block           |
+| 'org-confirm-babel-evaluate | prompt before evaluating                      |
+|-----------------------------+-----------------------------------------------|
+#+TBLFM: 
 #+begin_src emacs-lisp
   (require 'org-tempo)
 
@@ -2461,6 +2469,7 @@ preceding line.
 *** Definition
 - Table consists of rectangular area made of cells
 - Cell must be atleast one char high and one char wide
+
 |------------------------------+------------------------------------------|
 | table-cell-vertical-char     | char used for vertical lines             |
 | table-cell-horizontal-chars  | char used for horizontal lines           |
@@ -2566,7 +2575,9 @@ preceding line.
   #+begin_src emacs-lisp
     (setq imenu-auto-rescan t)
   #+end_src
-
+|---------+-------|
+| *M-g i* | imenu |
+|---------+-------|
 ** Which Function
 - It is a global minor mode that displays current function name in
   mode line
@@ -2580,7 +2591,7 @@ preceding line.
 | *RET*             | newline (insert new line and then adjust indentation of                |
 |                   | following line)                                                        |
 | *C-M-q*           | prog-indent-sexp (indent all lines in parenthetical grouping)          |
-|                   | indentation of opening parenthesis won't change                         |
+|                   | indentation of opening parenthesis won't change                        |
 | *C-M-\*           | indent-region                                                          |
 | *C-u TAB*         | shift entire sexp side without changing indentation within             |
 |                   | parenthetical group)                                                   |
@@ -3102,7 +3113,7 @@ preceding line.
       Lisp expressions interactively. Its major mode is
       lisp-interaction-mode. C-j can be used to evaluate last
       expression and print result at point
-      #+begin_src
+      #+begin_src 
 	(setq initial-scratch-message nil)
       #+end_src
 - M-x ielm can be used to start inferior lisp mode which acts like a
@@ -4255,6 +4266,38 @@ Create a .dir-locals.el file in root of folder with contents like
 		 ;; Adding/Deleting:
 		 ("0" . delete-window)
 		 ("1" . delete-other-windows)))
+
+  (use-package simple
+    :config
+    (repeat-mode 1)
+    :bind
+    ("C-x C-t" . transpose-lines)
+    ("C-x x a" . append-to-buffer)
+    ("C-x x p" . prepend-to-buffer)
+    ("C-x x c" . copy-to-buffer)
+    ("C-x x i" . insert-buffer)
+    ("C-x x f" . append-to-file)
+    (:repeat-map my/simple-repeat-map
+		 ;; Defaults:
+		 ("C-t" . transpose-lines)))
+
+  (use-package org
+    :config
+    (repeat-mode 1)
+    :bind
+    ("C-c C-n" . org-next-visible-heading)
+    ("C-c C-p" . org-previous-visible-heading)
+    ("C-c C-f" . org-forward-heading-same-level)
+    ("C-c C-b" . org-backward-heading-same-level)
+    ("C-c C-u" . outline-up-heading)
+    (:repeat-map my/org-repeat-map
+		 ("C-n" . org-next-visible-heading)
+		 ("C-p" . org-previous-visible-heading)
+		 ("C-f" . org-forward-heading-same-level)
+		 ("C-b" . org-backward-heading-same-level)
+		 ("C-u" . outline-up-heading)))
+
+
 #+end_src
 
 * Expand Region
