@@ -1809,7 +1809,11 @@
 | S         |            | tabulated-list-sort                                      |
 |           |            | Sort entries by column at point                          |
 |-----------+------------+----------------------------------------------------------|
+#+begin_src emacs-lisp
 
+  (setq clean-buffer-list-delay-general 1)
+
+#+end_src
 ** Other options
 |----------------------------------+---------------------------------------------|
 | *C-x C-q*                        | read-only-mode (toggle)                     |
@@ -1840,7 +1844,6 @@
 |------------------------------+-------------------------------------------------|
 - Buffer Menu is opened by C-x C-b
 
-  
 ** Unique names
 |---------------------------------------+---------------------------------------------|
 | 'uniquify-buffer-name-style'          | tells how buffer should be named when files |
@@ -3510,7 +3513,10 @@ preceding line.
   | M-x define-mode-abbrev       | prompt abbrev and expansion                            |
   | M-x kill-all-abbrevs         | discard all abbrev                                     |
   | *M-'*                        | abbrev-prefix-mark                                     |
-  |                              | re M-' foo expands to refind outer otter               |
+  |                              | if cnst expands to construction then recnst won't      |
+  |                              | expand to reconstruction. In such cases type           |
+  |                              | re M-' cnst. This adds a hyphen which is removed after |
+  |                              | expansion                                              |
   | *C-x a e*                    | expand-abbrev                                          |
   | foo C-q                      | don't expand foo                                       |
   | M-x unexpand-abbrev          | undo expansion                                         |
@@ -3903,6 +3909,8 @@ preceding line.
   #+end_quote
 *** Display personal keybindings
 - M-x describe-personal-keybindings
+*** Display repeat maps
+- M-x describe-repeat-maps
 ** Hooks
 - Add functions to hook using :hook. Exclude -hook suffix
   #+begin_quote
@@ -3974,7 +3982,7 @@ preceding line.
      (doom-themes-visual-bell-config)
      (doom-themes-org-config)
 #+end_src
-** Mods
+** Modus
 #+begin_src emacs-lisp
   (use-package modus-themes
     :defer nil
@@ -4018,9 +4026,9 @@ preceding line.
       ("C-c l r" . eglot-rename)
       ("C-c l s" . eglot-shutdown-all)
       :config
-      (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/bin")))
       (when (eq system-type 'windows-nt)
-	(setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/Scripts")))))
+	(setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/Scripts")))
+	(setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/bin")))))
     ;;   :config
     ;;
     ;; (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
@@ -4083,25 +4091,28 @@ Create a .dir-locals.el file in root of folder with contents like
     (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
       (unless (file-directory-p pylspdir)
 	(make-directory pylspdir t)
-	(shell-command (concat "python3 -m venv " pylspdir))
-	(shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))
-	(when (eq system-type 'windows-nt)
+	(cond
+	 ((eq system-type 'windows-nt)
 	  (shell-command (concat "python -m venv " pylspdir))
-	  (shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all]")))))
+	  (shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all]")))
+	 (t
+	  (shell-command (concat "python3 -m venv " pylspdir))
+	  (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))))
     :config
     (add-hook 'python-base-mode-hook 'eglot-ensure)
     :bind
-    ("C-c C-c" . python-shell-send-buffer)
-    ("C-c C-e" . python-shell-send-statement)
-    ("C-c C-r" . python-shell-send-region)
-    ("C-c C-p" . run-python)
-    ("C-c C-z" . python-shell-switch-to-shell)
-    ("C-c C-t c" . python-skeleton-class)
-    ("C-c C-t d" . python-skeleton-def)
-    ("C-c C-t f" . python-skeleton-for)
-    ("C-c C-t i" . python-skeleton-if)
-    ("C-c C-t t" . python-skeleton-import)
-    ("C-c C-t w" . python-skeleton-while))
+    (:map python-mode-map
+	  ("C-c C-c"	. python-shell-send-buffer)
+	  ("C-c C-e"	. python-shell-send-statement)
+	  ("C-c C-r"	. python-shell-send-region)
+	  ("C-c C-p"	. run-python)
+	  ("C-c C-z"	. python-shell-switch-to-shell)
+	  ("C-c C-t c"	. python-skeleton-class)
+	  ("C-c C-t d"	. python-skeleton-def)
+	  ("C-c C-t f"	. python-skeleton-for)
+	  ("C-c C-t i"	. python-skeleton-if)
+	  ("C-c C-t t"	. python-skeleton-import)
+	  ("C-c C-t w"	. python-skeleton-while)))
 #+end_src
 ** Common Lisp
 #+begin_src
@@ -4285,11 +4296,12 @@ Create a .dir-locals.el file in root of folder with contents like
     :config
     (repeat-mode 1)
     :bind
-    ("C-c C-n" . org-next-visible-heading)
-    ("C-c C-p" . org-previous-visible-heading)
-    ("C-c C-f" . org-forward-heading-same-level)
-    ("C-c C-b" . org-backward-heading-same-level)
-    ("C-c C-u" . outline-up-heading)
+    (:map org-mode-map
+	  ("C-c C-n" . org-next-visible-heading)
+	  ("C-c C-p" . org-previous-visible-heading)
+	  ("C-c C-f" . org-forward-heading-same-level)
+	  ("C-c C-b" . org-backward-heading-same-level)
+	  ("C-c C-u" . outline-up-heading))
     (:repeat-map my/org-repeat-map
 		 ("C-n" . org-next-visible-heading)
 		 ("C-p" . org-previous-visible-heading)
@@ -4297,22 +4309,8 @@ Create a .dir-locals.el file in root of folder with contents like
 		 ("C-b" . org-backward-heading-same-level)
 		 ("C-u" . outline-up-heading)))
 
-
 #+end_src
 
-* Expand Region
-[[https://emacsrocks.com/e09.html][Emacs Rocks - Expand Region]]
-- Expand region increases the selected region by semantic
-  units. Just keep pressing the key until it selects what you want.
-- Passing a negative prefix runs er/contract-region
-  #+begin_src emacs-lisp
-    (use-package expand-region
-      :ensure t
-      :defer nil
-      :bind
-      ("C-+" . er/expand-region)
-      ("C-_" . er/contract-region))
-  #+end_src
 * Custom File
 #+begin_src emacs-lisp
   (setq custom-file (concat user-emacs-directory "custom.el"))
@@ -4370,34 +4368,42 @@ Create a .dir-locals.el file in root of folder with contents like
 |---------+------------------------------------------------------------------------|
 
 #+begin_src emacs-lisp
-  (require 'ibuffer)
-  (setq ibuffer-expert t
-	ibuffer-display-summary nil
-	ibuffer-use-other-window nil
-	ibuffer-show-empty-filter-groups nil
-	ibuffer-movement-cycle nil
-	ibuffer-default-sorting-mode 'filename/process
-	ibuffer-use-header-line t
-	ibuffer-default-shrink-to-minimum-size nil
-	ibuffer-formats
-	'((mark modified read-only locked " "
-		(name 40 40 :left :elide)
-		" "
-		(size 9 -1 :right)
-		" "
-		(mode 16 16 :left :elide)
-		" " filename-and-process)
-	  (mark " "
-		(name 16 -1)
-		" " filename))
-	ibuffer-saved-filter-groups nil
-	ibuffer-old-time 48)
-  (define-key ibuffer-mode-map (kbd "* f") #'ibuffer-mark-by-file-name-regexp)
-  (define-key ibuffer-mode-map (kbd "* g") #'ibuffer-mark-by-content-regexp) ; "g" is for "grep"
-  (define-key ibuffer-mode-map (kbd "* n") #'ibuffer-mark-by-name-regexp)
-  (define-key ibuffer-mode-map (kbd "s n") #'ibuffer-do-sort-by-alphabetic)  ; "sort name" mnemonic
-  (define-key ibuffer-mode-map (kbd "/ g") #'ibuffer-filter-by-content)
-  (define-key ctl-x-map (kbd "C-b") 'ibuffer-jump)
+  (use-package ibuffer
+    :custom
+    (ibuffer-expert t)
+    (ibuffer-display-summary nil)
+    (ibuffer-use-other-window nil)
+    (ibuffer-show-empty-filter-groups nil)
+    (ibuffer-movement-cycle nil)
+    (ibuffer-default-sorting-mode 'filename/process)
+    (ibuffer-use-header-line t)
+    (ibuffer-default-shrink-to-minimum-size nil)
+    (ibuffer-formats
+     '((mark modified read-only locked " "
+	     (name 40 40 :left :elide)
+	     " "
+	     (size 9 -1 :right)
+	     " "
+	     (mode 16 16 :left :elide)
+	     " " filename-and-process)
+       (mark " "
+	     (name 16 -1)
+	     " " filename)))
+    (ibuffer-saved-filter-groups nil)
+    (ibuffer-old-time 48)
+    :bind
+    (
+     (:map ibuffer-mode-map
+	   ("* f" . ibuffer-mark-by-file-name-regexp)
+	   ("* g" . ibuffer-mark-by-content-regexp)
+	   ("* n" . ibuffer-mark-by-name-regexp)
+	   ("s n" . ibuffer-do-sort-by-alphabetic)
+	   ("/ g" . ibuffer-filter-by-content)
+	   ("M-o" . other-window))
+     (:map ctl-x-map
+	   ("C-b" . ibuffer-jump))))
+
+
 #+end_src
 *** Grouping
 [[https://www.emacswiki.org/emacs/IbufferMode][emacswiki]]
@@ -4429,6 +4435,21 @@ Create a .dir-locals.el file in root of folder with contents like
 	    (lambda ()
 	      (ibuffer-switch-to-saved-filter-groups "default")))
 #+end_src
+
+* Which Key
+- which-key is a minor mode for Emacs that displays the key bindings
+  following your currently entered incomplete command (a prefix) in
+  a pop-up 
+  #+begin_src emacs-lisp
+    (use-package which-key
+      :ensure t
+      :custom
+      (which-key-idle-delay 3)
+      (which-key-side-window-max-height 0.5)
+      :config
+      (which-key-setup-side-window-bottom)
+      (which-key-mode))
+  #+end_src
 
 * Unused
 ** LSP Mode
@@ -5524,17 +5545,6 @@ Linebreaks
   #+RESULTS:
   : t
 
-** Which Key
-- which-key is a minor mode for Emacs that displays the key bindings
-  following your currently entered incomplete command (a prefix) in
-  a pop-up 
-  #+begin_src
-    (unless (package-installed-p 'which-key)
-      (package-refresh-contents)
-      (package-install 'which-key))
-    (which-key-mode 1)
-  #+end_src
-
 ** Embark
 - provides a contextual actions on a given target
   - In the minibuffer, the target is the current top completion candidate.
@@ -5592,6 +5602,16 @@ Linebreaks
   | M-x top-level | abort all recursive edits returning to top level command                      |
   |---------------+-------------------------------------------------------------------------------|
 
-
-
- 
+** Expand Region
+[[https://emacsrocks.com/e09.html][Emacs Rocks - Expand Region]]
+- Expand region increases the selected region by semantic
+  units. Just keep pressing the key until it selects what you want.
+- Passing a negative prefix runs er/contract-region
+  #+begin_src
+    (use-package expand-region
+      :ensure t
+      :defer nil
+      :bind
+      ("C-+" . er/expand-region)
+      ("C-_" . er/contract-region))
+  #+end_src

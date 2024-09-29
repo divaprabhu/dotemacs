@@ -3,6 +3,7 @@
 (setq user-emacs-directory (expand-file-name "~/.cache/emacs/"))
 (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
 
+(message "user-emacs-directory %s package-user-dir %s" user-emacs-directory package-user-dir)
 
 (when (boundp 'native-comp-eln-load-path)
   (setcar native-comp-eln-load-path

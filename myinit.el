@@ -180,6 +180,8 @@
 (require 'recentf)
 (recentf-mode 1)			; keybinding in keybindings section toward the end
 
+(setq clean-buffer-list-delay-general 1)
+
 (setq completion-styles '(initials partial-completion flex basic))
 (if (>= emacs-major-version 29)
     (progn
@@ -490,9 +492,9 @@
   ("C-c l r" . eglot-rename)
   ("C-c l s" . eglot-shutdown-all)
   :config
-  (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/bin")))
   (when (eq system-type 'windows-nt)
-    (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/Scripts")))))
+    (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/Scripts")))
+    (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/bin")))))
 ;;   :config
 ;;
 ;; (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))
@@ -513,25 +515,28 @@
   (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
     (unless (file-directory-p pylspdir)
       (make-directory pylspdir t)
-      (shell-command (concat "python3 -m venv " pylspdir))
-      (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))
-      (when (eq system-type 'windows-nt)
+      (cond
+       ((eq system-type 'windows-nt)
 	(shell-command (concat "python -m venv " pylspdir))
-	(shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all]")))))
+	(shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all]")))
+       (t
+	(shell-command (concat "python3 -m venv " pylspdir))
+	(shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))))
   :config
   (add-hook 'python-base-mode-hook 'eglot-ensure)
   :bind
-  ("C-c C-c" . python-shell-send-buffer)
-  ("C-c C-e" . python-shell-send-statement)
-  ("C-c C-r" . python-shell-send-region)
-  ("C-c C-p" . run-python)
-  ("C-c C-z" . python-shell-switch-to-shell)
-  ("C-c C-t c" . python-skeleton-class)
-  ("C-c C-t d" . python-skeleton-def)
-  ("C-c C-t f" . python-skeleton-for)
-  ("C-c C-t i" . python-skeleton-if)
-  ("C-c C-t t" . python-skeleton-import)
-  ("C-c C-t w" . python-skeleton-while))
+  (:map python-mode-map
+	("C-c C-c"	. python-shell-send-buffer)
+	("C-c C-e"	. python-shell-send-statement)
+	("C-c C-r"	. python-shell-send-region)
+	("C-c C-p"	. run-python)
+	("C-c C-z"	. python-shell-switch-to-shell)
+	("C-c C-t c"	. python-skeleton-class)
+	("C-c C-t d"	. python-skeleton-def)
+	("C-c C-t f"	. python-skeleton-for)
+	("C-c C-t i"	. python-skeleton-if)
+	("C-c C-t t"	. python-skeleton-import)
+	("C-c C-t w"	. python-skeleton-while)))
 
 (use-package window
   :config
@@ -570,11 +575,12 @@
   :config
   (repeat-mode 1)
   :bind
-  ("C-c C-n" . org-next-visible-heading)
-  ("C-c C-p" . org-previous-visible-heading)
-  ("C-c C-f" . org-forward-heading-same-level)
-  ("C-c C-b" . org-backward-heading-same-level)
-  ("C-c C-u" . outline-up-heading)
+  (:map org-mode-map
+	("C-c C-n" . org-next-visible-heading)
+	("C-c C-p" . org-previous-visible-heading)
+	("C-c C-f" . org-forward-heading-same-level)
+	("C-c C-b" . org-backward-heading-same-level)
+	("C-c C-u" . outline-up-heading))
   (:repeat-map my/org-repeat-map
 	       ("C-n" . org-next-visible-heading)
 	       ("C-p" . org-previous-visible-heading)
@@ -582,44 +588,52 @@
 	       ("C-b" . org-backward-heading-same-level)
 	       ("C-u" . outline-up-heading)))
 
-(use-package expand-region
-  :ensure t
-  :defer nil
-  :bind
-  ("C-+" . er/expand-region)
-  ("C-_" . er/contract-region))
-
 (setq custom-file (concat user-emacs-directory "custom.el"))
 (when (file-exists-p custom-file)
   (load custom-file))
 
-(require 'ibuffer)
-(setq ibuffer-expert t
-      ibuffer-display-summary nil
-      ibuffer-use-other-window nil
-      ibuffer-show-empty-filter-groups nil
-      ibuffer-movement-cycle nil
-      ibuffer-default-sorting-mode 'filename/process
-      ibuffer-use-header-line t
-      ibuffer-default-shrink-to-minimum-size nil
-      ibuffer-formats
-      '((mark modified read-only locked " "
-	      (name 40 40 :left :elide)
-	      " "
-	      (size 9 -1 :right)
-	      " "
-	      (mode 16 16 :left :elide)
-	      " " filename-and-process)
-	(mark " "
-	      (name 16 -1)
-	      " " filename))
-      ibuffer-saved-filter-groups nil
-      ibuffer-old-time 48)
-(define-key ibuffer-mode-map (kbd "* f") #'ibuffer-mark-by-file-name-regexp)
-(define-key ibuffer-mode-map (kbd "* g") #'ibuffer-mark-by-content-regexp) ; "g" is for "grep"
-(define-key ibuffer-mode-map (kbd "* n") #'ibuffer-mark-by-name-regexp)
-(define-key ibuffer-mode-map (kbd "s n") #'ibuffer-do-sort-by-alphabetic)  ; "sort name" mnemonic
-(define-key ibuffer-mode-map (kbd "/ g") #'ibuffer-filter-by-content)
-(define-key ctl-x-map (kbd "C-b") 'ibuffer-jump)
+(use-package ibuffer
+  :custom
+  (ibuffer-expert t)
+  (ibuffer-display-summary nil)
+  (ibuffer-use-other-window nil)
+  (ibuffer-show-empty-filter-groups nil)
+  (ibuffer-movement-cycle nil)
+  (ibuffer-default-sorting-mode 'filename/process)
+  (ibuffer-use-header-line t)
+  (ibuffer-default-shrink-to-minimum-size nil)
+  (ibuffer-formats
+   '((mark modified read-only locked " "
+	   (name 40 40 :left :elide)
+	   " "
+	   (size 9 -1 :right)
+	   " "
+	   (mode 16 16 :left :elide)
+	   " " filename-and-process)
+     (mark " "
+	   (name 16 -1)
+	   " " filename)))
+  (ibuffer-saved-filter-groups nil)
+  (ibuffer-old-time 48)
+  :bind
+  (
+   (:map ibuffer-mode-map
+	 ("* f" . ibuffer-mark-by-file-name-regexp)
+	 ("* g" . ibuffer-mark-by-content-regexp)
+	 ("* n" . ibuffer-mark-by-name-regexp)
+	 ("s n" . ibuffer-do-sort-by-alphabetic)
+	 ("/ g" . ibuffer-filter-by-content)
+	 ("M-o" . other-window))
+   (:map ctl-x-map
+	 ("C-b" . ibuffer-jump))))
+
+(use-package which-key
+  :ensure t
+  :custom
+  (which-key-idle-delay 3)
+  (which-key-side-window-max-height 0.5)
+  :config
+  (which-key-setup-side-window-bottom)
+  (which-key-mode))
 
 (setq doc-view-resolution 300)
