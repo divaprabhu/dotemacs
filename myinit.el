@@ -481,19 +481,19 @@
   (eglot-ignored-server-capabilities nil "LSP capabilities that should not be used")
   (eglot-extend-to-xref t "activate eglot in non-project cross-referenced files")
   (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
+  (eglot-report-progress nil "Don't spam echo area")
   :bind
-  ("C-c l a" . eglot-code-actions)
-  ("C-c l c" . eglot-reconnect)
-  ("C-c l b e" . eglot-events-buffer)
-  ("C-c l b s" . eglot-stderr-buffer)
-  ("C-c l f b" . eglot-format-buffer)
-  ("C-c l f f" . eglot-format)
-  ("C-c l l" . eglot)
-  ("C-c l r" . eglot-rename)
-  ("C-c l s" . eglot-shutdown-all)
+  (:map eglot-mode-map
+	("C-c l a" . eglot-code-actions)
+	("C-c l b e" . eglot-events-buffer)
+	("C-c l b s" . eglot-stderr-buffer)
+	("C-c l f" . eglot-format)
+	("C-c l l" . eglot)
+	("C-c l r" . eglot-rename)
+	("C-c l s" . eglot-shutdown-all))
   :config
-  (when (eq system-type 'windows-nt)
-    (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/Scripts")))
+  (if (eq system-type 'windows-nt)
+      (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/Scripts")))
     (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/bin")))))
 ;;   :config
 ;;
