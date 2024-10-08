@@ -26,7 +26,7 @@
 (setq confirm-nonexistent-file-or-buffer nil) ;; don't ask confirmation
 
 (setq completion-styles '(initials partial-completion flex basic))
-(setq completion-auto-help nil)
+(setq completion-auto-help 'lazy)
 (setq completion-auto-select nil) 
 (setq completion-cycle-threshold 5) ;; always cycle through completion candidates
 (setq completions-format 'one-column) ;; completion list buffer format
