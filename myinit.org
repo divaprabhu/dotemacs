@@ -353,18 +353,18 @@
   #+begin_src emacs-lisp
     (setq delete-active-region 'kill) ;; kill region instead of delete
     (setq mark-even-if-inactive nil)
-    (delete-selection-mode -1) ;; with active region typing character
-    ;; inserts it without replacing region
+    ;; with active region typing character inserts it without replacing regions
+    (delete-selection-mode -1)
   #+end_src
 
   |------------------------------+-------+----------------------------------------|
-  | *C-u C-SPC [C-SPC C-SPC...]* | *`m*  | jump to last mark                      |
+  | *C-u C-SPC [C-SPC C-SPC...]* | *`m*  | jump to last local mark                |
   | *C-x C-SPC*                  | *C-o* | pop-global-mark (works across buffers) |
   | C-SPC C-SPC                  |       | set and unset mark (good for jumping)  |
   |------------------------------+-------+----------------------------------------|
 
   #+begin_src emacs-lisp
-    (setq set-mark-command-repeat-pop t
+    (setq set-mark-command-repeat-pop t ; C-u C-SPC C-SPC... keeps popping local mark
 	  mark-ring-max 512
 	  global-mark-ring-max 512)
   #+end_src
@@ -401,7 +401,7 @@
 |           |      | kill is appended to previous killed text if command kills forward   |
 |           |      | kill is prepended to previous killed text if command kills backward |
 | *M-z*     |      | zap-to-char                                                         |
-|           |      | (kill till next occurence of char including char)                   |
+|           |      | (kill till next occurrence of char including char)                   |
 |-----------+------+---------------------------------------------------------------------|
 
 - Remap C-w to kill region if active, else kill backword-word
@@ -485,7 +485,7 @@
   | *C-x r c*                       | *r SPC*    | clear rectangle (replace rectangle with spaces)             |
   | M-x delete-whitespace-rectangle |            | delete whitespace at the start if exists                    |
   | *C-x r t STRING RET*            | *r STRING* | string-rectangle                                            |
-  |                                 |            | (replace rectangle with STRING on each line)                 |
+  |                                 |            | (replace rectangle with STRING on each line)                |
   |---------------------------------+------------+-------------------------------------------------------------|
 
 * Registers
@@ -504,7 +504,7 @@
 |                           |   | (jump to position and buffer saved in reg)  |
 |---------------------------+---+---------------------------------------------|
 #+begin_src emacs-lisp
-  (setq register-preview-delay 2) ;; seconds before displaying preview of register list
+  (setq register-preview-delay 1) ;; seconds before displaying preview of register list
 #+end_src
 ** Save text
 |-------------------------------+-------+-------------------------------------------------------|
@@ -564,7 +564,7 @@
   
 * Display
 ** Scrolling
-- In emacs scroll up means text moves up and scroll down meands text moves down
+- In emacs scroll up means text moves up and scroll down means text moves down
   So PageUp is scroll down and PageDown scrolls up
 
   |----------------------------+-------+---------------------|
@@ -591,8 +591,8 @@
 - Set 'auto-hscroll-mode' to 'current-line' to only scroll current-line and not entire screen
 - When point moves out of visible area, scroll just enough to bring point on screen
   #+begin_src emacs-lisp
-    (setq hscroll-margin 2)
-    (setq hscroll-step 2)
+    (setq hscroll-margin 5)
+    (setq hscroll-step 5)
     (put 'scroll-left 'disabled nil)
   #+end_src
   |---------+--------------|
@@ -1020,8 +1020,15 @@
     (add-hook 'text-mode-hook            #'nano-modeline-text-mode)
     (add-hook 'org-mode-hook             #'nano-modeline-org-mode)
     (add-hook 'pdf-view-mode-hook        #'nano-modeline-pdf-mode)
+    (add-hook 'mu4e-headers-mode-hook    #'nano-modeline-mu4e-headers-mode)
+    (add-hook 'mu4e-view-mode-hook       #'nano-modeline-mu4e-message-mode)
+    (add-hook 'elfeed-show-mode-hook     #'nano-modeline-elfeed-entry-mode)
+    (add-hook 'elfeed-search-mode-hook   #'nano-modeline-elfeed-search-mode)
     (add-hook 'term-mode-hook            #'nano-modeline-term-mode)
-    (add-hook 'messages-buffer-mode-hook #'nano-modeline-message-mode))
+    (add-hook 'xwidget-webkit-mode-hook  #'nano-modeline-xwidget-mode)
+    (add-hook 'messages-buffer-mode-hook #'nano-modeline-message-mode)
+    (add-hook 'org-capture-mode-hook     #'nano-modeline-org-capture-mode)
+    (add-hook 'org-agenda-mode-hook      #'nano-modeline-org-agenda-mode))
 
 #+end_src
 ** Cursor
@@ -1066,7 +1073,7 @@
 
 #+begin_src emacs-lisp
   (setq display-line-numbers-type t)
-  (setq display-line-numbers-width t)
+  (setq display-line-numbers-width nil)
   (global-display-line-numbers-mode 1)
   (setq display-raw-bytes-as-hex t)
   (setq visible-bell t)
@@ -1179,7 +1186,7 @@
     ;;  (global-set-key (kbd "C-r") 'isearch-backward-regexp)
     ;;  (global-set-key (kbd "M-%") 'query-replace-regexp)
     (setq regexp-search-ring-max 1000
-	  search-default-mode t) ;; default regex search
+    	  search-default-mode t) ;; default regex search
   #+end_src
 
 ** Regexp syntax
@@ -1216,7 +1223,7 @@
   | u                                               |                         | undo last replacement and move point to that position            |
   | U                                               |                         | undo all replacements and go to where first replacement was done |
   | Y                                               |                         | replace all remaining occurence in all remaining buffer          |
-  | N                                               |                         | skip to newxt buffer with no other replacement in current buffer |
+  | N                                               |                         | skip to next buffer with no other replacement in current buffer  |
   | ? or C-h                                        |                         | display help                                                     |
   |-------------------------------------------------+-------------------------+------------------------------------------------------------------|
 
@@ -1242,6 +1249,10 @@
 | *M-x multi-isearch-files-regexp*            | prompt for file names and begin multi file search                                      |
 | 'list-matching-lines-default-context-lines' | default number of context lines to show                                                |
 |---------------------------------------------+----------------------------------------------------------------------------------------|
+#+begin_src emacs-lisp
+  (use-package emacs
+    :hook (occur-mode . follow-mode)) 	; auto enable follow mode
+#+end_src
 
 ** Customizing
 |--------------------+-------------------------------------------------------|
@@ -1317,7 +1328,7 @@
     (add-hook 'prog-mode-hook 'flyspell-prog-mode)
     (setq ispell-personal-dictionary (expand-file-name "dictionary" user-emacs-directory))
   #+end_src
-
+ 
 - When incorrect word is encountered during above commands, a Choices
   buffer pops up at top with numbered words. Valid responses are as
   below:
@@ -1356,6 +1367,7 @@
 - Below commands use C-x C-k as prefix and can be executed and repeated without prefix
   Ex: C-x C-k C-k C-p C-k
   |---------------+--------+------------------------------------------------------|
+  | C-x C-k C-s   |        | kmacro-start-macro                                   |
   | C-x C-k C-k   | *:reg* | kmacro-end-or-call-macro-repeat (like F4)            |
   |               |        | execute macro at the head of the ring (latest macro) |
   | *C-x C-k C-n* |        | kmacro-cycle-ring-next                               |
@@ -1590,13 +1602,13 @@
   | M-x auto-save-mode                 | toggle auto-saving in current buffer                                |
   |------------------------------------+---------------------------------------------------------------------|
 
-  #+begin_src emacs-lisp
-    (make-directory (expand-file-name "autosave/" user-emacs-directory) t)
-    (setq auto-save-list-file-prefix (expand-file-name "autosave/sessions/" user-emacs-directory)
-	  auto-save-file-name-transforms `((".*" ,(expand-file-name "autosave/" user-emacs-directory) t)))
-    (setq delete-auto-save-files t
-	  kill-buffer-delete-auto-save-files t)
-  #+end_src
+#+begin_src emacs-lisp
+  (make-directory (expand-file-name "autosave/" user-emacs-directory) t)
+  (setq auto-save-list-file-prefix (expand-file-name "autosave/" user-emacs-directory)
+        auto-save-file-name-transforms `((".*" ,(expand-file-name "autosave/" user-emacs-directory) t)))
+  (setq delete-auto-save-files t
+        kill-buffer-delete-auto-save-files t)
+#+end_src
 
 ** File name alias
 |-----------------------------------------+-------------------------------------------------------------------|
@@ -3984,28 +3996,29 @@ preceding line.
 #+end_src
 ** Modus
 #+begin_src emacs-lisp
-  (use-package emacs
-    :init
-    (require-theme 'modus-themes) ; `require-theme' is ONLY for the built-in Modus themes
-    :config
-    ;; Add all your customizations prior to loading the themes
-    (setq     modus-themes-italic-constructs t
-  	    modus-themes-bold-constructs t
-  	    modus-themes-mixed-fonts t
-  	    modus-themes-completions
-  	    '((matches . (extrabold underline))
-  	      (selection . (semibold italic)))
-  	    modus-themes-completions
-  	    '((t . (extrabold underline)))
-  	    modus-themes-headings
-  	    '((1 . (variable-pitch 1.5))
-  	      (2 . (1.3))
-  	      (agenda-date . (1.3))
-  	      (agenda-structure . (variable-pitch light 1.8))
-  	      (t . (1.1))))
+    (use-package emacs
+      :init
+      (require-theme 'modus-themes) ; `require-theme' is ONLY for the built-in Modus themes
+      :config
+      ;; Add all your customizations prior to loading the themes
+      (setq     modus-themes-italic-constructs t
+    	    modus-themes-bold-constructs t
+    	    modus-themes-mixed-fonts t
+    	    modus-themes-completions
+    	    '((matches . (extrabold underline))
+    	      (selection . (semibold italic)))
+    	    modus-themes-completions
+    	    '((t . (extrabold underline)))
+    	    modus-themes-headings
+    	    '((1 . (variable-pitch 1.7))
+    	      (2 . (1.5))
+  	    (3 . (1.3))
+    	      (agenda-date . (1.3))
+    	      (agenda-structure . (variable-pitch light 1.8))
+    	      (t . (1.1))))
 
-    ;; Load the theme of your choice.
-    (modus-themes-load-theme 'modus-vivendi-tinted))
+      ;; Load the theme of your choice.
+      (modus-themes-load-theme 'modus-vivendi-tinted))
 
 #+end_src
 
@@ -5624,4 +5637,3 @@ Linebreaks
       ("C-+" . er/expand-region)
       ("C-_" . er/contract-region))
   #+end_src
-    

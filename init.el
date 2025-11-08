@@ -19,8 +19,9 @@
     (add-to-list 'package-archives
 		 '("nongnu" . "https://elpa.nongnu.org/nongnu/") t))
 
-(add-to-list 'package-archives
-	     '("melpa" . "https://stable.melpa.org/packages/") t)
+;; (Add-To-List 'Package-Archives
+;; 	     '("Melpa" . "Https://Stable.Melpa.Org/Packages/") T)
+
 (package-initialize)			; make sure to update load-path for downloaded packages
 
 (org-babel-load-file "~/.config/emacs/myinit.org")
