@@ -94,14 +94,15 @@
 |------------------------+---------------+----------------------------------------------------------------------|
 
 ** Erase
-|----------+-----------+---------------------------------------|
-| *DEL*    | *DEL*     | delete-backward-char or active region |
-| *Delete* | *dl*      | delete-forward-char or active region  |
-| *C-d*    |           | delete-char (after point)             |
-| *M-d*    | *dw*      | kill-word                             |
-| *M-DEL*  | *db*      | backward-kill-word                    |
-| *C-k*    | *d$ or D* | kill-line (to the end of line)        |
-|----------+-----------+---------------------------------------|
+|----------+--------------+---------------------------------------|
+| *DEL*    | *DEL*        | delete-backward-char or active region |
+| *Delete* | *dl*         | delete-forward-char or active region  |
+| *C-d*    |              | delete-char (after point)             |
+| *M-d*    | *dw*         | kill-word                             |
+| *M-DEL*  | *db*         | backward-kill-word                    |
+| *C-k*    | *d$ or D*    | kill-line (to the end of line)        |
+| *M-k*    | *d)* or "ds" | kill-sentence                         |
+|----------+--------------+---------------------------------------|
 
 ** Undo
 |-----------------------------------+-------+-----------|
@@ -204,16 +205,15 @@
 |                                        |       | N - switch to this behavior only when number of alternatives is less than N      |
 |----------------------------------------+-------+----------------------------------------------------------------------------------|
 #+begin_src emacs-lisp
-  (setq completion-styles '(initials partial-completion flex basic))
-  (setq completion-auto-help 'lazy)
-  (setq completion-auto-select nil) 
-  (setq completion-cycle-threshold 5) ;; always cycle through completion candidates
-  (setq completions-format 'one-column) ;; completion list buffer format
-  (setq completions-sort nil) ;; sort candidatate alphabetically
-  (setq completions-max-height nil) ;; no height limit for completion list buffer
-  (setq completions-header-format nil) ;; no header in completion list buffer
-  (define-key minibuffer-local-map (kbd "M-p") #'minibuffer-previous-completion)
-  (define-key minibuffer-local-map (kbd "M-n") #'minibuffer-next-completion)
+  (setq completion-styles '(initials partial-completion flex basic)
+        read-filename-completion-ignore-case t
+        completion-auto-help nil
+        completion-auto-select nil 
+        completion-cycle-threshold 10 ;; always cycle through completion candidates
+        completions-format 'one-column ;; completion list buffer format
+        completions-sort nil ;; sort candidatate alphabetically
+        completions-max-height nil ;; no height limit for completion list buffer
+        completions-header-format nil) ;; no header in completion list buffer
 
   ;; Up/down when competing in a normal buffer
   (define-key completion-in-region-mode-map (kbd "M-p") #'minibuffer-previous-completion)
@@ -222,15 +222,15 @@
 #+end_src
 
 ** History
-|----------------+-------+----------------------------------------------------------------------------|
-| *M-p*          | *M-p* | next-history-element                                                       |
-| *M-n*          | *M-n* | previous-history-element (display previous command executed in minibuffer) |
-| *DOWN*         |       | next-line-or-history-element                                               |
-|                |       | In multiline minibuffer, go to next line otherwise go to next history)     |
-| *UP*           |       | previous-line-or-history-element                                           |
-| M-s REGEXP RET |       | next-matching-history-element                                              |
-| M-r REGEXP RET |       | previous-matching-history-element                                          |
-|----------------+-------+----------------------------------------------------------------------------|
+|-----------------+-------+----------------------------------------------------------------------------|
+| *M-p*           | *M-p* | next-history-element                                                       |
+| *M-n*           | *M-n* | previous-history-element (display previous command executed in minibuffer) |
+| *DOWN* OR *C-n* |       | next-line-or-history-element                                               |
+|                 |       | In multiline minibuffer, go to next line otherwise go to next history)     |
+| *UP* OR *C-p*   |       | previous-line-or-history-element                                           |
+| M-s REGEXP RET  |       | next-matching-history-element                                              |
+| M-r REGEXP RET  |       | previous-matching-history-element                                          |
+|-----------------+-------+----------------------------------------------------------------------------|
 - don't show the "default" text in minibuffer
   #+begin_src emacs-lisp
     ;; (setq minibuffer-eldef-shorten-default t) ; obsolete
@@ -238,7 +238,7 @@
   #+end_src
 - Max length of minibuffer history and remove duplicate entries from history
   #+begin_src emacs-lisp
-    (setq history-length 100
+    (setq history-length 1000
 	  history-delete-duplicates t
 	  savehist-minibuffer-history-variables '(minibuffer-history
 						  query-replace-history
@@ -3984,20 +3984,29 @@ preceding line.
 #+end_src
 ** Modus
 #+begin_src emacs-lisp
-  (use-package modus-themes
-    :defer nil
-    :custom
-    (modus-themes-inhibit-reload nil "reload active theme when an option is changed through the Customize UI")
-    (modus-themes-bold-constructs t  "Use bold for code syntax highlighting and related")
-    (modus-themes-italic-constructs t "Use bold for code syntax highlighting and related ")
-    (modus-themes-mode-line '(accented borderless (padding 4) (height 0.9)) "Model")
-    (modus-themes-hl-line '(intense) "amplify color in use for hl-line-mode heading sizes and colors")
+  (use-package emacs
+    :init
+    (require-theme 'modus-themes) ; `require-theme' is ONLY for the built-in Modus themes
     :config
-    (setq modus-themes-headings '((1 . (bold rainbow 1.5))
-			    (2 . (bold rainbow 1.4))
-			    (3 . (bold rainbow 1.2))
-			    (t . (monochrome ))))
-    (load-theme 'modus-vivendi t))
+    ;; Add all your customizations prior to loading the themes
+    (setq     modus-themes-italic-constructs t
+  	    modus-themes-bold-constructs t
+  	    modus-themes-mixed-fonts t
+  	    modus-themes-completions
+  	    '((matches . (extrabold underline))
+  	      (selection . (semibold italic)))
+  	    modus-themes-completions
+  	    '((t . (extrabold underline)))
+  	    modus-themes-headings
+  	    '((1 . (variable-pitch 1.5))
+  	      (2 . (1.3))
+  	      (agenda-date . (1.3))
+  	      (agenda-structure . (variable-pitch light 1.8))
+  	      (t . (1.1))))
+
+    ;; Load the theme of your choice.
+    (modus-themes-load-theme 'modus-vivendi-tinted))
+
 #+end_src
 
 * Eglot
@@ -4074,7 +4083,7 @@ preceding line.
 
 Create a .dir-locals.el file in root of folder with contents like 
 ((python-base-mode . ((pyvenv-workon . "pyspark"))))
-#+begin_src emacs-lisp
+#+begin_src
   (use-package pyvenv
     :ensure t
     ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
@@ -5615,3 +5624,4 @@ Linebreaks
       ("C-+" . er/expand-region)
       ("C-_" . er/contract-region))
   #+end_src
+    
