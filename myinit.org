@@ -1972,77 +1972,77 @@
   |----------------+----------------------------------------------------|
   #+begin_src emacs-lisp
     (setq help-window-select t ;; select help window
-	  ;; in strongly dedicate windows behave like pop-to-buffer
-	  switch-to-buffer-in-dedicated-window 'pop
-	  ;; C-x C-b respects display buffer rules
-	  switch-to-buffer-obey-display-actions t)
+    	  ;; in strongly dedicate windows behave like pop-to-buffer
+    	  switch-to-buffer-in-dedicated-window 'pop
+    	  ;; C-x C-b respects display buffer rules
+    	  switch-to-buffer-obey-display-actions t)
     ;; switch to occur buffer immediately
     (add-hook 'occur-hook
-	      '(lambda ()
-		 (switch-to-buffer-other-window "*Occur*")))
+    	      '(lambda ()
+    		 (switch-to-buffer-other-window "*Occur*")))
     ;; switch to compilation buffer immediately
     (add-hook 'compilation-finish-functions 'switch-to-buffer-other-window 'compilation)
     (setq display-buffer-alist
-	  '(("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
-	     (display-buffer-reuse-window display-buffer-in-side-window)
-	     (side . right)
-	     (window-width . 0.5)
-	     (slot . 0))
-	    ("\\*\\(.*shell\\|ansi-term\\|\.*eshell\\|.*terminal\\|Async Shell\\).*"
-	     (display-buffer-in-side-window)
-	     (side . bottom)
-	     (window-height . 0.4)
-	     (slot . 0))
-	    ("\\*\\(Messages\\|Output\\).*"
-	     (display-buffer-in-side-window)
-	     (side . bottom)
-	     (window-height . 0.4)
-	     (slot . 0))
-	    ("\\*\\(vc-\\|Annotate\\).*"
-	     (display-buffer-in-side-window)
-	     (side . bottom)
-	     (window-height . 0.4)
-	     (slot . 0))
-	    ("\\*\\(log-edit-\\).*"
-	     (display-buffer-in-atom-window)
-	     (side . right)
-	     (window-width . 0.3)
-	     (slot . 0))
-	    ("\\*\\(Diff\\).*"
-	     (display-buffer-in-side-window)
-	     (side . bottom)
-	     (window-height . 0.4)
-	     (slot . 0))
-	    ("\\*\\(Open Recent\\).*"
-	     (display-buffer-in-side-window)
-	     (side . bottom)
-	     (window-height . 0.4)
-	     (slot . 0))
-	    ("\\*\\(Ibuffer\\).*"
-	     (display-buffer-in-side-window)
-	     (side . right)
-	     (window-width . 0.5)
-	     (slot . 0))
-	    ("\\*\\(Embark\\).*"
-	     (display-buffer-in-side-window)
-	     (side . bottom)
-	     (window-height . 0.4)
-	     (slot . 0))
-	    ("\\*\\(eldoc\\|xref\\|Flymake\\).*"
-	     (display-buffer-in-side-window)
-	     (side . bottom)
-	     (window-height . 0.4)
-	     (slot . 0))
-	    ("\\*\\(Python\\|ielm\\).*"
-	     (display-buffer-in-side-window)
-	     (side . bottom)
-	     (window-height . 0.4)
-	     (slot . 0))
-	    ("\\*\\(compilation\\|Occur\\|grep\\).*"
-	     (display-buffer-in-side-window)
-	     (side . bottom)
-	     (window-height . 0.4)
-	     (slot . 0))))
+    	  '(("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
+    	     (display-buffer-reuse-window display-buffer-in-side-window)
+    	     (side . right)
+    	     (window-width . 0.5)
+    	     (slot . 0))
+    	    ("\\*\\(.*shell\\|ansi-term\\|\.*eshell\\|.*terminal\\|Async Shell\\).*"
+    	     (display-buffer-in-side-window)
+    	     (side . bottom)
+    	     (window-height . 0.4)
+    	     (slot . 0))
+    	    ("\\*\\(Messages\\|Output\\).*"
+    	     (display-buffer-in-side-window)
+    	     (side . bottom)
+    	     (window-height . 0.4)
+    	     (slot . 0))
+    	    ("\\*\\(vc-\\|Annotate\\).*"
+    	     (display-buffer-in-side-window)
+    	     (side . bottom)
+    	     (window-height . 0.4)
+    	     (slot . 0))
+    	    ("\\*\\(log-edit-\\).*"
+    	     (display-buffer-in-atom-window)
+    	     (side . right)
+    	     (window-width . 0.3)
+    	     (slot . 0))
+    	    ("\\*\\(Diff\\).*"
+    	     (display-buffer-in-side-window)
+    	     (side . bottom)
+    	     (window-height . 0.4)
+    	     (slot . 0))
+    	    ("\\*\\(Open Recent\\).*"
+    	     (display-buffer-in-side-window)
+    	     (side . bottom)
+    	     (window-height . 0.4)
+    	     (slot . 0))
+    	    ("\\*\\(Ibuffer\\).*"
+    	     (display-buffer-in-side-window)
+    	     (side . right)
+    	     (window-width . 0.5)
+    	     (slot . 0))
+    	    ("\\*\\(Embark\\).*"
+    	     (display-buffer-in-side-window)
+    	     (side . bottom)
+    	     (window-height . 0.4)
+    	     (slot . 0))
+    	    ("\\*\\(eldoc\\|xref\\|Flymake\\).*"
+    	     (display-buffer-in-side-window)
+    	     (side . top)
+    	     (window-height . 0.4)
+    	     (slot . 0))
+    	    ("\\*\\(Python\\|ielm\\).*"
+    	     (display-buffer-in-side-window)
+    	     (side . bottom)
+    	     (window-height . 0.4)
+    	     (slot . 0))
+    	    ("\\*\\(compilation\\|Occur\\|grep\\).*"
+    	     (display-buffer-in-side-window)
+    	     (side . bottom)
+    	     (window-height . 0.4)
+    	     (slot . 0))))
     (global-set-key (kbd "<f12>") 'window-toggle-side-windows)
   #+end_src
 
@@ -2066,7 +2066,7 @@
 ** Frame commands
 |-----------------------+----------------------------------------------------------------|
 | C-x 5 2               | make-frame-command (create new frame using default params)     |
-| C-x 5 c               | clone-fram (create new frame using params of current frame)    |
+| C-x 5 c               | clone-frame (create new frame using params of current frame)   |
 | C-x 5 b BUFNAME RET   | switch-to-buffer-other-frame                                   |
 | C-x 5 f FILENAME RET  | find-file-other-frame                                          |
 | C-x 5 d DIRECTORY RET | dired-other-frame                                              |
@@ -2333,8 +2333,8 @@ preceding line.
 ** Filling
 - “Filling” text means breaking it up into lines that fit a
   specified width.
-- fill prefix allows para to be filled such that each line starts
-  with special string
+- fill prefix allows para to be filled such that each line starts with
+  special string
   |--------------------------------+--------+------------------------------------------|
   | M-x auto-fill-mode             |        | toggle autofill mode                     |
   | SPC or RET                     |        | in auto fill mode break lines where      |
@@ -2482,6 +2482,8 @@ preceding line.
   (setq org-confirm-babel-evaluate nil)
 #+end_src
 
+#+RESULTS:
+
 ** Text Based Tables
 |----------------------------+---------------------------------|
 | M-x table-fixed-width-mode | toggle automatic table resizing |
@@ -2509,7 +2511,7 @@ preceding line.
 - When reading text file, table appears as normal text
 |------------------------------+---------------------------------------------|
 | M-x table-recognize          | scan current buffer and recognize all valid |
-|                              | tale cells                                  |
+|                              | table cells                                 |
 | M-x table-unrecognize        | convert table to plain text                 |
 | M-x table-recognize-region   |                                             |
 | M-x table-unrecognize-region |                                             |
