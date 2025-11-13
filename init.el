@@ -278,7 +278,7 @@
   (global-display-line-numbers-mode 1) ; display line numbers in the fringe
   (tooltip-mode -1)		       ; tooltip in echo area
 
-  (defun maximize-frame ()
+  (defun my/maximize-frame ()
     "Maximizes the active frame in Windows"
     (interactive)
     ;; Send a `WM_SYSCOMMAND' message to the active frame with the
@@ -286,7 +286,7 @@
     (when (eq system-type 'windows-nt)
       (w32-send-sys-command 61488))
     (add-to-list 'default-frame-alist '(fullscreen . maximized)))
-  (add-hook 'window-setup-hook 'maximize-frame t)
+  (add-hook 'window-setup-hook 'my/maximize-frame t)
 
 
   )
@@ -477,7 +477,7 @@
 	vc-follow-symlinks t	      ; follow symlinks
 	vc-command-messages t	      ; log backend commands being run
 	)
-  (defun hoagie-vc-git-clone (repository-url local-dir)
+  (defun my/vc-git-clone (repository-url local-dir)
     "Run \"git clone REPOSITORY-URL\" to LOCAL-DIR."
     (interactive
      (let* ((url (read-string "Repository URL: "))
