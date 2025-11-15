@@ -17,7 +17,7 @@
   :config
   (define-prefix-command 'my/global-prefix-map nil)
   (keymap-set global-map "M-<SPC>" my/global-prefix-map)
-  
+
   (setq line-move-visual nil	 ; C-n C-p move by screen-lines
 	track-eol t		 ; don't track end of line when moving
 	next-line-add-newline nil ; C-n at the end of buffer won't add new lines
@@ -36,7 +36,7 @@
 	truncate-lines t	      ; truncate display of long lines
 	pixel-scroll-precision-mode t ; smooth scrolling
 	pixel-scroll-precision-use-momentum nil ; stop scrolling when wheel movement stops
-	
+
 	)
 
   ;; custom variable file
@@ -48,17 +48,17 @@
   ;; Add option "d" to whenever using C-x s or C-x C-c, allowing a quick preview
   ;; of the diff (if you choose `d') of what you're asked to save.
   (add-to-list 'save-some-buffers-action-alist
-               (list "d"
-                     (lambda (buffer) (diff-buffer-with-file (buffer-file-name buffer)))
-                     "show diff between the buffer and its file"))
-  
+	       (list "d"
+		     (lambda (buffer) (diff-buffer-with-file (buffer-file-name buffer)))
+		     "show diff between the buffer and its file"))
+
   (setq-default indicate-empty-lines t ; show blank lines at the end of buffer
 		)
   :bind
   (:repeat-map my/buffer-repeat-map
 	       ("C-t" . transpose-lines)
 	       )
-  
+
   ("C-x x a" . append-to-buffer)
   ("C-x x p" . prepend-to-buffer)
   ("C-x x c" . copy-to-buffer)
@@ -193,14 +193,14 @@
   )
 (use-package icomplete
   :bind (:map icomplete-minibuffer-map
-              ("M-n" . icomplete-forward-completions)
-              ("M-p" . icomplete-backward-completions)
-              ("RET" . icomplete-force-complete-and-exit)
-              ("C-j" . exit-minibuffer)) ;; So we can exit commands like `multi-file-replace-regexp-as-diff'
+	      ("C-n" . icomplete-forward-completions)
+	      ("C-p" . icomplete-backward-completions)
+	      ("RET" . icomplete-force-complete-and-exit)
+	      ("C-j" . exit-minibuffer)) ;; So we can exit commands like `multi-file-replace-regexp-as-diff'
   :hook
   (after-init-hook . (lambda ()
-                       (fido-mode -1)
-                       (icomplete-vertical-mode 1)))
+		       (fido-mode -1)
+		       (icomplete-vertical-mode 1)))
   :config
   (setq icomplete-delay-completions-threshold 0)
   (setq icomplete-compute-delay 0)
@@ -254,7 +254,7 @@
   :config
   (setq	search-ring-max 1000 ; search ring size
 	search-exit-option t ; control chars end search
-	isearch-allow-scroll 'unlimite ; allow screen scroll when in isearch
+	isearch-allow-scroll 'unlimited ; allow screen scroll when in isearch
 	regexp-search-ring-max 1000    ; regex search ring size
 	search-default-mode t	       ; default regex search
 	isearch-lazy-count t)	       ; show current match and total match number
@@ -358,7 +358,7 @@
       (w32-send-sys-command 61488))
     (add-to-list 'default-frame-alist '(fullscreen . maximized)))
   (add-hook 'window-setup-hook 'my/maximize-frame t)
-  
+
   :bind
   ("M-o" . other-window)
   (:map my/global-prefix-map
@@ -369,6 +369,7 @@
 	("w 1" . delete-other-windows)
 	("w =" . balance-windows)
 	("w t" . window-toggle-side-windows)
+	("w r" . winner-redo)
 	("w u" . winner-undo))
   (:repeat-map my/window-repeat-map
 	       ("o" . other-window)
@@ -377,7 +378,8 @@
 	       ("0" . delete-window)
 	       ("1" . delete-other-windows)
 	       ("=" . balance-windows)
-	       ("t" . window-toggle-side-windows)	       
+	       ("t" . window-toggle-side-windows)
+	       ("r" . winner-redo)
 	       ("u" . winner-undo))
   )
 (use-package flyspell
@@ -591,7 +593,7 @@
 (use-package abbrev
   :defer t
   :bind
-  ([M-/] . 'hippie-expand)
+  ("M-/" . 'hippie-expand)
   :config
   (setq abbrev-file-name (expand-file-name "abbrev_defs" user-emacs-directory) ; location to store personal abbrevs
 	save-abbrevs 'silently		; save abbrev when file is saved
@@ -639,7 +641,15 @@
 
   (save-place-mode 1)			; enable saveplace mode
   )
-(use-package dired)
+(use-package dired
+  :defer t
+  :custom
+  (dired-dwim-target t)			; try to guess target directory
+  (dired-kill-when-opening-new-dired-buffer t) ; kill current buffer when opening new directoy
+  (dired-listing-switches "-alh")
+  (dired-hide-details-hide-absolute-location t)            ; EMACS-31
+  (image-dired-dir (expand-file-name "cache/image-dired" user-emacs-directory))
+  )
 (use-package wdired
   :ensure nil
   :commands (wdired-change-to-wdired-mode)
@@ -798,47 +808,47 @@
   :config
   ;; Ibuffer filters
   (setq ibuffer-saved-filter-groups
-        '(("default"
-           ("org"     (or
-                       (mode . org-mode)
-                       (name . "^\\*Org Src")
-                       (name . "^\\*Org Agenda\\*$")))
-           ("tramp"   (name . "^\\*tramp.*"))
-           ("emacs"   (or
-                       (name . "^\\*scratch\\*$")
-                       (name . "^\\*Messages\\*$")
-                       (name . "^\\*Warnings\\*$")
-                       (name . "^\\*Shell Command Output\\*$")
-                       (name . "^\\*Async-native-compile-log\\*$")))
-           ("ediff"   (name . "^\\*[Ee]diff.*"))
-           ("vc"      (name . "^\\*vc-.*"))
-           ("dired"   (mode . dired-mode))
-           ("terminal" (or
-                        (mode . term-mode)
-                        (mode . shell-mode)
-                        (mode . eshell-mode)))
-           ("help"    (or
-                       (name . "^\\*Help\\*$")
-                       (name . "^\\*info\\*$")))
-           ("news"    (name . "^\\*Newsticker.*"))
-           ("gnus"    (or
-                       (mode . message-mode)
-                       (mode . gnus-group-mode)
-                       (mode . gnus-summary-mode)
-                       (mode . gnus-article-mode)
-                       (name . "^\\*Group\\*")
-                       (name . "^\\*Summary\\*")
-                       (name . "^\\*Article\\*")
-                       (name . "^\\*BBDB\\*")))
-           ("chat"    (or
-                       (mode . rcirc-mode)
-                       (mode . erc-mode)
-                       (name . "^\\*rcirc.*")
-                       (name . "^\\*ERC.*"))))))
+	'(("default"
+	   ("org"     (or
+		       (mode . org-mode)
+		       (name . "^\\*Org Src")
+		       (name . "^\\*Org Agenda\\*$")))
+	   ("tramp"   (name . "^\\*tramp.*"))
+	   ("emacs"   (or
+		       (name . "^\\*scratch\\*$")
+		       (name . "^\\*Messages\\*$")
+		       (name . "^\\*Warnings\\*$")
+		       (name . "^\\*Shell Command Output\\*$")
+		       (name . "^\\*Async-native-compile-log\\*$")))
+	   ("ediff"   (name . "^\\*[Ee]diff.*"))
+	   ("vc"      (name . "^\\*vc-.*"))
+	   ("dired"   (mode . dired-mode))
+	   ("terminal" (or
+			(mode . term-mode)
+			(mode . shell-mode)
+			(mode . eshell-mode)))
+	   ("help"    (or
+		       (name . "^\\*Help\\*$")
+		       (name . "^\\*info\\*$")))
+	   ("news"    (name . "^\\*Newsticker.*"))
+	   ("gnus"    (or
+		       (mode . message-mode)
+		       (mode . gnus-group-mode)
+		       (mode . gnus-summary-mode)
+		       (mode . gnus-article-mode)
+		       (name . "^\\*Group\\*")
+		       (name . "^\\*Summary\\*")
+		       (name . "^\\*Article\\*")
+		       (name . "^\\*BBDB\\*")))
+	   ("chat"    (or
+		       (mode . rcirc-mode)
+		       (mode . erc-mode)
+		       (name . "^\\*rcirc.*")
+		       (name . "^\\*ERC.*"))))))
 
   (add-hook 'ibuffer-mode-hook
-            (lambda ()
-              (ibuffer-switch-to-saved-filter-groups "default")))
+	    (lambda ()
+	      (ibuffer-switch-to-saved-filter-groups "default")))
   :bind
   (:map ctl-x-map
 	("C-b" . ibuffer-jump)))
@@ -848,7 +858,7 @@
   :preface
   (defun my/eglot-eldoc ()
     (setq eldoc-documentation-strategy
-          'eldoc-documentation-compose-eagerly))
+	  'eldoc-documentation-compose-eagerly))
   :custom
   (eglot-autoreconnect t "Automatically reconnect to LSP server")
   (eglot-connect-timeout 30 "Time out connection attempt after specified seconds")
@@ -866,9 +876,9 @@
 	("l b e" . eglot-events-buffer)
 	("l b s" . eglot-stderr-buffer)
 	("l f" . eglot-format)
-        ("l i" . eglot-inlay-hints-mode)
+	("l i" . eglot-inlay-hints-mode)
 	("l l" . eglot)
-        ("l o" . eglot-code-action-organize-imports)
+	("l o" . eglot-code-action-organize-imports)
 	("l r" . eglot-rename)
 	("l s" . eglot-shutdown-all))
   (:repeat-map my/eglot-repeat-map
@@ -876,7 +886,7 @@
 	       ("b e" . eglot-events-buffer)
 	       ("b s" . eglot-stderr-buffer)
 	       ("f" . eglot-format)
-               ("i" . eglot-inlay-hints-mode)
+	       ("i" . eglot-inlay-hints-mode)
 	       ("l" . eglot)
 	       ("o" . eglot-code-action-organize-imports)
 	       ("r" . eglot-rename)
@@ -956,5 +966,5 @@
   (proced-filter 'user) ;; We can change interactively with `s'
   :config
   (add-hook 'proced-mode-hook
-            (lambda ()
-              (proced-toggle-auto-update 1))))
+	    (lambda ()
+	      (proced-toggle-auto-update 1))))
