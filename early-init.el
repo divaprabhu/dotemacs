@@ -20,9 +20,6 @@
 ;; Single VC backend inscreases booting speed
 (setq vc-handled-backends '(Git))
 
-;; Do not native compile if on battery power
-(setopt native-comp-async-on-battery-power nil) ; EMACS-31
-
 ;; Window and Frames
 ;; Always start Emacs and new frames maximized
 
@@ -49,7 +46,7 @@
 (if (fboundp 'tooltip-mode) (tooltip-mode -1))
 (if (fboundp 'fringe-mode) (fringe-mode -1))
 (setq inhibit-startup-screen t)
-
+(setq inhibit-startup-message t)
 
 ;; Avoid raising the *Messages* buffer if anything is still without
 ;; lexical bindings
@@ -61,7 +58,7 @@
 ;; Avoid littering
 (setq user-emacs-directory (expand-file-name "~/.cache/emacs/"))
 (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
-
+(setq multisession-directory (expand-file-name "multisession" user-emacs-directory))
 (when (boundp 'native-comp-eln-load-path)
   (setcar native-comp-eln-load-path
       (expand-file-name (convert-standard-filename "eln-cache/")

@@ -1,39 +1,77 @@
 (use-package emacs			; basic configs
-  :bind
-  ("C-x C-t" . transpose-lines)
-  ("C-x x a" . append-to-buffer)
-  ("C-x x p" . prepend-to-buffer)
-  ("C-x x c" . copy-to-buffer)
-  ("C-x x i" . insert-buffer)
-  ("C-x x f" . append-to-file)
-  (:repeat-map my/simple-repeat-map
-	       ;; Defaults:
-	       ("C-t" . transpose-lines))
-  :config
+  :init
   (repeat-mode 1)
+  :custom
+  (remote-file-name-inhibit-delete-by-moving-to-trash t)
+  (remote-file-name-inhibit-auto-save t)
+  (remote-file-name-inhibit-locks t)
+  (remote-file-name-inhibit-auto-save-visited t)
+  (transient-history-file (expand-file-name "cache/transient/history.el" user-emacs-directory))
+  (transient-levels-file (expand-file-name "cache/transient/levels.el" user-emacs-directory))
+  (transient-values-file (expand-file-name "cache/transient/values.el" user-emacs-directory))
+  (url-configuration-directory (expand-file-name "cache/url/" user-emacs-directory))
+  (undo-limit (* 13 160000))
+  (undo-strong-limit (* 13 240000))
+  (undo-outer-limit (* 13 24000000))
+
+  :config
+  (define-prefix-command 'my/global-prefix-map nil)
+  (keymap-set global-map "M-<SPC>" my/global-prefix-map)
+  
   (setq line-move-visual nil	 ; C-n C-p move by screen-lines
 	track-eol t		 ; don't track end of line when moving
 	next-line-add-newline nil ; C-n at the end of buffer won't add new lines
 	what-cursor-show-names t ; show Unicode char name in what-cursor-position
 	delete-by-moving-to-trash t ; delete from dired moves to trash
-	
+
 	;; font
 	hi-lock-auto-select-face t	; don't prompt face
 
 	;; indentation
 	tab-always-indent 'complete ; tab indents if possible else completes
 	tab-width 8		    ; default tab width
-
+	repeat-exit-timeout 5 ; idle seconds after which turn of repeat mode
+	completion-ignore-case t	; case insensitive completion
+	native-comp-async-on-battery-power nil ; Do not native compile if on battery power
+	truncate-lines t	      ; truncate display of long lines
+	pixel-scroll-precision-mode t ; smooth scrolling
+	pixel-scroll-precision-use-momentum nil ; stop scrolling when wheel movement stops
+	
 	)
 
   ;; custom variable file
   (setq custom-file (concat user-emacs-directory "custom.el"))
   (when (file-exists-p custom-file)
-    (load custom-file))  
+    (load custom-file 'noerror 'nomessage))
 
+  ;; A Protesilaos life savier HACK
+  ;; Add option "d" to whenever using C-x s or C-x C-c, allowing a quick preview
+  ;; of the diff (if you choose `d') of what you're asked to save.
+  (add-to-list 'save-some-buffers-action-alist
+               (list "d"
+                     (lambda (buffer) (diff-buffer-with-file (buffer-file-name buffer)))
+                     "show diff between the buffer and its file"))
+  
   (setq-default indicate-empty-lines t ; show blank lines at the end of buffer
 		)
+  :bind
+  (:repeat-map my/buffer-repeat-map
+	       ("C-t" . transpose-lines)
+	       )
   
+  ("C-x x a" . append-to-buffer)
+  ("C-x x p" . prepend-to-buffer)
+  ("C-x x c" . copy-to-buffer)
+  ("C-x x i" . insert-buffer)
+  ("C-x x f" . append-to-file)
+  ("C-x C-k RET" . nil)			; disable kmacro edit
+  ("C-x z" . nil)			; disable suspend frame
+  ("C-x C-x" . nil)			; disable suspend frame
+  (:map my/global-prefix-map
+	("M-SPC" . cycle-spacing)	; restore original binding
+	("c j" . duplicate-dwim)	; duplicate line or region
+	("c ;" . comment-line)		; comment line
+	)
   :hook
   (text-mode . turn-on-auto-fill)   ; automatic line breaking on space
   (prog-mode . superword-mode) ; treat underscore as word char for navigation
@@ -92,7 +130,7 @@
 	auto-revert-remote-files nil	      ; disable for tramp
 	)
   (global-auto-revert-mode 1)	 ; auto update buffers if file changes
-  
+
   )
 (use-package minibuffer
   :config
@@ -102,20 +140,26 @@
 	resize-mini-windows t ; resize mini-buffer based on text in it
 	enable-recursive-minibuffer t ; allow to use mini-buffer recursively
 	minibuffer-depth-indicate-mode t ; show depth in case of recursion
+	minibuffer-electric-default-mode t
 	confirm-nonexistent-file-or-buffer nil ; don't ask confirmation
 	use-short-answers t	     ; use y or n instead of yes or no
 
 	;; mini-buffer completion
 	minibuffer-completion-auto-choose t ; insert current completion candidate in mini-buffer
-	completion-styles '(initials partial-completion flex basic) ; completion styles
-	read-filename-completion-ignore-case t ; file completion ignores case
-	completion-auto-help t ; show completion buffer if can't complete
+	completion-styles '(partial-completion flex initials) ; completion styles
+	completion-auto-help 'lazy ; show completion buffer if can't complete
 	completion-auto-select 'second-tab ; select completion buffer on second tab
-	completion-cycle-threshold 10 ; always cycle if number of completions is less than 10
+	completion-show-help nil	   ; no help in completion buffer
+	completion-eager-update t	   ;
+	completion-ignore-case t	   ; case insensitive completion
+	completion-cycle-threshold 10 ; always cycle if number of completions is less than this number
 	completions-format 'one-column ; completion list buffer format
 	completions-sort 'historical ; sort alphabetically and then by history
 	completions-max-height 10 ; height limit for completion list buffer
 	completions-header-format nil ; no header in completion list buffer
+	completions-detailed t	      ; display completions with details. Useful in describe-function etc
+	read-buffer-completion-ignore-case t ; ignore case for buffer name completion
+	read-file-name-completion-ignore-case t ;ignore case for file name completion
 	minibuffer-default-prompt-format " [%s]" ; format string for default values
 
 	;; mini-buffer history
@@ -137,7 +181,6 @@
 					search-ring regexp-search-ring) ; searches
 	)
 
-  :config
   ;; mini-buffer
   (line-number-mode 1)	    ; show line number in mode-line
   (column-number-mode 1)    ; show column number in mode-line
@@ -145,18 +188,61 @@
   (size-indication-mode -1) ; disable buffer size display in mode-line
   (file-name-shadow-mode 1) ; shadow ignored file path in mini-buffer
 
-  ;; completion
-  (icomplete-vertical-mode 1)		; mini buffer completion
-
   ;; history
   (savehist-mode 1)			; save minibuffer history
+  )
+(use-package icomplete
+  :bind (:map icomplete-minibuffer-map
+              ("M-n" . icomplete-forward-completions)
+              ("M-p" . icomplete-backward-completions)
+              ("RET" . icomplete-force-complete-and-exit)
+              ("C-j" . exit-minibuffer)) ;; So we can exit commands like `multi-file-replace-regexp-as-diff'
+  :hook
+  (after-init-hook . (lambda ()
+                       (fido-mode -1)
+                       (icomplete-vertical-mode 1)))
+  :config
+  (setq icomplete-delay-completions-threshold 0)
+  (setq icomplete-compute-delay 0)
+  (setq icomplete-show-matches-on-no-input t)
+  (setq icomplete-hide-common-prefix nil)
+  (setq icomplete-prospects-height 10)
+  (setq icomplete-separator " . ")
+  (setq icomplete-with-completion-tables t)
+  (setq icomplete-in-buffer t)
+  (setq icomplete-max-delay-chars 0)
+  (setq icomplete-scroll t)
 
+  (advice-add 'completion-at-point :after #'minibuffer-hide-completions)
+  )
+(use-package completion-preview
+  :hook
+  (prog-mode . 'completion-preview)
+  (text-mode . 'completion-preview)
+  (comint-mode . 'completion-preview)
+  :config
+  (setq completion-preview-minimum-symbol-length 1) ; minimum number of chars to start completion
+  (push 'org-self-insert-command completion-preview-commands)
+  :bind
+  (:map completion-preview-active-mode-map
+	("M-n" . completion-preview-next-candidate)
+	("M-p" . completion-preview-prev-candidate)
+	("TAB" . completion-preview-complete)
+	("M-i" . completion-preview-insert))
   )
 (use-package recentf
+  :custom
+  (recentf-max-saved-items 300) ; default is 20
+  (recentf-max-menu-items 15)
+  (recentf-auto-cleanup (if (daemonp) 300 'never))
+  (recentf-exclude (list "^/\\(?:ssh\\|su\\|sudo\\)?:"))
+  (recentf-save-file (expand-file-name "cache/recentf" user-emacs-directory))
   :config
   (recentf-mode 1)
   )
 (use-package register
+  :custom
+  (register-use-preview t)
   :config
   (setq register-preview-delay 1) ; seconds before displaying preview of register list
   )
@@ -175,22 +261,6 @@
   )
 (use-package window
   :defer nil
-  :bind
-  ([f12] . 'window-toggle-side-windows)
-  ("M-o" . other-window)
-  ("C-c t t" . term)
-  ("C-c t s" . shell)
-  ("C-c t e" . eshell)
-  (:repeat-map my/window-repeat-map
-	       ;; Defaults:
-	       ("o" . other-window)	; enters the map here
-	       ;; Resizing:
-	       ("L" . enlarge-window-horizontally)
-	       ("H" . shrink-window-horizontally)
-	       ("=" . balance-windows)
-	       ;; Adding/Deleting:
-	       ("0" . delete-window)
-	       ("1" . delete-other-windows))
   :config
   (setq	help-window-select t	  ; switch to help window when created
 	help-window-keep-selected t	; reuse same Help buffer
@@ -198,10 +268,11 @@
 	scroll-conservatively 1000 ; don't recentre point during long jump
 	hscroll-margin 5 ; horizontally scroll long lines near the edge
 	hscroll-step 5	 ; horizontally scroll only by small amount
-        line-number-display-limit nil ; no size limit to display line numbers in mode line
+	line-number-display-limit nil ; no size limit to display line numbers in mode line
 	blink-cursor-blink -1	      ; don't stop cursor blink
 	display-line-numbers 'relative	; relative line numbers
 	display-line-numbers-width nil ; dynamically compute line number width
+	display-line-numbers-widen t ; show actual line number in narrow
 	visible-bell t		       ; don't beep but flash
 	switch-to-buffer-in-dedicated-window 'pop ; in strongly dedicate windows behave like pop-to-buffer
 	switch-to-buffer-obey-display-actions t	; C-x C-b respects display buffer rules
@@ -259,7 +330,7 @@
 	  ("\\*\\(eldoc\\|xref\\|Flymake\\).*"
 	   (display-buffer-in-side-window)
 	   (side . top)
-	   (window-height . 0.4)
+	   (window-height . 0.2)
 	   (slot . 0))
 	  ("\\*\\(Python\\|ielm\\).*"
 	   (display-buffer-in-side-window)
@@ -277,7 +348,7 @@
   (put 'narrow-to-page 'disabled nil)	; allow narrow to page
   (global-display-line-numbers-mode 1) ; display line numbers in the fringe
   (tooltip-mode -1)		       ; tooltip in echo area
-
+  (winner-mode)
   (defun my/maximize-frame ()
     "Maximizes the active frame in Windows"
     (interactive)
@@ -287,8 +358,27 @@
       (w32-send-sys-command 61488))
     (add-to-list 'default-frame-alist '(fullscreen . maximized)))
   (add-hook 'window-setup-hook 'my/maximize-frame t)
-
-
+  
+  :bind
+  ("M-o" . other-window)
+  (:map my/global-prefix-map
+	("w o" . other-window)
+	("w }" . enlarge-window-horizontally)
+	("w {" . shrink-window-horizontally)
+	("w 0" . delete-window)
+	("w 1" . delete-other-windows)
+	("w =" . balance-windows)
+	("w t" . window-toggle-side-windows)
+	("w u" . winner-undo))
+  (:repeat-map my/window-repeat-map
+	       ("o" . other-window)
+	       ("}" . enlarge-window-horizontally)
+	       ("{" . shrink-window-horizontally)
+	       ("0" . delete-window)
+	       ("1" . delete-other-windows)
+	       ("=" . balance-windows)
+	       ("t" . window-toggle-side-windows)	       
+	       ("u" . winner-undo))
   )
 (use-package flyspell
   :defer t
@@ -309,6 +399,10 @@
       (load-file (expand-file-name "macros" user-emacs-directory)))
   )
 (use-package tramp
+  :custom
+  (tramp-copy-size-limit (* 2 1024 1024)) ;; 2MB
+  (tramp-use-scp-direct-remote-copying t)
+  (tramp-verbose 2)
   :defer t
   :config
   ;; use $PATH from after .profile load in executable search path
@@ -320,7 +414,7 @@
   )
 (use-package occur
   :hook
-  (occur-mode . next-error-follow-minor-mode) 	; auto enable follow mode
+  (occur-mode . next-error-follow-minor-mode)	; auto enable follow mode
   (occur-mode . (lambda() (switch-to-buffer-other-window "*Occur*")))
   )
 (use-package compile
@@ -338,7 +432,6 @@
   )
 (use-package org
   :defer t
-  :bind
   :bind
   (:map org-mode-map
 	("C-c C-n" . org-next-visible-heading)
@@ -375,6 +468,7 @@
   (setq blink-matching-paren 'jump	; briefly move to matching open paren
 	blink-matching-delay 1		; not used in show paren mode
 	show-paren-highlight-openparen t ; highlight open paren when point is just before it
+	show-paren-delay 0		 ; time in sec before showing matching paren
 	show-paren-style 'mixed		 ; highlight both paren when visible else highlight expression in between
 	show-paren-when-point-inside-paren t ; highlight when point is inside paren
 	show-paren-context-when-offscreen t  ; show some context in echo when open paren is offscreen
@@ -389,39 +483,38 @@
   )
 (use-package eldoc
   :defer t
+  :custom
+  (eldoc-help-at-pt t) ;; EMACS-31
   :config
   (setq eldoc-echo-area-display-truncation-message t ; indicate if message was truncated
+	eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly ; show multiple documentation as soon as they are available
 	eldoc-idle-delay 0.5	; wait before displaying documentation
-	eldoc-echo-area-use-multiline-p nil ; don't allow multilne docs in echo area
+	eldoc-echo-area-use-multiline-p t ; don't allow multilne docs in echo area
 	eldoc-echo-area-prefer-doc-buffer t) ; reuse existing eldoc buffer
-  
+
   (global-eldoc-mode 1)			; enable eldoc mode
   )
 (use-package hideshow
   :config
   (setq hs-isearch-open t ; unhide code and comment if match is in hidden block during isearch
 	hs-hide-comments-when-hiding-all t) ; hide comments also when hs-hide-all
+  :bind
+  (:map my/global-prefix-map
+	("h h" . hs-toggle-hiding)
+	("h H" . hs-hide-all)
+	("h S" . hs-show-all))
+  (:repeat-map my/hs-minor-repeat-map
+	       ("t" . hs-toggle-hiding)
+	       ("H" . hs-hide-all)
+	       ("S" . hs-show-all))
   :hook
   (prog-mode . hs-minor-mode)
   )
-(use-package completion-preview
-  :defer t
-  :hook
-  (prog-mode . 'completion-preview)
-  (text-mode . 'completion-preview)
-  (comint-mode . 'completion-preview)
-  :config
-  (setq completion-preview-minimum-symbol-length 2) ; type at least 2 chars for completion
-
-  (push 'org-self-insert-command completion-preview-commands)
-  ;; Convenient alternative to C-i or TAB after typing one of the above
-  (keymap-set completion-preview-active-mode-map "M-i" #'completion-preview-insert)
-  :bind
-  ([M-n] . #'completion-preview-next-candidate)
-  ([M-p] . #'completion-preview-prev-candidate)
-  )
 (use-package grep
   :defer t
+  :custom
+  (grep-find-ignored-directories
+   '("SCCS" "RCS" "CVS" "MCVS" ".src" ".svn" ".venv" ".jj" ".git" ".hg" ".bzr" "_MTN" "_darcs" "{arch}" "node_modules" "build" "dist"))
   :config
   (setq grep-save-buffers 'ask		; ask to save buffer
 	grep-use-null-filename-separator nil) ; don't use --null option of grep
@@ -429,10 +522,11 @@
 (use-package flymake
   :defer t
   :bind (:map flymake-mode-map
-	      ([M-n] . 'flymake-goto-next-error)
-	      ([M-p] . 'flymake-goto-prev-error))
+	      ("M-n" . 'flymake-goto-next-error)
+	      ("M-p" . 'flymake-goto-prev-error))
   :config
   (setq flymake-no-changes-timeout 3	  ; wait 3 sec before checking
+	flymake-show-diagnostics-at-end-of-line nil ; add diagnostic summary at end of line
 	flymake-start-on-flymake-mode t ; start checking when enabled
 	flymake-wrap-around t		; wrap around
 	help-at-pt-display-when-idle t ; show local help on point over
@@ -481,11 +575,11 @@
     "Run \"git clone REPOSITORY-URL\" to LOCAL-DIR."
     (interactive
      (let* ((url (read-string "Repository URL: "))
-            (dir (file-name-base url)))
+	    (dir (file-name-base url)))
        (list url (read-string "Target directory: " dir))))
     (vc-git-command nil 0 nil "clone" repository-url local-dir)
     (let ((default-directory (file-name-concat default-directory local-dir)))
-      
+
       (vc-dir default-directory)))
   )
 (use-package xref
@@ -512,7 +606,7 @@
   :defer t
   :config
   (setq async-shell-command-display-buffer nil ; display command buffer after command completion
-        async-shell-command-buffer 'new-buffer ; create new buffer if there is already a buffer from another command
+	async-shell-command-buffer 'new-buffer ; create new buffer if there is already a buffer from another command
 	shell-command-prompt-show-cwd t)       ; show current dir in shell-command and async-shell-command
   )
 (use-package desktop
@@ -537,6 +631,8 @@
   )
 (use-package saveplace
   :demand t
+  :custom
+  (save-place-limit 600)
   :config
   (setq save-place-file (expand-file-name "saveplace" user-emacs-directory) ; file where place is stored
 	save-place-forget-unreadable-files t) ; set to nil if emacs is slow to exit
@@ -545,21 +641,22 @@
   )
 (use-package dired)
 (use-package wdired
+  :ensure nil
+  :commands (wdired-change-to-wdired-mode)
   :config
-  :after (dired)
-  (setq wdired-allow-to-change-permissions t) ; allow permission editing in wdired
-  )
+  (setq wdired-allow-to-change-permissions t)
+  (setq wdired-create-parent-directories t))
 (use-package modus-themes
   :ensure nil
   :defer t
   :custom
   (modus-themes-headings
-	'((1 . (variable-pitch 1.7))
-          (2 . (1.5))
-	  (3 . (1.3))
-          (agenda-date . (1.3))
-          (agenda-structure . (variable-pitch light 1.8))
-          (t . (1.1))))
+   '((1 . (variable-pitch 1.7))
+     (2 . (1.5))
+     (3 . (1.3))
+     (agenda-date . (1.3))
+     (agenda-structure . (variable-pitch light 1.8))
+     (t . (1.1))))
   (modus-themes-italic-constructs t)
   (modus-themes-bold-constructs t)
   (modus-themes-mixed-fonts t)
@@ -585,7 +682,7 @@
      (bg-mark-delete "#4d2d2d")
      (bg-mark-select "#3C435E")
      (bg-mode-line-active "#181818") ;"#232635")
-     (bg-mode-line-inactive "#424242") ;"#282c3d") 
+     (bg-mode-line-inactive "#424242") ;"#282c3d")
      (bg-prominent-err "#4d2d2d")
      (bg-prompt unspecified)
      (bg-prose-block-contents "#232635")
@@ -678,12 +775,12 @@
   (load-theme 'modus-vivendi-tinted t))
 (use-package ibuffer
   :custom
-  (ibuffer-expert t)			; don't confirm for dangerous operations
-  (ibuffer-display-summary nil)		; don't summarize ibuffer columns
+  (ibuffer-expert t)	      ; don't confirm for dangerous operations
+  (ibuffer-display-summary nil)	     ; don't summarize ibuffer columns
   (ibuffer-show-empty-filter-groups nil) ; don't show empty filter groups
   (ibuffer-default-sorting-mode 'major-mode) ; sort order
-  (ibuffer-use-header-line t)			   ; show header line
-  (ibuffer-default-shrink-to-minimum-size nil)	   ; don't minimize window size
+  (ibuffer-use-header-line t)		     ; show header line
+  (ibuffer-default-shrink-to-minimum-size nil) ; don't minimize window size
   (ibuffer-formats
    '((mark modified read-only locked " "
 	   (name 40 40 :left :elide)
@@ -696,21 +793,62 @@
 	   (name 16 -1)
 	   " " filename)))
   (ibuffer-saved-filter-groups nil)	; no defined filter by default
-  (ibuffer-old-time 48)			; hours after which buffer is considered old
+  (ibuffer-old-time 48)	  ; hours after which buffer is considered old
+  (ibuffer-human-readable-size t)	; human readable size
+  :config
+  ;; Ibuffer filters
+  (setq ibuffer-saved-filter-groups
+        '(("default"
+           ("org"     (or
+                       (mode . org-mode)
+                       (name . "^\\*Org Src")
+                       (name . "^\\*Org Agenda\\*$")))
+           ("tramp"   (name . "^\\*tramp.*"))
+           ("emacs"   (or
+                       (name . "^\\*scratch\\*$")
+                       (name . "^\\*Messages\\*$")
+                       (name . "^\\*Warnings\\*$")
+                       (name . "^\\*Shell Command Output\\*$")
+                       (name . "^\\*Async-native-compile-log\\*$")))
+           ("ediff"   (name . "^\\*[Ee]diff.*"))
+           ("vc"      (name . "^\\*vc-.*"))
+           ("dired"   (mode . dired-mode))
+           ("terminal" (or
+                        (mode . term-mode)
+                        (mode . shell-mode)
+                        (mode . eshell-mode)))
+           ("help"    (or
+                       (name . "^\\*Help\\*$")
+                       (name . "^\\*info\\*$")))
+           ("news"    (name . "^\\*Newsticker.*"))
+           ("gnus"    (or
+                       (mode . message-mode)
+                       (mode . gnus-group-mode)
+                       (mode . gnus-summary-mode)
+                       (mode . gnus-article-mode)
+                       (name . "^\\*Group\\*")
+                       (name . "^\\*Summary\\*")
+                       (name . "^\\*Article\\*")
+                       (name . "^\\*BBDB\\*")))
+           ("chat"    (or
+                       (mode . rcirc-mode)
+                       (mode . erc-mode)
+                       (name . "^\\*rcirc.*")
+                       (name . "^\\*ERC.*"))))))
+
+  (add-hook 'ibuffer-mode-hook
+            (lambda ()
+              (ibuffer-switch-to-saved-filter-groups "default")))
   :bind
-  (
-   (:map ibuffer-mode-map
-	 ("* f" . ibuffer-mark-by-file-name-regexp)
-	 ("* g" . ibuffer-mark-by-content-regexp)
-	 ("* n" . ibuffer-mark-by-name-regexp)
-	 ("s n" . ibuffer-do-sort-by-alphabetic)
-	 ("/ g" . ibuffer-filter-by-content)
-	 ("M-o" . other-window))
-   (:map ctl-x-map
-	 ("C-b" . ibuffer-jump))))
+  (:map ctl-x-map
+	("C-b" . ibuffer-jump)))
 (use-package eglot
   :defer t
   :after buffer-env
+  :preface
+  (defun my/eglot-eldoc ()
+    (setq eldoc-documentation-strategy
+          'eldoc-documentation-compose-eagerly))
   :custom
   (eglot-autoreconnect t "Automatically reconnect to LSP server")
   (eglot-connect-timeout 30 "Time out connection attempt after specified seconds")
@@ -723,18 +861,32 @@
   (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
   (eglot-report-progress nil "Don't spam echo area")
   :bind
-  (:map eglot-mode-map
-	("C-c l a" . eglot-code-actions)
-	("C-c l b e" . eglot-events-buffer)
-	("C-c l b s" . eglot-stderr-buffer)
-	("C-c l f" . eglot-format)
-	("C-c l l" . eglot)
-	("C-c l r" . eglot-rename)
-	("C-c l s" . eglot-shutdown-all))
+  (:map my/global-prefix-map
+	("l a" . eglot-code-actions)
+	("l b e" . eglot-events-buffer)
+	("l b s" . eglot-stderr-buffer)
+	("l f" . eglot-format)
+        ("l i" . eglot-inlay-hints-mode)
+	("l l" . eglot)
+        ("l o" . eglot-code-action-organize-imports)
+	("l r" . eglot-rename)
+	("l s" . eglot-shutdown-all))
+  (:repeat-map my/eglot-repeat-map
+	       ("a" . eglot-code-actions)
+	       ("b e" . eglot-events-buffer)
+	       ("b s" . eglot-stderr-buffer)
+	       ("f" . eglot-format)
+               ("i" . eglot-inlay-hints-mode)
+	       ("l" . eglot)
+	       ("o" . eglot-code-action-organize-imports)
+	       ("r" . eglot-rename)
+	       ("s" . eglot-shutdown-all))
   :config
   (if (eq system-type 'windows-nt)
       (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/Scripts")))
     (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/bin"))))
+  :hook
+  ((eglot-managed-mode . my/eglot-eldoc))
   )
 (use-package buffer-env
   :ensure t
@@ -747,37 +899,62 @@
   (prog-mode . buffer-env-update)
   )
 (use-package python
-    :init
-    (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
-      (unless (file-directory-p pylspdir)
-	(make-directory pylspdir t)
-	(cond
-	 ((eq system-type 'windows-nt)
-	  (shell-command (concat "python -m venv " pylspdir))
-	  (shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all]")))
-	 (t
-	  (shell-command (concat "python3 -m venv " pylspdir))
-	  (shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))))
-    :config
-    (add-hook 'python-base-mode-hook 'eglot-ensure)
-    :bind
-    (:map python-mode-map
-	  ("C-c C-c"	. python-shell-send-buffer)
-	  ("C-c C-e"	. python-shell-send-statement)
-	  ("C-c C-r"	. python-shell-send-region)
-	  ("C-c C-p"	. run-python)
-	  ("C-c C-z"	. python-shell-switch-to-shell)
-	  ("C-c C-t c"	. python-skeleton-class)
-	  ("C-c C-t d"	. python-skeleton-def)
-	  ("C-c C-t f"	. python-skeleton-for)
-	  ("C-c C-t i"	. python-skeleton-if)
-	  ("C-c C-t t"	. python-skeleton-import)
-	  ("C-c C-t w"	. python-skeleton-while)))
+  :defer t
+  :init
+  (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
+    (unless (file-directory-p pylspdir)
+      (make-directory pylspdir t)
+      (cond
+       ((eq system-type 'windows-nt)
+	(shell-command (concat "python -m venv " pylspdir))
+	(shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all]")))
+       (t
+	(shell-command (concat "python3 -m venv " pylspdir))
+	(shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))))
+  :bind
+  (:map my/global-prefix-map
+	("p c"	. python-shell-send-buffer)
+	("p e"	. python-shell-send-statement)
+	("p r"	. python-shell-send-region)
+	("p p"	. run-python)
+	("p z"	. python-shell-switch-to-shell)
+	("p t c"	. python-skeleton-class)
+	("p t d"	. python-skeleton-def)
+	("p t f"	. python-skeleton-for)
+	("p t i"	. python-skeleton-if)
+	("p t t"	. python-skeleton-import)
+	("p t w"	. python-skeleton-while))
+  (:repeat-map my/python-repeat-map)
+
+  :config
+  (add-hook 'python-base-mode-hook 'eglot-ensure)
+  )
 (use-package which-key
   :ensure t
+  :demand t
   :custom
-  (which-key-idle-delay 2)
+  (which-key-idle-delay 1)
   (which-key-side-window-max-height 0.5)
   :config
   (which-key-setup-side-window-bottom)
-  (which-key-mode))
+  (which-key-mode)
+  )
+(use-package project
+  :config
+  (setq project-list-file (expand-file-name "cache/projects" user-emacs-directory) ; file to save knows projects
+	)
+  )
+(use-package proced
+  :ensure nil
+  :defer t
+  :custom
+  (proced-enable-color-flag t)
+  (proced-tree-flag t)
+  (proced-auto-update-flag 'visible)
+  (proced-auto-update-interval 1)
+  (proced-descent t)
+  (proced-filter 'user) ;; We can change interactively with `s'
+  :config
+  (add-hook 'proced-mode-hook
+            (lambda ()
+              (proced-toggle-auto-update 1))))
