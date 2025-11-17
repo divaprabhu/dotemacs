@@ -573,17 +573,8 @@
 	vc-follow-symlinks t	      ; follow symlinks
 	vc-command-messages t	      ; log backend commands being run
 	)
-  (defun my/vc-git-clone (repository-url local-dir)
-    "Run \"git clone REPOSITORY-URL\" to LOCAL-DIR."
-    (interactive
-     (let* ((url (read-string "Repository URL: "))
-	    (dir (file-name-base url)))
-       (list url (read-string "Target directory: " dir))))
-    (vc-git-command nil 0 nil "clone" repository-url local-dir)
-    (let ((default-directory (file-name-concat default-directory local-dir)))
-
-      (vc-dir default-directory)))
   )
+
 (use-package xref
   :defer t
   :config
@@ -598,7 +589,6 @@
   (setq abbrev-file-name (expand-file-name "abbrev_defs" user-emacs-directory) ; location to store personal abbrevs
 	save-abbrevs 'silently		; save abbrev when file is saved
 	abbrev-suggest t)		; suggest using abbrev
-
   (if
       (file-exists-p abbrev-file-name)
       (quietly-read-abbrev-file))
