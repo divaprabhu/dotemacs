@@ -574,7 +574,6 @@
 	vc-command-messages t	      ; log backend commands being run
 	)
   )
-
 (use-package xref
   :defer t
   :config
@@ -953,8 +952,11 @@
   (proced-auto-update-flag 'visible)
   (proced-auto-update-interval 1)
   (proced-descent t)
-  (proced-filter 'user) ;; We can change interactively with `s'
+  (proced-filter 'user) ;; We can change interactively with `f'
   :config
   (add-hook 'proced-mode-hook
 	    (lambda ()
 	      (proced-toggle-auto-update 1))))
+(use-package doc-view
+  :custom
+  (doc-view-resolution 200))

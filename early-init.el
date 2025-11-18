@@ -71,6 +71,6 @@
 (package-initialize)			; make sure to update load-path for downloaded packages
 ;; (org-babel-load-file "~/.config/emacs/myinit.org")
 
-(setq debug-on-error t)
+;; (setq debug-on-error t)
 (provide 'early-init)
 ;;; early-init.el ends here
