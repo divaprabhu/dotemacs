@@ -290,17 +290,17 @@
 	  ("\\*\\(.*shell\\|ansi-term\\|\.*eshell\\|.*terminal\\|Async Shell\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
-	   (window-height . 0.4)
+	   (window-width . 0.4)
 	   (slot . 0))
 	  ("\\*\\(Messages\\|Output\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
-	   (window-height . 0.4)
+	   (window-width . 0.4)
 	   (slot . 0))
 	  ("\\*\\(vc-\\|Annotate\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
-	   (window-height . 0.4)
+	   (window-width . 0.4)
 	   (slot . 0))
 	  ("\\*\\(log-edit-\\).*"
 	   (display-buffer-in-atom-window)
@@ -321,6 +321,11 @@
 	   (display-buffer-in-side-window)
 	   (side . right)
 	   (window-width . 0.5)
+	   (slot . 0))
+	  ("\\*\\(Proced\\).*"
+	   (display-buffer-in-side-window)
+	   (side . bottom)
+	   (window-height . 0.5)
 	   (slot . 0))
 	  ("\\*\\(Embark\\).*"
 	   (display-buffer-in-side-window)
@@ -404,6 +409,7 @@
   :custom
   (tramp-copy-size-limit (* 2 1024 1024)) ;; 2MB
   (tramp-use-scp-direct-remote-copying t)
+  (enable-remote-dir-locals t)
   (tramp-verbose 2)
   :defer t
   :config
@@ -850,7 +856,7 @@
 	  'eldoc-documentation-compose-eagerly))
   :custom
   (eglot-autoreconnect t "Automatically reconnect to LSP server")
-  (eglot-connect-timeout 30 "Time out connection attempt after specified seconds")
+  (eglot-connect-timeout 60 "Time out connection attempt after specified seconds")
   (eglot-sync-connect nil "Don't block Emacs user interface when connecting")
   (eglot-events-buffer-size 200000000 "Max number of chars on event buffer")
   (eglot-autoshutdown t "Shutdown language server when last buffer managed by it is killed")
@@ -960,3 +966,11 @@
 (use-package doc-view
   :custom
   (doc-view-resolution 200))
+
+(use-package auth-source
+  :defer t
+  :custom
+  (epg-pinentry-mode 'loopback)
+  (auth-sources '("~/.gnupg/authinfo.gpg")))
+
+
