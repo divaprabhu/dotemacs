@@ -886,22 +886,9 @@
 	       ("o" . eglot-code-action-organize-imports)
 	       ("r" . eglot-rename)
 	       ("s" . eglot-shutdown-all))
-  :config
-  (if (eq system-type 'windows-nt)
-      (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/Scripts")))
-    (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/bin"))))
+
   :hook
   ((eglot-managed-mode . my/eglot-eldoc))
-  )
-(use-package buffer-env
-  :ensure t
-  :defer t
-  :config
-  (setq buffer-env-script-name ".venv/bin/activate"
-	;; alternatively, try to find a .envrc file first
-	buffer-env-script-name '(".envrc" ".venv/bin/activate"))
-  :hook
-  (prog-mode . buffer-env-update)
   )
 (use-package python
   :defer t
