@@ -16,7 +16,7 @@
 
   :config
   (define-prefix-command 'my/global-prefix-map nil)
-  (keymap-set global-map "M-<SPC>" my/global-prefix-map)
+  (keymap-set global-map "C-c" my/global-prefix-map)
 
   (setq line-move-visual nil	 ; C-n C-p move by screen-lines
 	track-eol t		 ; don't track end of line when moving
@@ -68,7 +68,6 @@
   ("C-x z" . nil)			; disable suspend frame
   ("C-x C-x" . nil)			; disable suspend frame
   (:map my/global-prefix-map
-	("M-SPC" . cycle-spacing)	; restore original binding
 	("c j" . duplicate-dwim)	; duplicate line or region
 	("c ;" . comment-line)		; comment line
 	)
@@ -414,7 +413,8 @@
   :defer t
   :config
   ;; use $PATH from after .profile load in executable search path
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+    (add-to-list 'tramp-remote-path "~/.cache/lsp/pylsp/bin"))
 (use-package image
   :defer t
   :config
@@ -849,7 +849,6 @@
 	("C-b" . ibuffer-jump)))
 (use-package eglot
   :defer t
-  :after buffer-env
   :preface
   (defun my/eglot-eldoc ()
     (setq eldoc-documentation-strategy
@@ -893,7 +892,7 @@
 (use-package python
   :defer t
   :init
-  (let ((pylspdir (expand-file-name "lsp/pylsp" user-emacs-directory)))
+  (let ((pylspdir (expand-file-name "lsp/pylsp" "~/.cache")))
     (unless (file-directory-p pylspdir)
       (make-directory pylspdir t)
       (cond

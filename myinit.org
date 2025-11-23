@@ -4031,6 +4031,16 @@ preceding line.
 
 * Eglot
 - eglot is Emacs LSP client
+- create .dir-locals.el file in project root with these contents
+  #+begin_src 
+  ((python-base-mode
+  . ((eglot-workspace-configuration
+      . (:pylsp (:plugins (:jedi (:environment "/home/dvp/.cache/venvs/pyspark")))))
+     (indent-tabs-mode . nil)
+     (python-shell-interpreter
+  . "/home/dvp/.cache/venvs/pyspark/bin/python"))))
+  #+end_src
+  
 - Refer [[*Xref][Xref]]
   #+begin_src emacs-lisp
     (use-package eglot

@@ -67,7 +67,7 @@
 
 ;; Initialize Packages
 (require 'package)
-
+;; (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)			; make sure to update load-path for downloaded packages
 ;; (org-babel-load-file "~/.config/emacs/myinit.org")
 
