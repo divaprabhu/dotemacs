@@ -4040,6 +4040,10 @@ preceding line.
      (python-shell-interpreter
   . "/home/dvp/.cache/venvs/pyspark/bin/python"))))
   #+end_src
+  - *For tramp pylsp, add path of pylsp binary in .profile*
+    if [ -d "$HOME/.cache/lsp/pylsp/bin" ] ; then
+	PATH="$HOME/.cache/lsp/pylsp/bin:$PATH"
+    fi
   
 - Refer [[*Xref][Xref]]
   #+begin_src emacs-lisp
@@ -4074,7 +4078,6 @@ preceding line.
 
     ;; (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/basedpyright/bin/basedpyright-langserver" "--stdio"))))
   #+end_src
-
 ** Python
 [[https://robbmann.io/posts/emacs-eglot-pyrightconfig][Virtual Environments with Eglot, Tramp, and Pyright]]
 #+begin_src

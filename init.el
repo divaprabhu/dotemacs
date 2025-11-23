@@ -413,8 +413,7 @@
   :defer t
   :config
   ;; use $PATH from after .profile load in executable search path
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-    (add-to-list 'tramp-remote-path "~/.cache/lsp/pylsp/bin"))
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 (use-package image
   :defer t
   :config
