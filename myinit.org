@@ -4070,8 +4070,8 @@ preceding line.
 	    ("C-c l s" . eglot-shutdown-all))
       :config
       (if (eq system-type 'windows-nt)
-	  (setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/Scripts")))
-	(setq exec-path (append exec-path '("~/.cache/emacs/lsp/pylsp/bin")))))
+	  (setq exec-path (append exec-path '("~/.cache/lsp/pylsp/Scripts")))
+	(setq exec-path (append exec-path '("~/.cache/lsp/pylsp/bin")))))
     ;;   :config
     ;;
     ;; (add-to-list 'eglot-server-programs '(python-base-mode . ("~/.cache/emacs/lsp/pylsp/bin/pylsp" "--verbose"))))

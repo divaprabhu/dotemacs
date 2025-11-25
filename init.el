@@ -439,6 +439,8 @@
   )
 (use-package org
   :defer t
+  :custom
+  (org-hide-emphasis-markers t)
   :bind
   (:map org-mode-map
 	("C-c C-n" . org-next-visible-heading)
