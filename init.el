@@ -55,22 +55,22 @@
   (setq-default indicate-empty-lines t ; show blank lines at the end of buffer
 		)
   :bind
-  (:repeat-map my/buffer-repeat-map
-	       ("C-t" . transpose-lines)
-	       )
-
+  ("C-x C-k RET" . nil)			; disable kmacro edit
+  ("C-x z" . nil)			; disable suspend frame
+  ("C-z" . nil)				; disable suspend frame
+  ("C-x C-t" . transpose-lines)
   ("C-x x a" . append-to-buffer)
   ("C-x x p" . prepend-to-buffer)
   ("C-x x c" . copy-to-buffer)
   ("C-x x i" . insert-buffer)
   ("C-x x f" . append-to-file)
-  ("C-x C-k RET" . nil)			; disable kmacro edit
-  ("C-x z" . nil)			; disable suspend frame
-  ("C-x C-x" . nil)			; disable suspend frame
+
   (:map my/global-prefix-map
 	("c j" . duplicate-dwim)	; duplicate line or region
 	("c ;" . comment-line)		; comment line
+	("c t" . transpose-lines)
 	)
+
   :hook
   (text-mode . turn-on-auto-fill)   ; automatic line breaking on space
   (prog-mode . superword-mode) ; treat underscore as word char for navigation
@@ -296,7 +296,7 @@
 	   (side . bottom)
 	   (window-width . 0.4)
 	   (slot . 0))
-	  ("\\*\\(vc-\\|Annotate\\).*"
+	  ("\\*\\(vc-dir\\|Annotate\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
 	   (window-width . 0.4)
@@ -306,10 +306,10 @@
 	   (side . right)
 	   (window-width . 0.3)
 	   (slot . 0))
-	  ("\\*\\(Diff\\).*"
+	  ("\\*\\(Diff\\|vc-diff\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
-	   (window-height . 0.4)
+	   (window-height . 0.6)
 	   (slot . 0))
 	  ("\\*\\(Open Recent\\).*"
 	   (display-buffer-in-side-window)
@@ -553,26 +553,7 @@
 	gdb-many-windows t)		       ; enable gdb many window mode
 
   )
-(use-package elisp-mode
-  :after org
-  :defer t
-  :config
-  (defun my/ielm-send-line-or-region ()
-    (interactive)
-    (unless (use-region-p)
-      (forward-line 0)
-      (set-mark-command nil)
-      (forward-line 1))
-    (backward-char 1)
-    (let ((text (buffer-substring-no-properties (region-beginning)
-						(region-end))))
-      (with-current-buffer "*ielm*"
-	(insert text)
-	(ielm-send-input))
 
-      (deactivate-mark)))
-  (define-key org-mode-map (kbd "C-M-x") 'my/ielm-send-line-or-region)
-  )
 (use-package vc
   :defer t
   :config
