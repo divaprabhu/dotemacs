@@ -3543,7 +3543,7 @@ preceding line.
     )
   (use-package project
     :custom
-    (project-list-file (expand-file-name "cache/projects" user-emacs-directory)) ; file to save knows projects
+    (project-list-file (expand-file-name "projects" user-emacs-directory)) ; file to save knows projects
     )
   (use-package xref
     :defer t

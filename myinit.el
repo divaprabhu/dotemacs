@@ -56,9 +56,9 @@
   (column-number-mode 1)
   (global-hl-line-mode 1)
   (size-indication-mode 1)
-  (undo-limit (* 13 160000))
-  (undo-strong-limit (* 13 240000))
-  (undo-outer-limit (* 13 24000000))
+  ;; (undo-limit (* 13 160000))
+  ;; (undo-strong-limit (* 13 240000))
+  ;; (undo-outer-limit (* 13 24000000))
   :custom
   (line-move-visual nil)	 ; C-n C-p move by screen-lines
   (track-eol t)			 ; don't track end of line when moving
@@ -327,18 +327,16 @@
   (switch-to-buffer-in-dedicated-window 'pop) ; in strongly dedicate windows behave like pop-to-buffer
   (switch-to-buffer-obey-display-actions t) ; C-x C-b respects display buffer rules
   :config
-  (setq frame-title-format '(multiple-frames "%b" ; show buffer name
-					     ("" "%b"))
-	display-buffer-alist
+  (setq display-buffer-alist
 	'(("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
 	   (display-buffer-reuse-window display-buffer-in-side-window)
 	   (side . right)
 	   (window-width . 0.5)
-	   (slot . 0))
-	  ("\\*\\(.*shell\\|ansi-term\\|\.*eshell\\|.*terminal\\|Async Shell\\).*"
+	   (slot . 1))
+	  ("\\*\\(.*shell\\|.*ansi-term\\|.*eshell\\|.*terminal\\|Async Shell\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
-	   (window-width . 0.4)
+	   (window-height . 0.5)
 	   (slot . 0))
 	  ("\\*\\(Messages\\|Output\\).*"
 	   (display-buffer-in-side-window)
@@ -348,7 +346,7 @@
 	  ("\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
 	   (display-buffer-reuse-window display-buffer-in-side-window)
 	   (side . bottom)
-	   (window-width . 0.8)
+	   (window-height . 0.6)
 	   (slot . 0))
 	  ("\\*\\(log-edit-\\).*"
 	   (display-buffer-in-atom-window)
@@ -369,7 +367,7 @@
 	   (display-buffer-in-side-window)
 	   (side . right)
 	   (window-width . 0.5)
-	   (slot . 0))
+	   (slot . 1))
 	  ("\\*\\(Proced\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
@@ -384,7 +382,7 @@
 	   (display-buffer-in-side-window)
 	   (side . top)
 	   (window-height . 0.2)
-	   (slot . 0))
+	   (slot . 2))
 	  ("\\*\\(Python\\|ielm\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
@@ -395,12 +393,10 @@
 	   (side . bottom)
 	   (window-height . 0.4)
 	   (slot . 0))))
-
-  (tooltip-mode -1)		       ; tooltip in echo area
+ 
   (winner-mode)
   :bind
   ("M-o" . other-window)
-  ("<f12>" . window-toggle-side-windows)
   (:repeat-map my/window-prefix-map
 	       ("0" . delete-window)
 	       ("1" . delete-other-windows)
@@ -409,8 +405,8 @@
 	       ("r" . winner-redo)
 	       ("t" . window-toggle-side-windows)
 	       ("u" . winner-undo))
-	       ("{" . shrink-window-horizontally)
-	       ("}" . enlarge-window-horizontally)
+  ("{" . shrink-window-horizontally)
+  ("}" . enlarge-window-horizontally)
   )
 
 (use-package emacs			; frames
@@ -565,10 +561,12 @@
   (vc-revert-show-diff t)	      ; revert first shows diff buffer
   (vc-follow-symlinks t)	      ; follow symlinks
   (vc-command-messages t)	      ; log backend commands being run
+  :hook
+  (diff-mode . next-error-follow-minor-mode)	; auto enable follow mode
   )
 (use-package project
   :custom
-  (project-list-file (expand-file-name "cache/projects" user-emacs-directory)) ; file to save knows projects
+  (project-list-file (expand-file-name "projects" user-emacs-directory)) ; file to save knows projects
   )
 (use-package xref
   :defer t
@@ -997,3 +995,33 @@
   (transient-history-file )
   (auth-sources (expand-file-name "authinfo" user-emacs-directory))
   )
+
+(use-package popper
+  :ensure t ; or :straight t
+  :config
+  (setq popper-group-function #'popper-group-by-project) ; project.el projects
+  (setq popper-display-control nil)	; honor display buffer alist
+  (setq popper-echo-dispatch-keys nil) ; no short cut for specific popup window
+  :bind (("<f12>"   . popper-toggle)
+	 ("M-<f12>"   . popper-cycle)
+	 ("C-<f12>" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+	'("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
+	  "\\*\\(.*shell\\|.*ansi-term\\|.*eshell\\|.*terminal\\|Async Shell\\).*"
+	  "\\*\\(Messages\\|Output\\).*"
+	  "\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
+	  "\\*\\(log-edit-\\).*"
+	  "\\*\\(Diff\\|vc-diff\\).*"
+	  "\\*\\(Open Recent\\).*"
+	  "\\*\\(Ibuffer\\).*"
+	  "\\*\\(Proced\\).*"
+	  "\\*\\(Embark\\).*"
+	  "\\*\\(eldoc\\|xref\\|Flymake\\).*"
+	  "\\*\\(Python\\|ielm\\).*"
+	  "\\*\\(compilation\\|Occur\\|grep\\).*"
+          "Output\\*$"
+          help-mode
+          compilation-mode))
+  (popper-mode +1)
+  (popper-echo-mode +1))                ; For echo area hints
