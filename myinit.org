@@ -2082,7 +2082,7 @@
   	   (side . bottom)
   	   (window-height . 0.6)
   	   (slot . 0))
-  	  ("\\*\\(log-edit-\\).*"
+  	  ("\\*\\(log-edit-\\|vc-git\\).*"
   	   (display-buffer-in-atom-window)
   	   (side . right)
   	   (window-width . 0.3)
