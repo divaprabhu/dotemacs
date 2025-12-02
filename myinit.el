@@ -10,9 +10,6 @@
 (define-prefix-command 'my/lsp-prefix-map nil "LSP Prefix")
 (keymap-set my/global-prefix-map "l" '("LSP Prefix" . my/lsp-prefix-map))  
 
-(define-prefix-command 'my/org-prefix-map nil "Org Prefix")
-(keymap-set my/global-prefix-map "o" '("Org Prefix" . my/org-prefix-map))  
-
 (define-prefix-command 'my/python-prefix-map nil "Python Prefix")
 (keymap-set my/global-prefix-map "p" '("Python Prefix" . my/python-prefix-map))  
 
@@ -393,7 +390,7 @@
 	   (side . bottom)
 	   (window-height . 0.4)
 	   (slot . 0))))
- 
+  
   (winner-mode)
   :bind
   ("M-o" . other-window)
@@ -404,9 +401,9 @@
 	       ("o" . other-window)
 	       ("r" . winner-redo)
 	       ("t" . window-toggle-side-windows)
-	       ("u" . winner-undo))
-  ("{" . shrink-window-horizontally)
-  ("}" . enlarge-window-horizontally)
+	       ("u" . winner-undo)
+	       ("{" . shrink-window-horizontally)
+	       ("}" . enlarge-window-horizontally))
   )
 
 (use-package emacs			; frames
@@ -789,6 +786,7 @@
 	       ("a" . eglot-code-actions)
 	       ("b e" . eglot-events-buffer)
 	       ("b s" . eglot-stderr-buffer)
+	       ("c" . eglot-reconnect)
 	       ("f" . eglot-format)
 	       ("i" . eglot-inlay-hints-mode)
 	       ("l" . eglot)
@@ -796,6 +794,14 @@
 	       ("r" . eglot-rename)
 	       ("s" . eglot-shutdown-all))
   )
+
+(use-package pyvenv
+  :ensure t
+  ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
+  :hook
+  (python-base-mode)
+  :config
+  (pyvenv-tracking-mode 1))
 
 (use-package python
   :defer t
@@ -806,14 +812,18 @@
       (cond
        ((eq system-type 'windows-nt)
 	(async-shell-command (concat "python -m venv " pylspdir))
-	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all]")))
+	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] && deactivate")))
        (t
 	(async-shell-command (concat "python3 -m venv " pylspdir))
-	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all]"))))))
+	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] && deactivate"))))))
   :config
-  (add-hook 'python-base-mode-hook 'eglot-ensure)
+  (add-hook 'python-base-mode-hook
+	    (progn
+	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
+	      (setq exec-path (split-string (getenv "PATH") path-separator))
+	      'eglot-ensure))
   :bind
-    (:map my/python-prefix-map
+  (:map my/python-prefix-map
 	("c"	. python-shell-send-buffer)
 	("e"	. python-shell-send-statement)
 	("r"	. python-shell-send-region)
@@ -927,24 +937,30 @@
   :custom
   (org-hide-emphasis-markers t)
   :bind
-  (:repeat-map my/org-prefix-map
-	       ("C-n" . outline-next-visible-heading)
-	       ("C-p" . outline-previous-visible-heading)
-	       ("C-f" . org-forward-heading-same-level)
-	       ("C-b" . org-backward-heading-same-level)
-	       ("C-u" . outline-up-heading))
-  :config
-  (org-babel-do-load-languages 'org-babel-load-languages
-			       '((C . t)
-				 (java . t)
-				 (latex . t)
-				 (lua . t)
-				 (python . t)
-				 (shell . t)
-				 (emacs-lisp . t)))
+  (:map org-mode-map                                
+	("C-c C-n" . org-next-visible-heading)          
+	("C-c C-p" . org-previous-visible-heading)      
+	("C-c C-f" . org-forward-heading-same-level)    
+	("C-c C-b" . org-backward-heading-same-level)   
+	("C-c C-u" . outline-up-heading))               
+  (:repeat-map my/org-repeat-map                    
+               ("C-n" . org-next-visible-heading)       
+               ("C-p" . org-previous-visible-heading)   
+               ("C-f" . org-forward-heading-same-level) 
+               ("C-b" . org-backward-heading-same-level)
+               ("C-u" . outline-up-heading))           
+:config
+(org-babel-do-load-languages 'org-babel-load-languages
+  			     '((C . t)
+  			       (java . t)
+  			       (latex . t)
+  			       (lua . t)
+  			       (python . t)
+  			       (shell . t)
+  			       (emacs-lisp . t)))
 
-  (setq org-confirm-babel-evaluate nil)	; don't ask when evaluating code blocks
-  )
+(setq org-confirm-babel-evaluate nil)	; don't ask when evaluating code blocks
+)
 
 (use-package dired
   :defer t
@@ -992,8 +1008,7 @@
   :defer t
   :custom
   (epg-pinentry-mode 'loopback)
-  (transient-history-file )
-  (auth-sources (expand-file-name "authinfo" user-emacs-directory))
+  (auth-sources '("~/.cache/emacs/authinfo.gpg" "~/.authinfo" "~/.authinfo.gpg" "~/.netrc"))
   )
 
 (use-package popper
