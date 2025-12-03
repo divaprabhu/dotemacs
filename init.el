@@ -28,8 +28,8 @@
 
 ;; Initialize Packages
 (require 'package)
-(add-to-list 'package-archives
-             '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+;; (add-to-list 'package-archives
+             ;; '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (package-initialize)			; make sure to update load-path for downloaded packages
 (org-babel-load-file "~/.config/emacs/myinit.org")
 

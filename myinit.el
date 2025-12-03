@@ -367,9 +367,9 @@
 	   (slot . 1))
 	  ("\\*\\(Proced\\).*"
 	   (display-buffer-in-side-window)
-	   (side . bottom)
-	   (window-height . 0.5)
-	   (slot . 0))
+	   (side . right)
+	   (window-width . 0.5)
+	   (slot . 1))
 	  ("\\*\\(Embark\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
@@ -377,9 +377,9 @@
 	   (slot . 0))
 	  ("\\*\\(eldoc\\|xref\\|Flymake\\).*"
 	   (display-buffer-in-side-window)
-	   (side . top)
-	   (window-height . 0.2)
-	   (slot . 2))
+	   (side . right)
+	   (window-width . 100)
+	   (slot . 1))
 	  ("\\*\\(Python\\|ielm\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
@@ -473,7 +473,7 @@
   (eldoc-echo-area-display-truncation-message t) ; indicate if message was truncated
   (eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly) ; show multiple documentation as soon as they are available
   (eldoc-idle-delay 0.5)	; wait before displaying documentation
-  (eldoc-echo-area-use-multiline-p t) ; don't allow multilne docs in echo area
+  (eldoc-echo-area-use-multiline-p nil) ; don't allow multilne docs in echo area
   (eldoc-echo-area-prefer-doc-buffer t) ; reuse existing eldoc buffer
   :config
   (global-eldoc-mode 1)			; enable eldoc mode
@@ -795,14 +795,6 @@
 	       ("s" . eglot-shutdown-all))
   )
 
-(use-package pyvenv
-  :ensure t
-  ;; :vc (:url "https://github.com/jorgenschaefer/pyvenv") 
-  :hook
-  (python-base-mode)
-  :config
-  (pyvenv-tracking-mode 1))
-
 (use-package python
   :defer t
   :init
@@ -1040,3 +1032,36 @@
           compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1))                ; For echo area hints
+
+(use-package buffer-env
+  :ensure t
+  :hook
+  (hack-local-variables .  buffer-env-update)
+  (comint-mode .  buffer-env-update)
+  (eshell-mode . buffer-env-update)
+  :custom
+  (buffer-env-script-name '(".envrc" ".venv/bin/activate" ".venv/Scripts/activate.bat" ".env"))
+  :config
+  ;; https://github.com/purcell/inheritenv/blob/main/inheritenv.el
+  (eval-when-compile (require 'cl-lib))
+  (defun buffer-env-inherit (func &rest args)
+    "Apply FUNC such that the environment it sees will match the current value.
+This is useful if FUNC creates a temp buffer, because that will
+not inherit any buffer-local values of variables `exec-path' and
+`process-environment'.
+
+This function is designed for convenient use as an \"around\" advice.
+
+ARGS is as for ORIG."
+    (cl-letf* (((default-value 'process-environment) process-environment)
+               ((default-value 'exec-path) exec-path))
+      ;; Don't force tramp to be loaded, but propagate its env/path vars if it is
+      (if (and (boundp 'tramp-remote-path) (boundp 'tramp-remote-process-environment))
+          (cl-letf* (((default-value 'tramp-remote-path) tramp-remote-path)
+                     ((default-value 'tramp-remote-process-environment) tramp-remote-process-environment))
+            (apply func args))
+	(apply func args))))
+
+  (advice-add 'eshell :around #'buffer-env-inherit)
+  (advice-add 'shell  :around #'buffer-env-inherit)
+  )
