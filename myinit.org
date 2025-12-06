@@ -2619,7 +2619,6 @@ preceding line.
 |-----------------+------------------------------------------------------------------------|
 | *TAB*             | indent-for-tab-command (indent current line or region)                 |
 | *RET*             | newline (insert new line and then adjust indentation of                |
-|                 | following line)                                                        |
 | *C-M-q*           | prog-indent-sexp (indent all lines in parenthetical grouping)          |
 |                 | indentation of opening parenthesis won't change                        |
 | *C-M-\*           | indent-region                                                          |
@@ -4354,6 +4353,11 @@ Create a .dir-locals.el file in root of folder with contents like
   	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
   	      (setq exec-path (split-string (getenv "PATH") path-separator))
   	      'eglot-ensure))
+    (add-hook 'python-mode-hook
+  	    (progn
+  	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
+  	      (setq exec-path (split-string (getenv "PATH") path-separator))
+  	      'eglot-ensure))
     :bind
     (:map my/python-prefix-map
   	("c"	. python-shell-send-buffer)
@@ -4952,7 +4956,7 @@ Create a .dir-locals.el file in root of folder with contents like
   :defer t
   :custom
   (proced-enable-color-flag t)
-  (proced-tree-flag t)
+  (proced-tree-flag nil)
   (proced-auto-update-flag 'visible)
   (proced-auto-update-interval 1)
   (proced-descent t)
@@ -4962,6 +4966,7 @@ Create a .dir-locals.el file in root of folder with contents like
 	    (lambda ()
 	      (proced-toggle-auto-update 1))))
 #+end_src
+
 * Document Viewing
 - major mode for viewing DVI, PS PDF formats
 - opening a document that can be viewed in DocView mode, Emacs
@@ -5060,6 +5065,7 @@ Create a .dir-locals.el file in root of folder with contents like
     (hack-local-variables .  buffer-env-update)
     (comint-mode .  buffer-env-update)
     (eshell-mode . buffer-env-update)
+    (org-mode . buffer-env-update)
     :custom
     (buffer-env-script-name '(".envrc" ".venv/bin/activate" ".venv/Scripts/activate.bat" ".env"))
     :config
@@ -6032,9 +6038,9 @@ Linebreaks
   change the current buffer. On exiting from the recursive edit, you
   go back to the ‘query-replace’.
   |---------------+-------------------------------------------------------------------------------|
-  | *C-M-c*       | exit-recursive-edit                                                           |
+  | *C-M-c*         | exit-recursive-edit                                                           |
   |               | exit recursive edit returning to unfinished command which continues execution |
-  | *C-]*         | abort-recursive-edit                                                          |
+  | *C-]*           | abort-recursive-edit                                                          |
   |               | like exiting but also quits the unfinished command                            |
   |               | mode line displays square brackets around parenthesis that surround modes     |
   |               | each nested level of recursive edit displays a pair of square brackets        |

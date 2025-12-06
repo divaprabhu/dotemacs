@@ -814,6 +814,11 @@
 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
 	      (setq exec-path (split-string (getenv "PATH") path-separator))
 	      'eglot-ensure))
+  (add-hook 'python-mode-hook
+	    (progn
+	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
+	      (setq exec-path (split-string (getenv "PATH") path-separator))
+	      'eglot-ensure))
   :bind
   (:map my/python-prefix-map
 	("c"	. python-shell-send-buffer)
@@ -981,7 +986,7 @@
 :defer t
 :custom
 (proced-enable-color-flag t)
-(proced-tree-flag t)
+(proced-tree-flag nil)
 (proced-auto-update-flag 'visible)
 (proced-auto-update-interval 1)
 (proced-descent t)
@@ -1039,6 +1044,7 @@
   (hack-local-variables .  buffer-env-update)
   (comint-mode .  buffer-env-update)
   (eshell-mode . buffer-env-update)
+  (org-mode . buffer-env-update)
   :custom
   (buffer-env-script-name '(".envrc" ".venv/bin/activate" ".venv/Scripts/activate.bat" ".env"))
   :config
