@@ -385,19 +385,24 @@
 	   (side . bottom)
 	   (window-height . 0.4)
 	   (slot . 0))
+	  ("\\*\\(Org Src\\).*"
+	   (display-buffer-same-window))
 	  ("\\*\\(compilation\\|Occur\\|grep\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
 	   (window-height . 0.4)
 	   (slot . 0))))
   
-  (winner-mode)
+  (winner-mode 1)
+  (windmove-mode 1)
   :bind
   ("M-o" . other-window)
   (:repeat-map my/window-prefix-map
 	       ("0" . delete-window)
 	       ("1" . delete-other-windows)
 	       ("=" . balance-windows)
+	       ("b" . windmove-swap-states-left)
+	       ("f" . windmove-swap-states-right)
 	       ("o" . other-window)
 	       ("r" . winner-redo)
 	       ("t" . window-toggle-side-windows)
@@ -781,6 +786,24 @@
   (eglot-report-progress nil "Don't spam echo area")
   :hook
   ((eglot-managed-mode . my/eglot-eldoc))
+  :config
+  (defun my/org-babel-edit-prep (info)	; https://github.com/joaotavora/eglot/issues/523
+    (setq buffer-file-name (or (alist-get :file (caddr info))
+                               "org-src-babel-tmp"))
+    (eglot-ensure))
+
+  (advice-add 'org-edit-src-code
+              :before (defun my/org-edit-src-code/before (&rest args)
+			(when-let* ((element (org-element-at-point))
+                                    (type (org-element-type element))
+                                    (lang (org-element-property :language element))
+                                    (mode (org-src-get-lang-mode lang))
+                                    ((eglot--lookup-mode mode))
+                                    (edit-pre (intern
+                                               (format "org-babel-edit-prep:%s" lang))))
+                          (if (fboundp edit-pre)
+                              (advice-add edit-pre :after #'my/org-babel-edit-prep)
+                            (fset edit-pre #'my/org-babel-edit-prep)))))
   :bind
     (:repeat-map my/lsp-prefix-map
 	       ("a" . eglot-code-actions)
@@ -999,6 +1022,7 @@
 (use-package doc-view
   :custom
   (doc-view-resolution 200)
+  (doc-view-continuous t)
   )
 
 (use-package epg
@@ -1045,6 +1069,7 @@
   (comint-mode .  buffer-env-update)
   (eshell-mode . buffer-env-update)
   (org-mode . buffer-env-update)
+  (org-src-mode . buffer-env-update)
   :custom
   (buffer-env-script-name '(".envrc" ".venv/bin/activate" ".venv/Scripts/activate.bat" ".env"))
   :config
