@@ -517,7 +517,7 @@
   :custom
   (compilation-scroll-output 'first-error) ; scroll automatically
   (compilation-always-kill t) ; kill current compilation before starting new one
-  (compilation-auto-jump-to-first-error t) ; jump to first error
+  (compilation-auto-jump-to-first-error nil) ; jump to first error
   (next-error-highlight 3)	 ; highlight error for 3 sec in source
   (next-error-highlight-no-select 3) ; highlight in non selected buffers in source
   (compilation-save-buffers-predicate 'ignore) ; don't save
