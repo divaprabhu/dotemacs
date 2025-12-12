@@ -836,12 +836,14 @@
 	    (progn
 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
 	      (setq exec-path (split-string (getenv "PATH") path-separator))
+	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))	      
 	      'eglot-ensure))
-  (add-hook 'python-mode-hook
-	    (progn
-	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
-	      (setq exec-path (split-string (getenv "PATH") path-separator))
-	      'eglot-ensure))
+  ;; (add-hook 'python-mode-hook
+  ;; 	    (progn
+  ;; 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
+  ;; 	      (setq exec-path (split-string (getenv "PATH") path-separator))
+  ;; 	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))
+  ;; 	      'eglot-ensure))
   :bind
   (:map my/python-prefix-map
 	("c"	. python-shell-send-buffer)
@@ -1029,7 +1031,6 @@
   :defer t
   :custom
   (epg-pinentry-mode 'loopback)
-  (auth-sources '("~/.cache/emacs/authinfo.gpg" "~/.authinfo" "~/.authinfo.gpg" "~/.netrc"))
   )
 
 (use-package popper
