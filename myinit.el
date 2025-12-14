@@ -53,13 +53,16 @@
   (column-number-mode 1)
   (global-hl-line-mode 1)
   (size-indication-mode 1)
-  ;; (undo-limit (* 13 160000))
-  ;; (undo-strong-limit (* 13 240000))
-  ;; (undo-outer-limit (* 13 24000000))
   :custom
   (line-move-visual nil)	 ; C-n C-p move by screen-lines
   (track-eol t)			 ; don't track end of line when moving
   (what-cursor-show-names t) ; show Unicode char name in what-cursor-position
+  (undo-limit (* 16 1024 1024))		; in bytes
+  (undo-strong-limit (* 16 1024 1024))
+  (undo-outer-limit (* 16 1024 1024))
+  :bind
+  ("C-/" . undo-only)
+  ("C-M-/" . undo-redo)
   )
 
 (use-package minibuffer
@@ -1025,6 +1028,8 @@
   :custom
   (doc-view-resolution 200)
   (doc-view-continuous t)
+  :config
+  (add-hook 'doc-view-mode-hook (lambda () (display-line-numbers-mode -1)))
   )
 
 (use-package epg
