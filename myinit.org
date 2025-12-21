@@ -7,20 +7,17 @@
   (define-prefix-command 'my/global-prefix-map nil "Global Prefix")
   (keymap-set global-map "C-c" my/global-prefix-map)
 
-  (define-prefix-command 'my/core-prefix-map nil "Core Emacs Prefix")
-  (keymap-set my/global-prefix-map "c" '("Core Emacs Prefix" . my/core-prefix-map))
+  (define-prefix-command 'my/emacs-prefix-map nil "Core Emacs Prefix")
+  (keymap-set my/global-prefix-map "e" '("Emacs Prefix" . my/emacs-prefix-map))
+
+  (define-prefix-command 'my/gptel-prefix-map nil "GPTel Prefix")
+  (keymap-set my/global-prefix-map "g" '("GPTel Prefix" . my/gptel-prefix-map))  
 
   (define-prefix-command 'my/hideshow-prefix-map nil "Hideshow Prefix")
   (keymap-set my/global-prefix-map "h" '("Hideshow Prefix" . my/hideshow-prefix-map))  
 
   (define-prefix-command 'my/lsp-prefix-map nil "LSP Prefix")
   (keymap-set my/global-prefix-map "l" '("LSP Prefix" . my/lsp-prefix-map))  
-
-  (define-prefix-command 'my/python-prefix-map nil "Python Prefix")
-  (keymap-set my/global-prefix-map "p" '("Python Prefix" . my/python-prefix-map))  
-
-  (define-prefix-command 'my/window-prefix-map nil "Window Prefix")
-  (keymap-set my/global-prefix-map "w" '("Window Prefix" . my/window-prefix-map))
 
   (use-package emacs
     :init
@@ -29,16 +26,16 @@
     (repeat-exit-timeout 5) ; idle seconds after which turn of repeat mode
     :bind
     ("C-x C-k RET" . nil)			; disable kmacro edit
-    ("C-x z" . nil)			; disable suspend frame
+    ("C-x C-z" . nil)			; disable suspend frame
     ("C-z" . nil)				; disable suspend frame
     ("C-x x a" . append-to-buffer)
     ("C-x x p" . prepend-to-buffer)
     ("C-x x c" . copy-to-buffer)
     ("C-x x f" . append-to-file)
-    (:repeat-map my/core-prefix-map
-  	       ("j" . duplicate-dwim)
-  	       (";" . comment-line)
-  	       ("t" . transpose-lines)))
+    (:repeat-map my/emacs-prefix-map
+    	       ("j" . duplicate-dwim)
+    	       (";" . comment-line)
+    	       ("t" . transpose-lines)))
 
 #+end_src
 
@@ -2134,18 +2131,14 @@
     (windmove-mode 1)
     :bind
     ("M-o" . other-window)
-    (:repeat-map my/window-prefix-map
-  	       ("0" . delete-window)
-  	       ("1" . delete-other-windows)
-  	       ("=" . balance-windows)
-  	       ("b" . windmove-swap-states-left)
-  	       ("f" . windmove-swap-states-right)
-  	       ("o" . other-window)
-  	       ("r" . winner-redo)
-  	       ("t" . window-toggle-side-windows)
-  	       ("u" . winner-undo)
-  	       ("{" . shrink-window-horizontally)
-  	       ("}" . enlarge-window-horizontally))
+    ("C-x w =" . balance-windows)
+    ("C-x w b" . windmove-swap-states-left)
+    ("C-x w f" . windmove-swap-states-right)
+    ("C-x w u" . winner-undo)
+    ("C-x w r" . winner-redo)
+    ("C-x w 1" . delete-other-windows)
+    ("C-x w {" . shrink-window-horizontally)
+    ("C-x w }" . enlarge-window-horizontally)
     )
 #+end_src
 * Frames
@@ -4368,10 +4361,10 @@ Create a .dir-locals.el file in root of folder with contents like
         (make-directory pylspdir t)
         (cond
          ((eq system-type 'windows-nt)
-  	(async-shell-command (concat "python -m venv " pylspdir))
+  	(shell-command (concat "python -m venv " pylspdir))
   	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] && deactivate")))
          (t
-  	(async-shell-command (concat "python3 -m venv " pylspdir))
+  	(shell-command (concat "python3 -m venv " pylspdir))
   	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] && deactivate"))))))
     :config
     (add-hook 'python-base-mode-hook
@@ -4386,19 +4379,19 @@ Create a .dir-locals.el file in root of folder with contents like
     ;; 	      (setq exec-path (split-string (getenv "PATH") path-separator))
     ;; 	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))
     ;; 	      'eglot-ensure))
-    :bind
-    (:map my/python-prefix-map
-  	("c"	. python-shell-send-buffer)
-  	("e"	. python-shell-send-statement)
-  	("r"	. python-shell-send-region)
-  	("p"	. run-python)
-  	("z"	. python-shell-switch-to-shell)
-  	("t c"	. python-skeleton-class)
-  	("t d"	. python-skeleton-def)
-  	("t f"	. python-skeleton-for)
-  	("t i"	. python-skeleton-if)
-  	("t t"	. python-skeleton-import)
-  	("t w"	. python-skeleton-while))
+    ;; :bind
+    ;; (:map my/python-prefix-map
+    ;; 	("c"	. python-shell-send-buffer)
+    ;; 	("e"	. python-shell-send-statement)
+    ;; 	("r"	. python-shell-send-region)
+    ;; 	("p"	. run-python)
+    ;; 	("z"	. python-shell-switch-to-shell)
+    ;; 	("t c"	. python-skeleton-class)
+    ;; 	("t d"	. python-skeleton-def)
+    ;; 	("t f"	. python-skeleton-for)
+    ;; 	("t i"	. python-skeleton-if)
+    ;; 	("t t"	. python-skeleton-import)
+    ;; 	("t w"	. python-skeleton-while))
     )
 
 #+end_src
@@ -5124,6 +5117,71 @@ Create a .dir-locals.el file in root of folder with contents like
     (advice-add 'shell  :around #'buffer-env-inherit)
     )
 #+end_src
+* GPT
+** GPTel
+#+begin_src emacs-lisp
+  (use-package gptel
+    :ensure t
+    :custom
+    (gptel-default-mode 'org-mode)
+    (gptel-include-reasoning t)
+    :preface
+    (defun my/run-llamafile ()
+      "Finds a .llamafile in a user-specified directory and runs it asynchronously.
+  Prompts the user for the directory path."
+      (interactive)
+      (let* ((llamafile-extension "llamafile")
+             (regex (concat "\\." llamafile-extension "$"))
+             ;; Prompt for a directory path specifically
+             (dir-path (read-directory-name "Enter directory for Llama File: " nil nil t))
+             (flags "--verbose --server --nobrowser")
+             ;; directory-files returns a list of matching filenames
+             (files (directory-files dir-path t regex)))
+        (if files
+            (let ((file-to-run (car files)))
+              (message "Executing: %s" file-to-run)
+              (async-shell-command
+               (concat file-to-run " " flags)
+               (concat "*Async Shell " (file-name-base file-to-run) ".out*")
+               (concat "*Async Shell " (file-name-base file-to-run) ".err*")))
+  	;; Use the defined 'llamafile-extension' for the error message
+  	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
+    :bind
+    (:map my/gptel-prefix-map
+        	("a" . gptel-add)
+        	("f" . gptel-add-file)
+        	("g" . gptel)
+        	("l" . my/run-llamafile)
+        	("m" . gptel-menu)
+        	("p" . gptel-org-set-properties)
+        	("r" . gptel-rewrite)
+        	("s" . gptel-send)
+      	("t" . gptel-org-set-topic))
+    :config
+    (setq gptel-backend
+          (gptel-make-openai "llamafile"
+            :stream t
+            :protocol "http"
+            :host "localhost:8080"
+  	  :models '(llamafile))
+  	)
+    (gptel-make-openai "OpenAI"
+      :stream t
+      :key 'gptel-api-key-from-auth-source
+      )
+    (gptel-make-gemini "Gemini"
+      :stream t
+      :key 'gptel-api-key-from-auth-source
+      )
+    (gptel-make-openai "GitHub"
+      :stream t
+      :host "models.inference.ai.azure.com"
+      :endpoint "/chat/completions?api-version=2024-05-01-preview"
+      :key 'gptel-api-key-from-auth-source
+      :models '(gpt-4o)
+      )
+    )
+#+end_src
 * Unused
 ** LSP Mode
 #+begin_src
@@ -5162,7 +5220,6 @@ Create a .dir-locals.el file in root of folder with contents like
       (package-install 'pyvenv))
     (add-hook 'python-base-mode-hook #'lsp-deferred)
 #+end_src
-
 *** Java
 #+begin_src
     (unless (package-installed-p 'lsp-java)
