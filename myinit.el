@@ -4,14 +4,17 @@
 (define-prefix-command 'my/emacs-prefix-map nil "Core Emacs Prefix")
 (keymap-set my/global-prefix-map "e" '("Emacs Prefix" . my/emacs-prefix-map))
 
-(define-prefix-command 'my/gptel-prefix-map nil "GPTel Prefix")
-(keymap-set my/global-prefix-map "g" '("GPTel Prefix" . my/gptel-prefix-map))  
+(define-prefix-command 'my/gpt-prefix-map nil "GPT Prefix")
+(keymap-set my/global-prefix-map "g" '("GPT Prefix" . my/gpt-prefix-map))  
 
 (define-prefix-command 'my/hideshow-prefix-map nil "Hideshow Prefix")
 (keymap-set my/global-prefix-map "h" '("Hideshow Prefix" . my/hideshow-prefix-map))  
 
 (define-prefix-command 'my/lsp-prefix-map nil "LSP Prefix")
 (keymap-set my/global-prefix-map "l" '("LSP Prefix" . my/lsp-prefix-map))  
+
+(define-prefix-command 'my/treesit-prefix-map nil "Treesitter Prefix")
+(keymap-set my/global-prefix-map "t" '("Treesitter Prefix" . my/treesit-prefix-map))  
 
 (use-package emacs
   :init
@@ -460,11 +463,15 @@
   (electric-pair-preserve-balance t)	; balance paren
   (electric-pair-delete-adjacent-pairs t) ; backspace of open paren also deletes close paren when both are nearby
   (electric-pair-open-newline-between-pairs t) ; newline between adjacent parens open new one
+  (delete-pair-blink-delay 0.1)		       ; delete pair immediately
+  (delete-pair-push-mark t)		       ; delete-pair pushes a mark at the end of delimited region
+  :bind
+  ("C-M-z" . delete-pair)
   :config
   (show-paren-mode 1)
   :hook
   (prog-mode . electric-pair-local-mode)
-  (prog-mode . superword-mode) ; treat underscore as word char for navigation
+  ;; (prog-mode . superword-mode) ; treat underscore as word char for navigation
   (c-mode . cwarn-mode)
   )
 (use-package eldoc
@@ -814,55 +821,6 @@
 	       ("s" . eglot-shutdown-all))
   )
 
-(use-package treesit
-  :mode (("\\.tsx\\'" . tsx-ts-mode))
-  :preface
-  (defun mp-setup-install-grammars ()
-    "Install Tree-sitter grammars if they are absent."
-    (interactive)
-    (dolist (grammar
-             ;; Note the version numbers. These are the versions that
-             ;; are known to work with Combobulate *and* Emacs.
-             '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
-               (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
-               (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
-               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-               (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-               (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
-               (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
-               (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
-               (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
-               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
-      (add-to-list 'treesit-language-source-alist grammar)
-      ;; Only install `grammar' if we don't already have it
-      ;; installed. However, if you want to *update* a grammar then
-      ;; this obviously prevents that from happening.
-      (unless (treesit-language-available-p (car grammar))
-	(treesit-install-language-grammar (car grammar)))))
-
-  ;; Optional. Combobulate works in both xxxx-ts-modes and
-  ;; non-ts-modes.
-
-  ;; You can remap major modes with `major-mode-remap-alist'. Note
-  ;; that this does *not* extend to hooks! Make sure you migrate them
-  ;; also
-  (dolist (mapping
-           '((python-mode . python-ts-mode)
-             (css-mode . css-ts-mode)
-             (typescript-mode . typescript-ts-mode)
-             (js2-mode . js-ts-mode)
-             (bash-mode . bash-ts-mode)
-             (conf-toml-mode . toml-ts-mode)
-             (go-mode . go-ts-mode)
-             (css-mode . css-ts-mode)
-             (json-mode . json-ts-mode)
-             (js-json-mode . json-ts-mode)))
-    (add-to-list 'major-mode-remap-alist mapping))
-  :config
-  (mp-setup-install-grammars))
-
 (use-package python
   :defer t
   :init
@@ -1147,6 +1105,7 @@ ARGS is as for ORIG."
 
 (use-package gptel
   :ensure t
+  :defer t
   :custom
   (gptel-default-mode 'org-mode)
   (gptel-include-reasoning t)
@@ -1172,7 +1131,7 @@ Prompts the user for the directory path."
 	;; Use the defined 'llamafile-extension' for the error message
 	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
   :bind
-  (:map my/gptel-prefix-map
+  (:map my/gpt-prefix-map
       	("a" . gptel-add)
       	("f" . gptel-add-file)
       	("g" . gptel)
@@ -1214,20 +1173,28 @@ Prompts the user for the directory path."
   )
 
 (use-package minuet
+  :ensure t
+  :defer t
   :bind
-  (:map my/gptel-prefix-map
-	("c" . #'minuet-show-suggestion))
+  (:map my/gpt-prefix-map
+	("c" . #'minuet-show-suggestion)) ; show completion
   (:map minuet-active-mode-map
   	("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
   	("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
   	("C-u <tab>" . #'minuet-accept-suggestion) ;; accept whole completion
   	("<tab>" . #'minuet-accept-suggestion-line)
   	("C-g" . #'minuet-dismiss-suggestion))
-  :init
-  (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
+  ;; :init
+  ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
   :config
   (setenv "OPENAI_API_KEY" (auth-source-pick-first-password :host "api.openai.com"))
   (setq minuet-provider 'openai)
   (setq minuet-auto-suggestion-debounce-delay 3)
   (setq minuet-auto-suggestion-throttle-delay 20)
   )
+
+(use-package ediff
+  :custom
+(ediff-window-setup-function 'ediff-setup-windows-plain)
+(ediff-split-window-function 'split-window-horizontally)
+(ediff-keep-variants t))

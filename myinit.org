@@ -10,14 +10,17 @@
   (define-prefix-command 'my/emacs-prefix-map nil "Core Emacs Prefix")
   (keymap-set my/global-prefix-map "e" '("Emacs Prefix" . my/emacs-prefix-map))
 
-  (define-prefix-command 'my/gptel-prefix-map nil "GPTel Prefix")
-  (keymap-set my/global-prefix-map "g" '("GPTel Prefix" . my/gptel-prefix-map))  
+  (define-prefix-command 'my/gpt-prefix-map nil "GPT Prefix")
+  (keymap-set my/global-prefix-map "g" '("GPT Prefix" . my/gpt-prefix-map))  
 
   (define-prefix-command 'my/hideshow-prefix-map nil "Hideshow Prefix")
   (keymap-set my/global-prefix-map "h" '("Hideshow Prefix" . my/hideshow-prefix-map))  
 
   (define-prefix-command 'my/lsp-prefix-map nil "LSP Prefix")
   (keymap-set my/global-prefix-map "l" '("LSP Prefix" . my/lsp-prefix-map))  
+
+  (define-prefix-command 'my/treesit-prefix-map nil "Treesitter Prefix")
+  (keymap-set my/global-prefix-map "t" '("Treesitter Prefix" . my/treesit-prefix-map))  
 
   (use-package emacs
     :init
@@ -2836,11 +2839,15 @@ preceding line.
     (electric-pair-preserve-balance t)	; balance paren
     (electric-pair-delete-adjacent-pairs t) ; backspace of open paren also deletes close paren when both are nearby
     (electric-pair-open-newline-between-pairs t) ; newline between adjacent parens open new one
+    (delete-pair-blink-delay 0.1)		       ; delete pair immediately
+    (delete-pair-push-mark t)		       ; delete-pair pushes a mark at the end of delimited region
+    :bind
+    ("C-M-z" . delete-pair)
     :config
     (show-paren-mode 1)
     :hook
     (prog-mode . electric-pair-local-mode)
-    (prog-mode . superword-mode) ; treat underscore as word char for navigation
+    ;; (prog-mode . superword-mode) ; treat underscore as word char for navigation
     (c-mode . cwarn-mode)
     )
   (use-package eldoc
@@ -4297,7 +4304,7 @@ preceding line.
 
 #+end_src
 * Treesitter
-#+begin_src emacs-lisp
+#+begin_src
   (use-package treesit
     :mode (("\\.tsx\\'" . tsx-ts-mode))
     :preface
@@ -5173,6 +5180,7 @@ Create a .dir-locals.el file in root of folder with contents like
 #+begin_src emacs-lisp
   (use-package gptel
     :ensure t
+    :defer t
     :custom
     (gptel-default-mode 'org-mode)
     (gptel-include-reasoning t)
@@ -5198,7 +5206,7 @@ Create a .dir-locals.el file in root of folder with contents like
   	;; Use the defined 'llamafile-extension' for the error message
   	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
     :bind
-    (:map my/gptel-prefix-map
+    (:map my/gpt-prefix-map
         	("a" . gptel-add)
         	("f" . gptel-add-file)
         	("g" . gptel)
@@ -5242,17 +5250,19 @@ Create a .dir-locals.el file in root of folder with contents like
 ** Minuet
 #+begin_src emacs-lisp
   (use-package minuet
+    :ensure t
+    :defer t
     :bind
-    (:map my/gptel-prefix-map
-  	("c" . #'minuet-show-suggestion))
+    (:map my/gpt-prefix-map
+  	("c" . #'minuet-show-suggestion)) ; show completion
     (:map minuet-active-mode-map
     	("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
     	("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
     	("C-u <tab>" . #'minuet-accept-suggestion) ;; accept whole completion
     	("<tab>" . #'minuet-accept-suggestion-line)
     	("C-g" . #'minuet-dismiss-suggestion))
-    :init
-    (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
+    ;; :init
+    ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
     :config
     (setenv "OPENAI_API_KEY" (auth-source-pick-first-password :host "api.openai.com"))
     (setq minuet-provider 'openai)
@@ -5260,6 +5270,177 @@ Create a .dir-locals.el file in root of folder with contents like
     (setq minuet-auto-suggestion-throttle-delay 20)
     )
 #+end_src
+* Paredit
+#+begin_src
+  (use-package paredit
+    :ensure t
+    :hook (emacs-lisp-mode ielm-mode lisp-mode lisp-interaction-mode scheme-mode eval-expression-minibuffer-setup)
+    :bind
+    (:map paredit-mode-map
+  	
+     ;; wrap
+     ("M-(" . paredit-wrap-round)
+     ("M-\"" . paredit-meta-doublequote)
+     
+     ;; slurp and barf
+     ("C-<right>" . paredit-forward-slurp-sexp)
+     ("C-<left>" . paredit-forward-barf-sexp)
+     ("C-M-<right>" . paredit-backward-slurp-sexp)
+     ("C-M-<left>" . paredit-backward-barf-sexp)
+
+     ;; navigation
+     ("C-M-f" . paredit-forward)
+     ("C-M-b" . paredit-backward)
+     ("C-M-d" . paredit-forward-down)
+     ("C-M-u" . paredit-backward-up)
+     ;; ("C-M-a" . paredit-forward-up)
+     ;; ("C-M-e" . paredit-backward-down)
+
+     ;; Splicing
+     ("M-<up>" . paredit-splice-sexp-killing-backward)
+     ("M-<down>" . paredit-splice-sexp-killing-forward)
+     ("M-s" . nil)			; don't overwrite M-s
+
+     ;; Split and Join
+     ("M-S" . paredit-split-sexp)
+     ("M-J" . paredit-join-sexp)
+
+     ;; kill
+     ("C-k" . paredit-kill)
+     
+     ;; Unmap bindings that are useful elsewhere
+     ("M-?" . nil)
+     ("M-r" . nil)
+     ("C-M-n" . nil)
+     ("C-M-p" . nil)
+
+     )
+    )
+#+end_src
+* Ediff
+[[https://www.youtube.com/watch?v=9S2pMZ6U5Tc][Youtube]]
+- When ediff is launched it starts a control window where ediff
+  commands are entered.
+  |----------------------------+---------------------------------------------------------------------------|
+  | M-x ediff                  | compare two files                                                         |
+  | M-x ediff-backup           | compare a file with its backup                                            |
+  | M-x ediff-current-file     | compare buffer with its file on disk                                      |
+  | M-x ediff-buffers          | compare two buffers                                                       |
+  | M-x ediff3                 | compare 3 files                                                           |
+  | M-x ediff-buffers3         | compare 3 buffers                                                         |
+  | M-x edirs                  | compare files in two directories                                          |
+  | M-x edirs3                 | compare files in 3 directories                                            |
+  | M-x ediff-windows-wordwise | compare word by word                                                      |
+  | M-x ediff-windows-linewise | compare line by line                                                      |
+  | M-x ediff-regions-wordwise | compare regions word by word.                                             |
+  |                            | prompted for buffer and regions to compare. regions can be in same buffer |
+  | M-x ediff-regions-linewise | compare regions linewise                                                  |
+  | M-x ediff-revision         | compare versions of current buffer. buffer must be visiting               |
+  |                            | version controlled file                                                   |
+  | M-x epatch                 | patch a file or multiple files and then compare                           |
+  |                            | interactively patch if multiple files                                     |
+  | M-x epatch-buffer          | patch a buffer and compare                                                |
+  |                            | the buffer and file visited are not modified                              |
+  |                            | a separate buffer ending with patched is created                          |
+  |                            | only allows single file patch                                             |
+  | M-x ediff-merge            | merge two files                                                           |
+  | M-x ediff-merge-buffers    | merge two buffers                                                         |
+  | M-x edirs-merge            | merge files common to both directories                                    |
+  | M-x ediff-merge-revisions  | merge two versions of the file visited by buffer                          |
+  | M-x eregistry              | open ediff session registry to quickly find and restart active ediff      |
+  |                            | sessions                                                                  |
+  |----------------------------+---------------------------------------------------------------------------|
+
+  - All Ediff commands are displayed in Quick Help Window. Use ? to
+    show or hide help. Ediff commands take prefix that mostly refer
+    to hunks
+    |-----+-----------------------------------------------------------------------------|
+    | ?   | toggle Ediff Quick Window                                                   |
+    | G   | prepares a mail buffer                                                      |
+    | v   | scroll up both buffers in a coordinated manner                              |
+    | V   | scroll buffer down                                                          |
+    | <   | scroll buffer left                                                          |
+    | >   | scroll buffer right                                                         |
+    | wd  | writes diff output                                                          |
+    | wa  | save buffer a if modified                                                   |
+    | wb  | save buffer b if modified                                                   |
+    | wc  | save buffer c if modified                                                   |
+    | a   | during comparison: copy current difference region from buffer A to buffer B |
+    |     | old contents of B's region are saved and can be restored with rb            |
+    |     | during merge: copy current difference region from A to merge buffer         |
+    |     | old contents for region in C can be restored with r                         |
+    | b   | same as a but other way                                                     |
+    | p   | make previous difference region current                                     |
+    | n   | make next difference region current                                         |
+    | j   | make first difference region current                                        |
+    | -j  | make last difference region current                                         |
+    | Nj  | make Nth difference region current                                          |
+    | '!' | recompute difference. useful if files are edited in ediff session           |
+    | ¦   | toggle horizontal/vertical split                                            |
+    | @   | toggle auto refinement (highlight exact words that differ)                  |
+    | r   | restore old contents of region in merge buffer                              |
+    | ra  | restore old contents of current difference region in A                      |
+    | rb  | restore old contents of current difference region in B                      |
+    | ##  | skip regions that only differ in whitespace                                 |
+    | #c  | toggle case sensitivity                                                     |
+    | A   | toggle read only property of buffer A                                       |
+    | B   | toggle read only property of buffer B                                       |
+    | i   | display useful info about current ediff session                             |
+    | R   | display ediff registry                                                      |
+    | z   | suspend current ediff session hiding all ediff related buffers              |
+    | q   | terminate ediff session                                                     |
+    |     | with prefix asks if buffers should be deleted                               |
+    | %   | toggle narrowing                                                            |
+    | C-l | ediff-recenter (restore usual ediff window setup)                           |
+    | M   | go back to session group buffer                                             |
+    |-----+-----------------------------------------------------------------------------|
+
+    - session commands
+    |-----------------------------------------------+---------------------------------------------------------------------------|
+    | M-x eregistry                                 | bring up registry of active ediff sessions                                |
+    |                                               | can be used to resume previous ediff session or switch to another session |
+    | M-x ediff-toggle-multiframe                   | toggle quick help window being in same of separate frame                  |
+    | M-x ediff-revert-buffers-then-recompute-diffs | recomputes difference                                                     |
+    | RET or v                                      | resume session                                                            |
+    |-----------------------------------------------+---------------------------------------------------------------------------|
+
+    - ediff commands that operate on directories open a dired like
+      buffer called session group that lists files common to
+      directories as a separate session
+    |-----+----------------------------------------------------------------------|
+    | RET | open ediff session on these files.                                   |
+    | D   | display directory difference buffer                                  |
+    | C   | in directory difference buffer, copy missing file to other directory |
+    | h   | mark session for hiding (with prefix unmark)                         |
+    | x   | hide marked session (with prefix unhide)                             |
+    | m   | mark session                                                         |
+    |-----+----------------------------------------------------------------------|
+
+    - customization
+    |-----------------------------------------+---------------------------------------------------------------|
+    | 'ediff-use-long-help-message'           | if non nil use long help message in quick help window         |
+    | 'ediff-control-frame-position-function' | specify position of control frame                             |
+    | 'ediff-window-setup-function'           | how window is setup                                           |
+    |                                         | nediff-setup-windows-multiframe - in a separate frame         |
+    |                                         | ediff-setup-windows-plain - in the same frame                 |
+    | 'ediff-ignore-similar-regions'          | if t, skip white space differences                            |
+    | 'ediff-split-window-function'           | controls horizontal or vertical split                         |
+    | 'ediff-use-last-dir'                    | if nil, present default directory of current buffer in prompt |
+    |                                         | if t, use directory used in previously                        |
+    | 'ediff-keep-variants'                   | if t, preserve buffers after quitting ediff                   |
+    |                                         | if nil, offer to delete the buffers if they are not modified  |
+    |                                         |                                                               |
+    |-----------------------------------------+---------------------------------------------------------------|
+
+** Configuration
+    #+begin_src emacs-lisp
+      (use-package ediff
+        :custom
+      (ediff-window-setup-function 'ediff-setup-windows-plain)
+      (ediff-split-window-function 'split-window-horizontally)
+      (ediff-keep-variants t))
+    #+end_src
+
 * Unused
 ** LSP Mode
 #+begin_src
@@ -5548,126 +5729,6 @@ Create a .dir-locals.el file in root of folder with contents like
 #+end_src
 
 ** International
-** Ediff
-[[https://www.youtube.com/watch?v=9S2pMZ6U5Tc][Youtube]]
-- When ediff is launched it starts a control window where ediff
-  commands are entered.
-  |----------------------------+---------------------------------------------------------------------------|
-  | M-x ediff                  | compare two files                                                         |
-  | M-x ediff-backup           | compare a file with its backup                                            |
-  | M-x ediff-current-file     | compare buffer with its file on disk                                      |
-  | M-x ediff-buffers          | compare two buffers                                                       |
-  | M-x ediff3                 | compare 3 files                                                           |
-  | M-x ediff-buffers3         | compare 3 buffers                                                         |
-  | M-x edirs                  | compare files in two directories                                          |
-  | M-x edirs3                 | compare files in 3 directories                                            |
-  | M-x ediff-windows-wordwise | compare word by word                                                      |
-  | M-x ediff-windows-linewise | compare line by line                                                      |
-  | M-x ediff-regions-wordwise | compare regions word by word.                                             |
-  |                            | prompted for buffer and regions to compare. regions can be in same buffer |
-  | M-x ediff-regions-linewise | compare regions linewise                                                  |
-  | M-x ediff-revision         | compare versions of current buffer. buffer must be visiting               |
-  |                            | version controlled file                                                   |
-  | M-x epatch                 | patch a file or multiple files and then compare                           |
-  |                            | interactively patch if multiple files                                     |
-  | M-x epatch-buffer          | patch a buffer and compare                                                |
-  |                            | the buffer and file visited are not modified                              |
-  |                            | a separate buffer ending with patched is created                          |
-  |                            | only allows single file patch                                             |
-  | M-x ediff-merge            | merge two files                                                           |
-  | M-x ediff-merge-buffers    | merge two buffers                                                         |
-  | M-x edirs-merge            | merge files common to both directories                                    |
-  | M-x ediff-merge-revisions  | merge two versions of the file visited by buffer                          |
-  | M-x eregistry              | open ediff session registry to quickly find and restart active ediff      |
-  |                            | sessions                                                                  |
-  |----------------------------+---------------------------------------------------------------------------|
-
-  - All Ediff commands are displayed in Quick Help Window. Use ? to
-    show or hide help. Ediff commands take prefix that mostly refer
-    to hunks
-    |-----+-----------------------------------------------------------------------------|
-    | ?   | toggle Ediff Quick Window                                                   |
-    | G   | prepares a mail buffer                                                      |
-    | v   | scroll up both buffers in a coordinated manner                              |
-    | V   | scroll buffer down                                                          |
-    | <   | scroll buffer left                                                          |
-    | >   | scroll buffer right                                                         |
-    | wd  | writes diff output                                                          |
-    | wa  | save buffer a if modified                                                   |
-    | wb  | save buffer b if modified                                                   |
-    | wc  | save buffer c if modified                                                   |
-    | a   | during comparison: copy current difference region from buffer A to buffer B |
-    |     | old contents of B's region are saved and can be restored with rb            |
-    |     | during merge: copy current difference region from A to merge buffer         |
-    |     | old contents for region in C can be restored with r                         |
-    | b   | same as a but other way                                                     |
-    | p   | make previous difference region current                                     |
-    | n   | make next difference region current                                         |
-    | j   | make first difference region current                                        |
-    | -j  | make last difference region current                                         |
-    | Nj  | make Nth difference region current                                          |
-    | '!' | recompute difference. useful if files are edited in ediff session           |
-    | ¦   | toggle horizontal/vertical split                                            |
-    | @   | toggle auto refinement (highlight exact words that differ)                  |
-    | r   | restore old contents of region in merge buffer                              |
-    | ra  | restore old contents of current difference region in A                      |
-    | rb  | restore old contents of current difference region in B                      |
-    | ##  | skip regions that only differ in whitespace                                 |
-    | #c  | toggle case sensitivity                                                     |
-    | A   | toggle read only property of buffer A                                       |
-    | B   | toggle read only property of buffer B                                       |
-    | i   | display useful info about current ediff session                             |
-    | R   | display ediff registry                                                      |
-    | z   | suspend current ediff session hiding all ediff related buffers              |
-    | q   | terminate ediff session                                                     |
-    |     | with prefix asks if buffers should be deleted                               |
-    | %   | toggle narrowing                                                            |
-    | C-l | ediff-recenter (restore usual ediff window setup)                           |
-    | M   | go back to session group buffer                                             |
-    |-----+-----------------------------------------------------------------------------|
-
-    - session commands
-    |-----------------------------------------------+---------------------------------------------------------------------------|
-    | M-x eregistry                                 | bring up registry of active ediff sessions                                |
-    |                                               | can be used to resume previous ediff session or switch to another session |
-    | M-x ediff-toggle-multiframe                   | toggle quick help window being in same of separate frame                  |
-    | M-x ediff-revert-buffers-then-recompute-diffs | recomputes difference                                                     |
-    | RET or v                                      | resume session                                                            |
-    |-----------------------------------------------+---------------------------------------------------------------------------|
-
-    - ediff commands that operate on directories open a dired like
-      buffer called session group that lists files common to
-      directories as a separate session
-    |-----+----------------------------------------------------------------------|
-    | RET | open ediff session on these files.                                   |
-    | D   | display directory difference buffer                                  |
-    | C   | in directory difference buffer, copy missing file to other directory |
-    | h   | mark session for hiding (with prefix unmark)                         |
-    | x   | hide marked session (with prefix unhide)                             |
-    | m   | mark session                                                         |
-    |-----+----------------------------------------------------------------------|
-
-    - customization
-    |-----------------------------------------+---------------------------------------------------------------|
-    | 'ediff-use-long-help-message'           | if non nil use long help message in quick help window         |
-    | 'ediff-control-frame-position-function' | specify position of control frame                             |
-    | 'ediff-window-setup-function'           | how window is setup                                           |
-    |                                         | nediff-setup-windows-multiframe - in a separate frame         |
-    |                                         | ediff-setup-windows-plain - in the same frame                 |
-    | 'ediff-ignore-similar-regions'          | if t, skip white space differences                            |
-    | 'ediff-split-window-function'           | controls horizontal or vertical split                         |
-    | 'ediff-use-last-dir'                    | if nil, present default directory of current buffer in prompt |
-    |                                         | if t, use directory used in previously                        |
-    | 'ediff-keep-variants'                   | if t, preserve buffers after quitting ediff                   |
-    |                                         | if nil, offer to delete the buffers if they are not modified  |
-    |                                         |                                                               |
-    |-----------------------------------------+---------------------------------------------------------------|
-
-    #+begin_src
-      (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-      (setq split-window-function 'split-window-horizontally)
-      (setq ediff-keep-variants nil)
-    #+end_src
 ** Printing
 |------------------+----------------------------------------------------------------|
 | M-x print-buffer | print hardcopy of current buffer with page heaading containing |
