@@ -1,3 +1,4 @@
+;;; init.el  --- Init  -*- lexical-binding: t; -*-
 ;; Delay garbage collection while Emacs is booting
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
@@ -33,3 +34,5 @@
 (package-initialize)			; make sure to update load-path for downloaded packages
 (org-babel-load-file "~/.config/emacs/myinit.org")
 
+(provide 'init)
+;;; init.el ends here

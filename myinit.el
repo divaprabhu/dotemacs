@@ -13,8 +13,6 @@
 (define-prefix-command 'my/lsp-prefix-map nil "LSP Prefix")
 (keymap-set my/global-prefix-map "l" '("LSP Prefix" . my/lsp-prefix-map))  
 
-(define-prefix-command 'my/treesit-prefix-map nil "Treesitter Prefix")
-(keymap-set my/global-prefix-map "t" '("Treesitter Prefix" . my/treesit-prefix-map))  
 
 (use-package emacs
   :init
@@ -169,11 +167,13 @@
   )
 
 (use-package register
+  :defer t
   :custom
   (register-use-preview t)
   (register-preview-delay 1) ; seconds before displaying preview of register list
   )
 (use-package bookmark
+  :defer t
   :custom
   (bookmark-save-flag 1)     ; save bookmark to file automatically
   )
@@ -204,15 +204,17 @@
   )
 
 (use-package isearch
+  :defer t
   :config
   (setq	search-ring-max 1000 ; search ring size
-	search-exit-option t ; control chars end search
-	isearch-allow-scroll 'unlimited ; allow screen scroll when in isearch
-	regexp-search-ring-max 1000    ; regex search ring size
-	search-default-mode t	       ; default regex search
-	isearch-lazy-count t)	       ; show current match and total match number
+  	search-exit-option t ; control chars end search
+  	isearch-allow-scroll 'unlimited ; allow screen scroll when in isearch
+  	regexp-search-ring-max 1000    ; regex search ring size
+  	search-default-mode t	       ; default regex search
+  	isearch-lazy-count t)	       ; show current match and total match number
   )
 (use-package occur
+  :defer t
   :hook
   (occur-mode . next-error-follow-minor-mode)	; auto enable follow mode
   (occur-mode . (lambda() (switch-to-buffer-other-window "*Occur*")))
@@ -271,6 +273,7 @@
   (global-auto-revert-mode 1)	 ; auto update buffers if file changes
   )
 (use-package recentf
+  :defer t
   :custom
   (recentf-max-saved-items 300) ; default is 20
   (recentf-max-menu-items 15)
@@ -295,6 +298,7 @@
 		     "show diff between the buffer and its file"))
   )   
 (use-package icomplete
+  :defer t
   :custom
   (icomplete-delay-completions-threshold 0) ; pending completion number to apply icomplete-compute-delay
   (icomplete-compute-delay 0)
@@ -322,7 +326,6 @@
   )
 
 (use-package window
-  :defer nil
   :custom
   (switch-to-buffer-in-dedicated-window 'pop) ; in strongly dedicate windows behave like pop-to-buffer
   (switch-to-buffer-obey-display-actions t) ; C-x C-b respects display buffer rules
@@ -443,11 +446,14 @@
 )
 
 (use-package emacs			; text
-    :hook
-      (text-mode . turn-on-auto-fill)   ; automatic line breaking on space
-)
+  :custom
+  (sentence-end-double-space nil)
+  :hook
+  (text-mode . turn-on-auto-fill)   ; automatic line breaking on space
+  )
 
 (use-package imenu
+  :defer t
   :custom
   (imenu-auto-rescan t)			; rescan buffer automatically
   )
@@ -487,6 +493,7 @@
   (global-eldoc-mode 1)			; enable eldoc mode
   )
 (use-package hideshow
+  :defer t
   :custom
   (hs-isearch-open t) ; unhide code and comment if match is in hidden block during isearch
   (hs-hide-comments-when-hiding-all t) ; hide comments also when hs-hide-all
@@ -499,6 +506,7 @@
   (prog-mode . hs-minor-mode)
   )
 (use-package completion-preview
+  :defer t
   :hook
   (prog-mode . 'completion-preview)
   (text-mode . 'completion-preview)
@@ -562,6 +570,9 @@
 
 (use-package vc
   :defer t
+  :bind
+  (:map vc-prefix-map
+	("e" . vc-ediff))
   :custom
   (vc-revert-show-diff t)	      ; revert first shows diff buffer
   (vc-follow-symlinks t)	      ; follow symlinks
@@ -570,6 +581,7 @@
   (diff-mode . next-error-follow-minor-mode)	; auto enable follow mode
   )
 (use-package project
+  :defer t
   :custom
   (project-list-file (expand-file-name "projects" user-emacs-directory)) ; file to save knows projects
   )
@@ -584,7 +596,7 @@
   :bind
   ("M-/" . 'hippie-expand)
   :custom
-  (abbrev-file-name (expand-file-name "abbrev_defs" user-emacs-directory)) ; location to store personal abbrevs
+  (abbrev-file-name (expand-file-name "abbrev_defs" "~/.config/emacs")) ; location to store personal abbrevs
   (save-abbrevs 'silently)		; save abbrev when file is saved
   (abbrev-suggest t)
   :config
@@ -633,6 +645,7 @@
   )
 
 (use-package tramp
+  :defer t
   :custom
   (tramp-copy-size-limit (* 2 1024 1024)) ;; 2MB
   (tramp-use-scp-direct-remote-copying t)
@@ -823,6 +836,8 @@
 
 (use-package python
   :defer t
+  :custom
+  (python-indent-guess-indent-offset-verbose nil)
   :init
   (let ((pylspdir (expand-file-name "lsp/pylsp" "~/.cache")))
     (unless (file-directory-p pylspdir)
@@ -870,30 +885,31 @@
     (load custom-file 'noerror 'nomessage)))
 
 (use-package ibuffer
-:custom
-(ibuffer-expert t)	      ; don't confirm for dangerous operations
-(ibuffer-display-summary nil)	     ; don't summarize ibuffer columns
-(ibuffer-show-empty-filter-groups nil) ; don't show empty filter groups
-(ibuffer-default-sorting-mode 'major-mode) ; sort order
-(ibuffer-use-header-line t)		     ; show header line
-(ibuffer-default-shrink-to-minimum-size nil) ; don't minimize window size
-(ibuffer-formats
- '((mark modified read-only locked " "
+  :defer t
+  :custom
+  (ibuffer-expert t)	      ; don't confirm for dangerous operations
+  (ibuffer-display-summary nil)	     ; don't summarize ibuffer columns
+  (ibuffer-show-empty-filter-groups nil) ; don't show empty filter groups
+  (ibuffer-default-sorting-mode 'major-mode) ; sort order
+  (ibuffer-use-header-line t)		     ; show header line
+  (ibuffer-default-shrink-to-minimum-size nil) ; don't minimize window size
+  (ibuffer-formats
+   '((mark modified read-only locked " "
 	   (name 40 40 :left :elide)
 	   " "
 	   (size 9 -1 :right)
 	   " "
 	   (mode 16 16 :left :elide)
 	   " " filename-and-process)
-   (mark " "
+     (mark " "
 	   (name 16 -1)
 	   " " filename)))
-(ibuffer-saved-filter-groups nil)	; no defined filter by default
-(ibuffer-old-time 48)	  ; hours after which buffer is considered old
-(ibuffer-human-readable-size t)	; human readable size
-:config
-;; Ibuffer filters
-(setq ibuffer-saved-filter-groups
+  (ibuffer-saved-filter-groups nil)	; no defined filter by default
+  (ibuffer-old-time 48)	  ; hours after which buffer is considered old
+  (ibuffer-human-readable-size t)	; human readable size
+  :config
+  ;; Ibuffer filters
+  (setq ibuffer-saved-filter-groups
 	'(("default"
 	   ("org"     (or
 		       (mode . org-mode)
@@ -932,19 +948,19 @@
 		       (name . "^\\*rcirc.*")
 		       (name . "^\\*ERC.*"))))))
 
-(add-hook 'ibuffer-mode-hook
+  (add-hook 'ibuffer-mode-hook
 	    (lambda ()
 	      (ibuffer-switch-to-saved-filter-groups "default")))
-:bind
-(:map ibuffer-mode-map
-	   ("* f" . ibuffer-mark-by-file-name-regexp)
-	   ("* g" . ibuffer-mark-by-content-regexp)
-	   ("* n" . ibuffer-mark-by-name-regexp)
-	   ("s n" . ibuffer-do-sort-by-alphabetic)
-	   ("/ g" . ibuffer-filter-by-content)
-	   ("M-o" . other-window))
-   (:map ctl-x-map
-	   ("C-b" . ibuffer-jump)))
+  :bind
+  (:map ibuffer-mode-map
+	("* f" . ibuffer-mark-by-file-name-regexp)
+	("* g" . ibuffer-mark-by-content-regexp)
+	("* n" . ibuffer-mark-by-name-regexp)
+	("s n" . ibuffer-do-sort-by-alphabetic)
+	("/ g" . ibuffer-filter-by-content)
+	("M-o" . other-window))
+  (:map ctl-x-map
+	("C-b" . ibuffer-jump)))
 
 (use-package which-key
   :ensure t
@@ -1002,7 +1018,7 @@
   (image-dired-dir (expand-file-name "cache/image-dired" user-emacs-directory))
   )
 (use-package wdired
-  :ensure nil
+  :defer t
   :commands (wdired-change-to-wdired-mode)
   :config
   (setq wdired-allow-to-change-permissions t)
@@ -1010,21 +1026,21 @@
   )
 
 (use-package proced
-:ensure nil
-:defer t
-:custom
-(proced-enable-color-flag t)
-(proced-tree-flag nil)
-(proced-auto-update-flag 'visible)
-(proced-auto-update-interval 1)
-(proced-descent t)
-(proced-filter 'user) ;; We can change interactively with `f'
-:config
-(add-hook 'proced-mode-hook
+  :defer t
+  :custom
+  (proced-enable-color-flag t)
+  (proced-tree-flag t)
+  (proced-auto-update-flag 'visible)
+  (proced-auto-update-interval 1)
+  (proced-descend t)
+  (proced-filter 'user) ;; We can change interactively with `f'
+  :config
+  (add-hook 'proced-mode-hook
 	    (lambda ()
 	      (proced-toggle-auto-update 1))))
 
 (use-package doc-view
+  :defer t
   :custom
   (doc-view-resolution 200)
   (doc-view-continuous t)
@@ -1039,6 +1055,7 @@
   )
 
 (use-package popper
+  :defer t
   :ensure t ; or :straight t
   :config
   (setq popper-group-function #'popper-group-by-project) ; project.el projects
@@ -1067,41 +1084,6 @@
           compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1))                ; For echo area hints
-
-(use-package buffer-env
-  :ensure t
-  :hook
-  (hack-local-variables .  buffer-env-update)
-  (comint-mode .  buffer-env-update)
-  (eshell-mode . buffer-env-update)
-  (org-mode . buffer-env-update)
-  (org-src-mode . buffer-env-update)
-  :custom
-  (buffer-env-script-name '(".envrc" ".venv/bin/activate" ".venv/Scripts/activate.bat" ".env"))
-  :config
-  ;; https://github.com/purcell/inheritenv/blob/main/inheritenv.el
-  (eval-when-compile (require 'cl-lib))
-  (defun buffer-env-inherit (func &rest args)
-    "Apply FUNC such that the environment it sees will match the current value.
-This is useful if FUNC creates a temp buffer, because that will
-not inherit any buffer-local values of variables `exec-path' and
-`process-environment'.
-
-This function is designed for convenient use as an \"around\" advice.
-
-ARGS is as for ORIG."
-    (cl-letf* (((default-value 'process-environment) process-environment)
-               ((default-value 'exec-path) exec-path))
-      ;; Don't force tramp to be loaded, but propagate its env/path vars if it is
-      (if (and (boundp 'tramp-remote-path) (boundp 'tramp-remote-process-environment))
-          (cl-letf* (((default-value 'tramp-remote-path) tramp-remote-path)
-                     ((default-value 'tramp-remote-process-environment) tramp-remote-process-environment))
-            (apply func args))
-	(apply func args))))
-
-  (advice-add 'eshell :around #'buffer-env-inherit)
-  (advice-add 'shell  :around #'buffer-env-inherit)
-  )
 
 (use-package gptel
   :ensure t
@@ -1194,7 +1176,61 @@ Prompts the user for the directory path."
   )
 
 (use-package ediff
+  :defer t
   :custom
-(ediff-window-setup-function 'ediff-setup-windows-plain)
-(ediff-split-window-function 'split-window-horizontally)
-(ediff-keep-variants t))
+  (ediff-window-setup-function 'ediff-setup-windows-plain)
+  (ediff-split-window-function 'split-window-horizontally)
+  (ediff-keep-variants t))
+
+(defvar-local my/python-venv-path nil
+  "Relative path to a Python virtual environment directory.
+    This path is resolved against `default-directory`.
+    If nil, venv activation is skipped.")
+
+(defun my/activate-python-venv ()
+  "Activate the Python virtual environment specified by
+  `my-python-venv-path` for the current buffer/process.
+
+  No-op if `my-python-venv-path` is nil."
+  (interactive)
+  (when my/python-venv-path
+    (let* ((venv-root (expand-file-name my/python-venv-path default-directory))
+           (venv-bin  (expand-file-name "bin" venv-root))
+	   (path      (remove venv-bin exec-path))
+           (python    (expand-file-name "python" venv-bin)))
+      (message "%s %s" venv-bin path)
+      (make-local-variable 'exec-path)
+      (make-local-variable 'process-environment)
+
+      (when (file-directory-p venv-bin)
+        (setq-local process-environment
+  		    (cons (concat "PATH=" (concat venv-bin ":" (mapconcat #'identity path path-separator)))
+  			  (seq-remove
+  			   (lambda (s)
+  			     (string-prefix-p "PATH=" s))
+  			   process-environment)))
+        (add-to-list 'exec-path venv-bin)
+	(setenv "PATH" (concat venv-bin ":" (mapconcat #'identity path path-separator)))
+	(when (derived-mode-p 'eshell-mode)
+          (if (fboundp 'eshell-set-path)
+              (eshell-set-path (getenv "PATH"))
+            (setq-local eshell-path-env (getenv "PATH"))))
+  	(when (file-executable-p python)
+          (setq-local python-shell-interpreter python))
+	(setq-local eshell-path-env-list exec-path)
+  	))))
+
+(add-hook 'hack-local-variables-hook #'my/activate-python-venv)
+(add-hook 'eshell-mode-hook #'my/activate-python-venv)
+(add-hook 'eshell-directory-change-hook #'my/activate-python-venv)
+(add-hook 'comint-mode-hook #'my/activate-python-venv)
+(add-hook 'org-mode-hook #'my/activate-python-venv)
+(add-hook 'org-src-mode-hook #'my/activate-python-venv)
+
+
+
+
+(advice-add 'eshell
+	    :around (lambda (orig &rest args)
+		      (my/activate-python-venv)
+		      (apply orig args)))
