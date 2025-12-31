@@ -37,10 +37,6 @@
   (setq message-log-max 100000))
 
 (use-package emacs			; exiting emacs
-  :bind
-  ("C-x C-k RET" . nil)			; disable kmacro edit
-  ("C-x z" . nil)			; disable suspend frame
-  ("C-z" . nil)				; disable suspend frame
   :config
   (setq inhibit-startup-screen t)
   (setq inhibit-startup-message t))
@@ -877,6 +873,61 @@
   ;; 	("t w"	. python-skeleton-while))
   )
 
+(defvar-local my/python-venv-path ".venv"
+  "Relative path to a Python virtual environment directory.
+This path is resolved against `default-directory`.
+If nil, venv activation is skipped.")
+
+(defun my/activate-python-venv ()
+  "Custom command to activate python venv.
+Activate the Python virtual environment specified by `my-python-venv-path`
+for the current buffer/process. No-op if `my-python-venv-path` is nil."
+  (interactive)
+  (let* ((venv-root (expand-file-name my/python-venv-path
+				      (locate-dominating-file default-directory my/python-venv-path)))
+         (venv-bin  (expand-file-name "bin" venv-root))
+	 (curpath   (mapconcat #'identity (delete venv-bin exec-path) path-separator))
+	 (newpath   (concat venv-bin path-separator curpath))
+	 (curpenv   process-environment)
+	 (cleanpenv (seq-remove (lambda (s) (string-prefix-p "PATH=" s)) curpenv))
+	 (newpenv   (cons (concat "VIRTUAL_ENV_PROMPT" my/python-venv-path)
+		     (cons (concat "VIRTUAL_ENV=" venv-root)
+		      (cons (concat "PATH=" newpath) cleanpenv))))
+         (python    (expand-file-name "python" venv-bin)))
+    (when (file-executable-p python)
+      ;; (setq-local python-shell-interpreter python)
+      (setq-local process-environment newpenv)
+      (setq-local exec-path (nconc (split-string newpath path-separator)
+				   (list exec-directory))))))
+
+(eval-when-compile (require 'cl-lib))
+(defun my/activate-python-venv-inherit (func &rest args)
+  "Apply FUNC such that the environment it sees will match the current value.
+This is useful if FUNC creates a temp buffer, because that will
+not inherit any buffer-local values of variables `exec-path' and
+`process-environment'.
+
+This function is designed for convenient use as an \"around\" advice.
+
+ARGS is as for ORIG."
+  (cl-letf* (((default-value 'process-environment) process-environment)
+             ((default-value 'exec-path) exec-path))
+    ;; Don't force tramp to be loaded, but propagate its env/path vars if it is
+    (if (and (boundp 'tramp-remote-path) (boundp 'tramp-remote-process-environment))
+        (cl-letf* (((default-value 'tramp-remote-path) tramp-remote-path)
+                   ((default-value 'tramp-remote-process-environment) tramp-remote-process-environment))
+          (apply func args))
+      (apply func args))))
+
+(add-hook 'hack-local-variables-hook #'my/activate-python-venv)
+(add-hook 'comint-mode-hook #'my/activate-python-venv)
+(add-hook 'eshell-mode-hook #'my/activate-python-venv)
+(add-hook 'org-mode-hook #'my/activate-python-venv)
+(add-hook 'org-src-mode-hook #'my/activate-python-venv)
+
+(advice-add 'eshell :around #'my/activate-python-venv-inherit)
+(advice-add 'shell :around #'my/activate-python-venv-inherit)
+
 (use-package emacs			; custom file
   :custom
   (custom-file (concat user-emacs-directory "custom.el"))
@@ -1181,56 +1232,3 @@ Prompts the user for the directory path."
   (ediff-window-setup-function 'ediff-setup-windows-plain)
   (ediff-split-window-function 'split-window-horizontally)
   (ediff-keep-variants t))
-
-(defvar-local my/python-venv-path nil
-  "Relative path to a Python virtual environment directory.
-    This path is resolved against `default-directory`.
-    If nil, venv activation is skipped.")
-
-(defun my/activate-python-venv ()
-  "Activate the Python virtual environment specified by
-  `my-python-venv-path` for the current buffer/process.
-
-  No-op if `my-python-venv-path` is nil."
-  (interactive)
-  (when my/python-venv-path
-    (let* ((venv-root (expand-file-name my/python-venv-path default-directory))
-           (venv-bin  (expand-file-name "bin" venv-root))
-	   (path      (remove venv-bin exec-path))
-           (python    (expand-file-name "python" venv-bin)))
-      (message "%s %s" venv-bin path)
-      (make-local-variable 'exec-path)
-      (make-local-variable 'process-environment)
-
-      (when (file-directory-p venv-bin)
-        (setq-local process-environment
-  		    (cons (concat "PATH=" (concat venv-bin ":" (mapconcat #'identity path path-separator)))
-  			  (seq-remove
-  			   (lambda (s)
-  			     (string-prefix-p "PATH=" s))
-  			   process-environment)))
-        (add-to-list 'exec-path venv-bin)
-	(setenv "PATH" (concat venv-bin ":" (mapconcat #'identity path path-separator)))
-	(when (derived-mode-p 'eshell-mode)
-          (if (fboundp 'eshell-set-path)
-              (eshell-set-path (getenv "PATH"))
-            (setq-local eshell-path-env (getenv "PATH"))))
-  	(when (file-executable-p python)
-          (setq-local python-shell-interpreter python))
-	(setq-local eshell-path-env-list exec-path)
-  	))))
-
-(add-hook 'hack-local-variables-hook #'my/activate-python-venv)
-(add-hook 'eshell-mode-hook #'my/activate-python-venv)
-(add-hook 'eshell-directory-change-hook #'my/activate-python-venv)
-(add-hook 'comint-mode-hook #'my/activate-python-venv)
-(add-hook 'org-mode-hook #'my/activate-python-venv)
-(add-hook 'org-src-mode-hook #'my/activate-python-venv)
-
-
-
-
-(advice-add 'eshell
-	    :around (lambda (orig &rest args)
-		      (my/activate-python-venv)
-		      (apply orig args)))
