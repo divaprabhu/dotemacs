@@ -178,18 +178,19 @@
   :custom
   (next-screen-context-lines 3) ; number lines that overlap during scroll command
   (scroll-conservatively 1000)	; never recenter point on redisplay
-  (hscroll-margin 5) ; horizontally scroll long lines near the edge
-  (hscroll-step 5)	 ; horizontally scroll only by small amount
-  (hi-lock-auto-select-face t)		; don't prompt face
-  (show-trailing-whitespace nil)		; highlight trailing whitespace
+  (hscroll-margin 5)	; horizontally scroll long lines near the edge
+  (hscroll-step 5)	; horizontally scroll only by small amount
+  (hi-lock-auto-select-face t)	       ; don't prompt face
+  (show-trailing-whitespace nil)       ; highlight trailing whitespace
   (line-number-display-limit nil) ; no size limit to display line numbers in mode line
   (display-line-numbers 'relative)	; relative line numbers
   (display-line-numbers-width nil) ; dynamically compute line number width
   (display-line-numbers-widen t)   ; show actual line number in narrow
-  (display-raw-bytes-as-hex t)	; display raw bytes as hex 
-  (visible-bell t)		 ; don't beep but flash
-  (truncate-lines t)		 ; truncate display of long lines, don't wrap
+  (display-raw-bytes-as-hex t)	   ; display raw bytes as hex 
+  (visible-bell t)		   ; don't beep but flash
+  (truncate-lines t)	  ; truncate display of long lines, don't wrap
   :config
+  (set-face-attribute 'default nil :height 120)
   (put 'scroll-left 'disabled nil)	; allow scrolling left
   (put 'narrow-to-region 'disabled nil) ; allow region narrowing
   (put 'narrow-to-page 'disabled nil)	; allow narrow to page
@@ -283,6 +284,7 @@
 
 (use-package emacs			; buffers
   :custom
+  (uniquify-buffer-name-style 'forward)
   (clean-buffer-list-delay-general 1)	; number of days after which buffer is autokilled
   :config
   ;; A Protesilaos life savier HACK
@@ -850,7 +852,6 @@
 	    (progn
 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
 	      (setq exec-path (split-string (getenv "PATH") path-separator))
-	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))	      
 	      'eglot-ensure))
   ;; (add-hook 'python-mode-hook
   ;; 	    (progn
@@ -872,61 +873,6 @@
   ;; 	("t t"	. python-skeleton-import)
   ;; 	("t w"	. python-skeleton-while))
   )
-
-(defvar-local my/python-venv-path ".venv"
-  "Relative path to a Python virtual environment directory.
-This path is resolved against `default-directory`.
-If nil, venv activation is skipped.")
-
-(defun my/activate-python-venv ()
-  "Custom command to activate python venv.
-Activate the Python virtual environment specified by `my-python-venv-path`
-for the current buffer/process. No-op if `my-python-venv-path` is nil."
-  (interactive)
-  (let* ((venv-root (expand-file-name my/python-venv-path
-				      (locate-dominating-file default-directory my/python-venv-path)))
-         (venv-bin  (expand-file-name "bin" venv-root))
-	 (curpath   (mapconcat #'identity (delete venv-bin exec-path) path-separator))
-	 (newpath   (concat venv-bin path-separator curpath))
-	 (curpenv   process-environment)
-	 (cleanpenv (seq-remove (lambda (s) (string-prefix-p "PATH=" s)) curpenv))
-	 (newpenv   (cons (concat "VIRTUAL_ENV_PROMPT" my/python-venv-path)
-		     (cons (concat "VIRTUAL_ENV=" venv-root)
-		      (cons (concat "PATH=" newpath) cleanpenv))))
-         (python    (expand-file-name "python" venv-bin)))
-    (when (file-executable-p python)
-      ;; (setq-local python-shell-interpreter python)
-      (setq-local process-environment newpenv)
-      (setq-local exec-path (nconc (split-string newpath path-separator)
-				   (list exec-directory))))))
-
-(eval-when-compile (require 'cl-lib))
-(defun my/activate-python-venv-inherit (func &rest args)
-  "Apply FUNC such that the environment it sees will match the current value.
-This is useful if FUNC creates a temp buffer, because that will
-not inherit any buffer-local values of variables `exec-path' and
-`process-environment'.
-
-This function is designed for convenient use as an \"around\" advice.
-
-ARGS is as for ORIG."
-  (cl-letf* (((default-value 'process-environment) process-environment)
-             ((default-value 'exec-path) exec-path))
-    ;; Don't force tramp to be loaded, but propagate its env/path vars if it is
-    (if (and (boundp 'tramp-remote-path) (boundp 'tramp-remote-process-environment))
-        (cl-letf* (((default-value 'tramp-remote-path) tramp-remote-path)
-                   ((default-value 'tramp-remote-process-environment) tramp-remote-process-environment))
-          (apply func args))
-      (apply func args))))
-
-(add-hook 'hack-local-variables-hook #'my/activate-python-venv)
-(add-hook 'comint-mode-hook #'my/activate-python-venv)
-(add-hook 'eshell-mode-hook #'my/activate-python-venv)
-(add-hook 'org-mode-hook #'my/activate-python-venv)
-(add-hook 'org-src-mode-hook #'my/activate-python-venv)
-
-(advice-add 'eshell :around #'my/activate-python-venv-inherit)
-(advice-add 'shell :around #'my/activate-python-venv-inherit)
 
 (use-package emacs			; custom file
   :custom
@@ -1102,6 +1048,7 @@ ARGS is as for ORIG."
 (use-package epg
   :defer t
   :custom
+  (auth-sources '("~/etc/gnupg/authinfo.gpg" "~/etc/gnupg/authinfo" "~/etc/gnupg/netrc"))
   (epg-pinentry-mode 'loopback)
   )
 
@@ -1135,6 +1082,42 @@ ARGS is as for ORIG."
           compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1))                ; For echo area hints
+
+(use-package buffer-env
+  :defer t
+  :ensure t
+  :hook
+  (hack-local-variables .  buffer-env-update)
+  (comint-mode .  buffer-env-update)
+  (eshell-mode . buffer-env-update)
+  (org-mode . buffer-env-update)
+  (org-src-mode . buffer-env-update)
+  :custom
+  (buffer-env-script-name '(".envrc" ".venv/bin/activate" ".venv/Scripts/activate.bat" ".env"))
+  :config
+  ;; https://github.com/purcell/inheritenv/blob/main/inheritenv.el
+  (eval-when-compile (require 'cl-lib))
+  (defun buffer-env-inherit (func &rest args)
+    "Apply FUNC such that the environment it sees will match the current value.
+This is useful if FUNC creates a temp buffer, because that will
+not inherit any buffer-local values of variables `exec-path' and
+`process-environment'.
+
+This function is designed for convenient use as an \"around\" advice.
+
+ARGS is as for ORIG."
+    (cl-letf* (((default-value 'process-environment) process-environment)
+               ((default-value 'exec-path) exec-path))
+      ;; Don't force tramp to be loaded, but propagate its env/path vars if it is
+      (if (and (boundp 'tramp-remote-path) (boundp 'tramp-remote-process-environment))
+          (cl-letf* (((default-value 'tramp-remote-path) tramp-remote-path)
+                     ((default-value 'tramp-remote-process-environment) tramp-remote-process-environment))
+            (apply func args))
+	(apply func args))))
+
+  (advice-add 'eshell :around #'buffer-env-inherit)
+  (advice-add 'shell  :around #'buffer-env-inherit)
+  )
 
 (use-package gptel
   :ensure t
@@ -1175,34 +1158,35 @@ Prompts the user for the directory path."
       	("s" . gptel-send)
     	("t" . gptel-org-set-topic))
   :config
-  ;; (setq gptel-backend
-  ;;       (gptel-make-openai "llamafile"
-  ;;         :stream t
-  ;;         :protocol "http"
-  ;;         :host "localhost:8080"
-  ;; 	  :models '(llamafile))
-  ;; 	)
+  (setq gptel-backend
+        (gptel-make-openai "llamafile"
+          :stream t
+          :protocol "http"
+          :host "localhost:8080"
+	  :models '(Llama-3.2-3B))
+  	)
   (gptel-make-openai "OpenAI"
-   :stream t
-   :key 'gptel-api-key-from-auth-source
-   )
+    :stream t
+    :key 'gptel-api-key-from-auth-source
+    )
   (gptel-make-gemini "Gemini"
     :stream t
     :key 'gptel-api-key-from-auth-source
     )
-  (gptel-make-openai "GitHub"
-    :stream t
-    :host "models.inference.ai.azure.com"
-    :endpoint "/chat/completions?api-version=2024-05-01-preview"
-    :key 'gptel-api-key-from-auth-source
-    :models '(gpt-4o)
-    )
-  (setq
-   gptel-model 'deepseek-r1:7b
-   gptel-backend (gptel-make-ollama "Ollama"
-                   :host "localhost:11434"
-                   :stream t
-                   :models '(deepseek-r1:7b qwen2.5-coder:3b)))
+  (setq gptel-backend
+	(gptel-make-openai "GitHub"
+	  :stream t
+	  :host "models.inference.ai.azure.com"
+	  :endpoint "/chat/completions?api-version=2024-05-01-preview"
+	  :key 'gptel-api-key-from-auth-source
+	  :models '(gpt-4o))
+	)
+  ;; (setq
+  ;;  gptel-model 'deepseek-r1:7b
+  ;;  gptel-backend (gptel-make-ollama "Ollama"
+  ;;                  :host "localhost:11434"
+  ;;                  :stream t
+  ;;                  :models '(deepseek-r1:7b qwen2.5-coder:3b)))
   )
 
 (use-package minuet

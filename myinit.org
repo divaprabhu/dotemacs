@@ -1090,18 +1090,19 @@
     :custom
     (next-screen-context-lines 3) ; number lines that overlap during scroll command
     (scroll-conservatively 1000)	; never recenter point on redisplay
-    (hscroll-margin 5) ; horizontally scroll long lines near the edge
-    (hscroll-step 5)	 ; horizontally scroll only by small amount
-    (hi-lock-auto-select-face t)		; don't prompt face
-    (show-trailing-whitespace nil)		; highlight trailing whitespace
+    (hscroll-margin 5)	; horizontally scroll long lines near the edge
+    (hscroll-step 5)	; horizontally scroll only by small amount
+    (hi-lock-auto-select-face t)	       ; don't prompt face
+    (show-trailing-whitespace nil)       ; highlight trailing whitespace
     (line-number-display-limit nil) ; no size limit to display line numbers in mode line
     (display-line-numbers 'relative)	; relative line numbers
     (display-line-numbers-width nil) ; dynamically compute line number width
     (display-line-numbers-widen t)   ; show actual line number in narrow
-    (display-raw-bytes-as-hex t)	; display raw bytes as hex 
-    (visible-bell t)		 ; don't beep but flash
-    (truncate-lines t)		 ; truncate display of long lines, don't wrap
+    (display-raw-bytes-as-hex t)	   ; display raw bytes as hex 
+    (visible-bell t)		   ; don't beep but flash
+    (truncate-lines t)	  ; truncate display of long lines, don't wrap
     :config
+    (set-face-attribute 'default nil :height 120)
     (put 'scroll-left 'disabled nil)	; allow scrolling left
     (put 'narrow-to-region 'disabled nil) ; allow region narrowing
     (put 'narrow-to-page 'disabled nil)	; allow narrow to page
@@ -1932,6 +1933,7 @@
 #+begin_src emacs-lisp
   (use-package emacs			; buffers
     :custom
+    (uniquify-buffer-name-style 'forward)
     (clean-buffer-list-delay-general 1)	; number of days after which buffer is autokilled
     :config
     ;; A Protesilaos life savier HACK
@@ -4473,25 +4475,25 @@ Create a .dir-locals.el file in root of folder with contents like
 
 #+end_src
 ** Custom Venv Handling
-#+begin_src emacs-lisp
-  (defvar-local my/python-venv-path ".venv"
+#+begin_src
+  (defvar-local my/env-script ".venv"
     "Relative path to a Python virtual environment directory.
   This path is resolved against `default-directory`.
   If nil, venv activation is skipped.")
 
-  (defun my/activate-python-venv ()
+  (defun my/env-script-activate ()
     "Custom command to activate python venv.
   Activate the Python virtual environment specified by `my-python-venv-path`
   for the current buffer/process. No-op if `my-python-venv-path` is nil."
     (interactive)
-    (let* ((venv-root (expand-file-name my/python-venv-path
-  				      (locate-dominating-file default-directory my/python-venv-path)))
+    (let* ((venv-root (expand-file-name my/env-script
+  				      (locate-dominating-file default-directory my/env-script)))
            (venv-bin  (expand-file-name "bin" venv-root))
   	 (curpath   (mapconcat #'identity (delete venv-bin exec-path) path-separator))
   	 (newpath   (concat venv-bin path-separator curpath))
   	 (curpenv   process-environment)
   	 (cleanpenv (seq-remove (lambda (s) (string-prefix-p "PATH=" s)) curpenv))
-  	 (newpenv   (cons (concat "VIRTUAL_ENV_PROMPT" my/python-venv-path)
+  	 (newpenv   (cons (concat "VIRTUAL_ENV_PROMPT=" my/env-script)
   		     (cons (concat "VIRTUAL_ENV=" venv-root)
   		      (cons (concat "PATH=" newpath) cleanpenv))))
            (python    (expand-file-name "python" venv-bin)))
@@ -4501,33 +4503,69 @@ Create a .dir-locals.el file in root of folder with contents like
         (setq-local exec-path (nconc (split-string newpath path-separator)
   				   (list exec-directory))))))
 
+
+  ;; (defvar my/env-script ".venv/bin/activate"
+  ;;   "Script to be executed to load environment variables")
+
+  ;; (defun my/env-script-activate ()
+  ;;   (interactive)
+  ;;   (let* ((outbuf (with-current-buffer (get-buffer-create " *my-env-outbuf*")
+  ;; 		   (erase-buffer)
+  ;; 		   (current-buffer)))
+  ;; 	 (errbuf (with-current-buffer (get-buffer-create " *my-env-errbuf*")
+  ;; 		   (erase-buffer)
+  ;; 		   (current-buffer)))
+  ;; 	 (proc (make-process
+  ;; 		:name "my-venv"
+  ;; 		:command (list shell-file-name
+  ;; 			       shell-command-switch
+  ;; 			       ">&2 . $1 && env"
+  ;; 			       shell-file-name
+  ;; 			       my/env-script)
+  ;; 		:sentinel #'ignore
+  ;; 		:buffer outbuf
+  ;; 		:stderr errbuf)))
+  ;;     (while (process-live-p proc)
+  ;;       (accept-process-output proc))
+  ;;     (let ((env-output (with-current-buffer outbuf (buffer-string)))
+  ;; 	  (penv nil))
+  ;;       (dolist (line (split-string env-output "\n" t))
+  ;; 	(message "%s" line)
+  ;; 	(push line penv))
+  ;;       (setq-local process-environment penv)
+  ;;       (when-let ((path (getenv "PATH")))
+  ;; 	(message "%s" path)
+  ;; 	(setq-local exec-path (nconc (split-string path path-separator)
+  ;; 				     (list exec-directory)))))))
+
   (eval-when-compile (require 'cl-lib))
-  (defun my/activate-python-venv-inherit (func &rest args)
+  (defun my/env-script-activate-inherit (func &rest args)
     "Apply FUNC such that the environment it sees will match the current value.
-  This is useful if FUNC creates a temp buffer, because that will
-  not inherit any buffer-local values of variables `exec-path' and
-  `process-environment'.
+    This is useful if FUNC creates a temp buffer, because that will
+    not inherit any buffer-local values of variables `exec-path' and
+    `process-environment'.
 
-  This function is designed for convenient use as an \"around\" advice.
+    This function is designed for convenient use as an \"around\" advice.
 
-  ARGS is as for ORIG."
+    ARGS is as for ORIG."
     (cl-letf* (((default-value 'process-environment) process-environment)
                ((default-value 'exec-path) exec-path))
+      (apply func args)))
       ;; Don't force tramp to be loaded, but propagate its env/path vars if it is
-      (if (and (boundp 'tramp-remote-path) (boundp 'tramp-remote-process-environment))
-          (cl-letf* (((default-value 'tramp-remote-path) tramp-remote-path)
-                     ((default-value 'tramp-remote-process-environment) tramp-remote-process-environment))
-            (apply func args))
-        (apply func args))))
+  ;;     (if (and (boundp 'tramp-remote-path) (boundp 'tramp-remote-process-environment))
+  ;;         (cl-letf* (((default-value 'tramp-remote-path) tramp-remote-path)
+  ;;                    ((default-value 'tramp-remote-process-environment) tramp-remote-process-environment))
+  ;;           (apply func args))
+  ;;       (apply func args))))
 
-  (add-hook 'hack-local-variables-hook #'my/activate-python-venv)
-  (add-hook 'comint-mode-hook #'my/activate-python-venv)
-  (add-hook 'eshell-mode-hook #'my/activate-python-venv)
-  (add-hook 'org-mode-hook #'my/activate-python-venv)
-  (add-hook 'org-src-mode-hook #'my/activate-python-venv)
+  (add-hoo k 'hack-local-variables-hook #'my/env-script-activate)
+  (add-hook 'comint-mode-hook #'my/env-script-activate)
+  (add-hook 'eshell-mode-hook #'my/env-script-activate)
+  (add-hook 'org-mode-hook #'my/env-script-activate)
+  (add-hook 'org-src-mode-hook #'my/env-script-activate)
 
-  (advice-add 'eshell :around #'my/activate-python-venv-inherit)
-  (advice-add 'shell :around #'my/activate-python-venv-inherit)
+  (advice-add 'eshell :around #'my/env-script-activate-inherit)
+  (advice-add 'shell :around #'my/env-script-activate-inherit)
 #+end_src
 * Common Lisp
 #+begin_src
@@ -5179,6 +5217,7 @@ Create a .dir-locals.el file in root of folder with contents like
   (use-package epg
     :defer t
     :custom
+    (auth-sources '("~/etc/gnupg/authinfo.gpg" "~/etc/gnupg/authinfo" "~/etc/gnupg/netrc"))
     (epg-pinentry-mode 'loopback)
     )
 #+end_src
@@ -5218,7 +5257,7 @@ Create a .dir-locals.el file in root of folder with contents like
 #+end_src
 * Buffer Env
 ** Configuration
-#+begin_src
+#+begin_src emacs-lisp
   (use-package buffer-env
     :defer t
     :ensure t
@@ -5297,34 +5336,35 @@ Create a .dir-locals.el file in root of folder with contents like
         	("s" . gptel-send)
       	("t" . gptel-org-set-topic))
     :config
-    ;; (setq gptel-backend
-    ;;       (gptel-make-openai "llamafile"
-    ;;         :stream t
-    ;;         :protocol "http"
-    ;;         :host "localhost:8080"
-    ;; 	  :models '(llamafile))
-    ;; 	)
+    (setq gptel-backend
+          (gptel-make-openai "llamafile"
+            :stream t
+            :protocol "http"
+            :host "localhost:8080"
+  	  :models '(Llama-3.2-3B))
+    	)
     (gptel-make-openai "OpenAI"
-     :stream t
-     :key 'gptel-api-key-from-auth-source
-     )
+      :stream t
+      :key 'gptel-api-key-from-auth-source
+      )
     (gptel-make-gemini "Gemini"
       :stream t
       :key 'gptel-api-key-from-auth-source
       )
-    (gptel-make-openai "GitHub"
-      :stream t
-      :host "models.inference.ai.azure.com"
-      :endpoint "/chat/completions?api-version=2024-05-01-preview"
-      :key 'gptel-api-key-from-auth-source
-      :models '(gpt-4o)
-      )
-    (setq
-     gptel-model 'deepseek-r1:7b
-     gptel-backend (gptel-make-ollama "Ollama"
-                     :host "localhost:11434"
-                     :stream t
-                     :models '(deepseek-r1:7b qwen2.5-coder:3b)))
+    (setq gptel-backend
+  	(gptel-make-openai "GitHub"
+  	  :stream t
+  	  :host "models.inference.ai.azure.com"
+  	  :endpoint "/chat/completions?api-version=2024-05-01-preview"
+  	  :key 'gptel-api-key-from-auth-source
+  	  :models '(gpt-4o))
+  	)
+    ;; (setq
+    ;;  gptel-model 'deepseek-r1:7b
+    ;;  gptel-backend (gptel-make-ollama "Ollama"
+    ;;                  :host "localhost:11434"
+    ;;                  :stream t
+    ;;                  :models '(deepseek-r1:7b qwen2.5-coder:3b)))
     )
 #+end_src
 ** Minuet
