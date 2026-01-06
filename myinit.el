@@ -266,6 +266,7 @@
   (remote-file-name-inhibit-locks t)			 ; don't create lock files
   (remote-file-name-inhibit-auto-save-visited t)	 ; don't create auto save files
   (image-use-external-converter t)			 ; use image-magick for image not supported natively
+  (image-converter 'imagemagick)			 ; use image-magick to convert
   :config
   (global-auto-revert-mode 1)	 ; auto update buffers if file changes
   )
@@ -356,9 +357,9 @@
 	   (slot . 0))
 	  ("\\*\\(Diff\\|vc-diff\\).*"
 	   (display-buffer-in-side-window)
-	   (side . bottom)
-	   (window-height . 0.6)
-	   (slot . 0))
+	   (side . right)
+	   (window-width . 0.5)
+	   (slot . 1))
 	  ("\\*\\(Open Recent\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
@@ -379,11 +380,16 @@
 	   (side . bottom)
 	   (window-height . 0.4)
 	   (slot . 0))
-	  ("\\*\\(eldoc\\|xref\\|Flymake\\).*"
+	  ("\\*\\(eldoc\\|Flymake\\).*"
 	   (display-buffer-in-side-window)
 	   (side . right)
 	   (window-width . 100)
 	   (slot . 1))
+	  ("\\*\\(xref\\).*"
+	   (display-buffer-in-side-window)
+	   (side . bottom)
+	   (window-height . 0.4)
+	   (slot . 0))
 	  ("\\*\\(Python\\|ielm\\).*"
 	   (display-buffer-in-side-window)
 	   (side . bottom)
@@ -856,6 +862,7 @@
   ;; (add-hook 'python-mode-hook
   ;; 	    (progn
   ;; 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
+  
   ;; 	      (setq exec-path (split-string (getenv "PATH") path-separator))
   ;; 	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))
   ;; 	      'eglot-ensure))

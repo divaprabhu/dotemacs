@@ -1808,6 +1808,7 @@
     (remote-file-name-inhibit-locks t)			 ; don't create lock files
     (remote-file-name-inhibit-auto-save-visited t)	 ; don't create auto save files
     (image-use-external-converter t)			 ; use image-magick for image not supported natively
+    (image-converter 'imagemagick)			 ; use image-magick to convert
     :config
     (global-auto-revert-mode 1)	 ; auto update buffers if file changes
     )
@@ -2090,9 +2091,9 @@
   	   (slot . 0))
   	  ("\\*\\(Diff\\|vc-diff\\).*"
   	   (display-buffer-in-side-window)
-  	   (side . bottom)
-  	   (window-height . 0.6)
-  	   (slot . 0))
+  	   (side . right)
+  	   (window-width . 0.5)
+  	   (slot . 1))
   	  ("\\*\\(Open Recent\\).*"
   	   (display-buffer-in-side-window)
   	   (side . bottom)
@@ -2113,11 +2114,16 @@
   	   (side . bottom)
   	   (window-height . 0.4)
   	   (slot . 0))
-  	  ("\\*\\(eldoc\\|xref\\|Flymake\\).*"
+  	  ("\\*\\(eldoc\\|Flymake\\).*"
   	   (display-buffer-in-side-window)
   	   (side . right)
   	   (window-width . 100)
   	   (slot . 1))
+  	  ("\\*\\(xref\\).*"
+  	   (display-buffer-in-side-window)
+  	   (side . bottom)
+  	   (window-height . 0.4)
+  	   (slot . 0))
   	  ("\\*\\(Python\\|ielm\\).*"
   	   (display-buffer-in-side-window)
   	   (side . bottom)
@@ -4450,11 +4456,11 @@ Create a .dir-locals.el file in root of folder with contents like
   	    (progn
   	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
   	      (setq exec-path (split-string (getenv "PATH") path-separator))
-  	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))	      
   	      'eglot-ensure))
     ;; (add-hook 'python-mode-hook
     ;; 	    (progn
     ;; 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
+    
     ;; 	      (setq exec-path (split-string (getenv "PATH") path-separator))
     ;; 	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))
     ;; 	      'eglot-ensure))
@@ -5864,56 +5870,6 @@ Create a .dir-locals.el file in root of folder with contents like
 | 'printer-name'   | printer to use (nil means default printer)                     |
 |------------------+----------------------------------------------------------------|
 
-** Sorting
-|-------------------------+----------------------------------------------------------------------------|
-| 'sort-fold-case'        | ignore case difference                                                     |
-| M-x sort-lines          | sort lines in region                                                       |
-|                         | divide region into lines and sort by comparing entire text of a line       |
-|                         | with prefix, sort in descending order                                      |
-| M-x sort-paragraphs     | divide region into paragraphs and sort by comparing entire paragraph       |
-| M-x sort-pages          | divide region into pages and sort by comparing entire page                 |
-| M-x sort-fields         | divide region into lines and sort by comparing specific field              |
-|                         | fields are separated by whitespace                                         |
-|                         | prefix indicates which of the fields to use as sort key (default 1)        |
-|                         | negative prefix starts count from right (last field is -1 etc)             |
-|                         | if multiple lines have same values for the field, they are sort order      |
-|                         | is preserved, such that they appear in the same relative order as in       |
-|                         | original buffer                                                            |
-| M-x sort-numeric-fields | like sort-fields but specified field is converted to integer for           |
-|                         | numeric comparison                                                         |
-| 'sort-numeric-base'     | default base for numeric sort. numbers that begins with 0x and 0 are       |
-|                         | treated as hex and octal respectively                                      |
-| M-x sort-columns        | For example, to sort a table by information found in columns 10 to         |
-|                         | 15, you could put the mark on column 10 in the first line of the table,    |
-|                         | and point on column 15 in the last line of the table, and then run         |
-|                         | ‘sort-columns’.  Equivalently, you could run it with the mark on column 15 |
-|                         | in the first line and point on column 10 in the last line.                 |
-|                         | This can be thought of as sorting the rectangle specified by point         |
-|                         | and the mark, except that the text on each line to the left or             |
-|                         | right of the rectangle moves along with the text inside the rectangle      |
-| M-x reverse-region      | reverse the order of lines in region                                       |
-|-------------------------+----------------------------------------------------------------------------|
-
-** Hyperlinking
-*** FFAP
-- FFAP package remaps certain commands with ffap variants such
-  that it provides better defaults
-- We can still run non ffap version by passing a prefix
-- If point is on filename or url, default filename or url is set
-  to it
-  #+begin_src
-    (ffap-bindings)
-  #+end_src
-  |---------------+-----------------------------------------------------------|
-  | C-x C-f       | find-file-at-point (guess default from text around point) |
-  | C-x C-r       | ffap-read-only                                            |
-  | C-x C-v       | ffap-alternate-file                                       |
-  | C-x d         | dired-at-point                                            |
-  | C-x C-d       | ffap-list-directory                                       |
-  | M-x ffap-next | search buffer for next file name or url                   |
-  | M-x ffap-menu | display a menu of files and URLs in current buffer        |
-  |---------------+-----------------------------------------------------------|
-
 ** Gnus
 - Gnus is Emacs package for reading and posting Usenet news and
   mails
@@ -5937,13 +5893,13 @@ Create a .dir-locals.el file in root of folder with contents like
   you wish.
 
   |---------------------------------+-------------------------------------------------------|
-  | *M-x gnus*                      | start Gnus                                            |
+  | *M-x gnus*                        | start Gnus                                            |
   |                                 | reads .newsrc file in home directory.                 |
   |                                 | this is a common file used by many newsreaders        |
   |                                 | this file lists all the news groups and subscriptions |
   | 'gnus-select-method'            | primary method of selecting newsgroups                |
   | 'gnus-secondary-select-methods' | additional methods for reading news                   |
-  | *q*                             | quit group buffer updating .newsrc and .newsrc.eld    |
+  | *q*                               | quit group buffer updating .newsrc and .newsrc.eld    |
   |---------------------------------+-------------------------------------------------------|
 
 *** Basic Settings
@@ -6169,6 +6125,56 @@ Linebreaks
 
 
 #+end_src
+
+** Sorting
+|-------------------------+----------------------------------------------------------------------------|
+| 'sort-fold-case'        | ignore case difference                                                     |
+| M-x sort-lines          | sort lines in region                                                       |
+|                         | divide region into lines and sort by comparing entire text of a line       |
+|                         | with prefix, sort in descending order                                      |
+| M-x sort-paragraphs     | divide region into paragraphs and sort by comparing entire paragraph       |
+| M-x sort-pages          | divide region into pages and sort by comparing entire page                 |
+| M-x sort-fields         | divide region into lines and sort by comparing specific field              |
+|                         | fields are separated by whitespace                                         |
+|                         | prefix indicates which of the fields to use as sort key (default 1)        |
+|                         | negative prefix starts count from right (last field is -1 etc)             |
+|                         | if multiple lines have same values for the field, they are sort order      |
+|                         | is preserved, such that they appear in the same relative order as in       |
+|                         | original buffer                                                            |
+| M-x sort-numeric-fields | like sort-fields but specified field is converted to integer for           |
+|                         | numeric comparison                                                         |
+| 'sort-numeric-base'     | default base for numeric sort. numbers that begins with 0x and 0 are       |
+|                         | treated as hex and octal respectively                                      |
+| M-x sort-columns        | For example, to sort a table by information found in columns 10 to         |
+|                         | 15, you could put the mark on column 10 in the first line of the table,    |
+|                         | and point on column 15 in the last line of the table, and then run         |
+|                         | ‘sort-columns’.  Equivalently, you could run it with the mark on column 15 |
+|                         | in the first line and point on column 10 in the last line.                 |
+|                         | This can be thought of as sorting the rectangle specified by point         |
+|                         | and the mark, except that the text on each line to the left or             |
+|                         | right of the rectangle moves along with the text inside the rectangle      |
+| M-x reverse-region      | reverse the order of lines in region                                       |
+|-------------------------+----------------------------------------------------------------------------|
+
+** Hyperlinking
+*** FFAP
+- FFAP package remaps certain commands with ffap variants such
+  that it provides better defaults
+- We can still run non ffap version by passing a prefix
+- If point is on filename or url, default filename or url is set
+  to it
+  #+begin_src
+    (ffap-bindings)
+  #+end_src
+  |---------------+-----------------------------------------------------------|
+  | C-x C-f       | find-file-at-point (guess default from text around point) |
+  | C-x C-r       | ffap-read-only                                            |
+  | C-x C-v       | ffap-alternate-file                                       |
+  | C-x d         | dired-at-point                                            |
+  | C-x C-d       | ffap-list-directory                                       |
+  | M-x ffap-next | search buffer for next file name or url                   |
+  | M-x ffap-menu | display a menu of files and URLs in current buffer        |
+  |---------------+-----------------------------------------------------------|
 
 ** Keepass mode
 #+begin_src
