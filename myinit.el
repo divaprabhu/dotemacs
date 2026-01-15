@@ -189,12 +189,12 @@
   (display-raw-bytes-as-hex t)	   ; display raw bytes as hex 
   (visible-bell t)		   ; don't beep but flash
   (truncate-lines t)	  ; truncate display of long lines, don't wrap
+  (indicate-empty-lines t)		; show empty lines at the end of buffer
   :config
   (set-face-attribute 'default nil :height 120)
   (put 'scroll-left 'disabled nil)	; allow scrolling left
   (put 'narrow-to-region 'disabled nil) ; allow region narrowing
   (put 'narrow-to-page 'disabled nil)	; allow narrow to page
-  (setq-default indicate-empty-lines t) ; show blank lines at the end of buffer
   (setq blink-cursor-blink -1)		; don't stop cursor blink
   (global-display-line-numbers-mode 1)
 
@@ -251,13 +251,16 @@
   :init
   (make-directory (expand-file-name "autosave/" user-emacs-directory) t)
   :custom
+  (require-final-newline t)		; automatically add newline at the end of file
   (make-backup-files nil) ; don't create file backups
   (backup-directory-alist `(("." . ,(expand-file-name "backups/" user-emacs-directory)))) ; backup directory
   (auto-revert-verbose nil)	       ; don't flash echo area message
-  (global-auto-revert-non-file-buffers t) ; auto revert for dired buffers etc
   (auto-revert-remote-files nil)	      ; disable for tramp
-  (auto-save-list-file-prefix (expand-file-name "autosave/" user-emacs-directory)) ; auto-save directory
-  (auto-save-file-name-transforms `((".*" ,(expand-file-name "autosave/" user-emacs-directory) t)))
+  (auto-revert-use-notify t)		      ; rely on file system notification
+  (auto-revert-interval 5)		      ; poll for changes every 5 seconds
+  (global-auto-revert-non-file-buffers t) ; auto revert for dired buffers etc
+  (auto-save-file-name-transforms `((".*" ,(expand-file-name "autosave/" user-emacs-directory) t))) ; auto save directory
+  (auto-save-list-file-prefix (expand-file-name "autosave/" user-emacs-directory)) ; directory for recover session
   (delete-auto-save-files t) ; delete on buffer save
   (clean-buffer-list-delay-general 1) ; auto kill buffer after 1 day
   (delete-by-moving-to-trash t) ; delete from dired moves to trash
@@ -265,6 +268,8 @@
   (remote-file-name-inhibit-auto-save t)		 ; don't autosave remote files
   (remote-file-name-inhibit-locks t)			 ; don't create lock files
   (remote-file-name-inhibit-auto-save-visited t)	 ; don't create auto save files
+  (remote-file-name-access-timeout 3)			 ; don't block emacs waiting for remote files
+  (ange-ftp-generate-anonymous-password nil)		 ; prompt password
   (image-use-external-converter t)			 ; use image-magick for image not supported natively
   (image-converter 'imagemagick)			 ; use image-magick to convert
   :config
@@ -287,6 +292,8 @@
   :custom
   (uniquify-buffer-name-style 'forward)
   (clean-buffer-list-delay-general 1)	; number of days after which buffer is autokilled
+  :bind
+  ("C-x C-b" . buffer-menu-other-window)
   :config
   ;; A Protesilaos life savier HACK
   ;; Add option "d" to whenever using C-x s or C-x C-c, allowing a quick preview
@@ -610,6 +617,37 @@
   (abbrev-mode -1)			; don't expand automatically on space or punctuation
   )
 
+(use-package dired
+  :defer t
+  :custom
+  (dired-dwim-target t)		       ; try to guess target directory
+  (dired-create-destination-dirs 'ask) ; ask to create non existant directories when copying
+  (dired-kill-when-opening-new-dired-buffer t) ; kill current buffer when opening new directoy
+  (dired-listing-switches "-alh")	       ; long human readable including dot files
+  (dired-copy-preserve-time t)		; preserve last modified time
+  (dired-recursive-copies 'top)     ; recursive copy confirm only for top level dir
+  (dired-vc-rename-file t)	    ; if under version control, use vc-rename-file
+  (dired-hide-details-hide-absolute-location t)            ; EMACS-31
+  (ls-lisp-use-insert-directory-program nil) ; use ls-lisp instead of ls, useful for windows
+  (image-dired-dir (expand-file-name "cache/image-dired" user-emacs-directory))
+  )
+(use-package wdired
+  :defer t
+  :commands (wdired-change-to-wdired-mode)
+  :config
+  (setq wdired-allow-to-change-permissions t)
+  (setq wdired-create-parent-directories t)
+  )
+
+(use-package doc-view
+  :defer t
+  :custom
+  (doc-view-resolution 200)
+  (doc-view-continuous t)
+  :config
+  (add-hook 'doc-view-mode-hook (lambda () (display-line-numbers-mode -1)))
+  )
+
 (use-package shell
   :defer t
   :custom
@@ -618,25 +656,30 @@
   (shell-command-prompt-show-cwd t)       ; show current dir in shell-command and async-shell-command
   )
 
+(use-package server
+  :config
+  (when (not (server-running-p))
+    (server-start)))
+
 (use-package desktop
   :demand t
   :init
   (setq desktop-dirname (expand-file-name user-emacs-directory))
   :custom
-  (setq desktop-restore-eager 2) ; number of buffers to restore eagerly
-  (desktop-lazy-idle-delay 2) ; idle delay for creating other buffers lazily
-  (desktop-load-locked-desktop 'ask) ; notify if another emacs instance is locking session
-  (desktop-restore-frames 1) ; save and restore frames and window config
+  (desktop-restore-eager 2) ; number of buffers to restore eagerly
+  (desktop-lazy-idle-delay 5) ; idle delay for creating other buffers lazily
+  (desktop-load-locked-desktop t) ; notify if another emacs instance is locking session
+  (desktop-restore-frames t) ; save and restore frames and window config
   (desktop-save t)	     ; always save desktop when quitting emacs
   (desktop-path (list user-emacs-directory)) ; list of directories to search for desktop file
-  (desktop-auto-save-timeout 60) ; idle time seconds before autosaving
+  (desktop-auto-save-timeout 10) ; idle time seconds before autosaving
   (desktop-base-file-name "emacs.desktop") ; desktop file name
   (desktop-globals-to-save		; global variables to be saved
    '(desktop-missing-file-warning tags-file-name tags-table-list search-ring regexp-search-ring register-alist file-name-history))
   (desktop-locals-to-save		; local variables to be saved
    '(buffer-undo-list eww-history-position desktop-locals-to-save truncate-lines case-fold-search case-replace fill-column overwrite-mode change-log-default-name line-number-mode column-number-mode size-indication-mode buffer-file-coding-system buffer-display-time indent-tabs-mode tab-width indicate-buffer-boundaries indicate-empty-lines show-trailing-whitespace))
   :config
-  (desktop-save-mode t)			; save desktop
+  (desktop-save-mode t)		; enable desktop save mode
   )
 (use-package saveplace
   :demand t
@@ -838,6 +881,56 @@
 	       ("s" . eglot-shutdown-all))
   )
 
+(use-package treesit
+  :defer t
+  :mode (("\\.tsx\\'" . tsx-ts-mode))
+  :preface
+  (defun mp-setup-install-grammars ()
+    "Install Tree-sitter grammars if they are absent."
+    (interactive)
+    (dolist (grammar
+             ;; Note the version numbers. These are the versions that
+             ;; are known to work with Combobulate *and* Emacs.
+             '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+               (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+               (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+               (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+               (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
+               (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+               (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
+               (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
+               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
+      (add-to-list 'treesit-language-source-alist grammar)
+      ;; Only install `grammar' if we don't already have it
+      ;; installed. However, if you want to *update* a grammar then
+      ;; this obviously prevents that from happening.
+      (unless (treesit-language-available-p (car grammar))
+	(treesit-install-language-grammar (car grammar)))))
+
+  ;; Optional. Combobulate works in both xxxx-ts-modes and
+  ;; non-ts-modes.
+
+  ;; You can remap major modes with `major-mode-remap-alist'. Note
+  ;; that this does *not* extend to hooks! Make sure you migrate them
+  ;; also
+  (dolist (mapping
+           '((python-mode . python-ts-mode)
+             (css-mode . css-ts-mode)
+             (typescript-mode . typescript-ts-mode)
+             (js2-mode . js-ts-mode)
+             (bash-mode . bash-ts-mode)
+             (conf-toml-mode . toml-ts-mode)
+             (go-mode . go-ts-mode)
+             (css-mode . css-ts-mode)
+             (json-mode . json-ts-mode)
+             (js-json-mode . json-ts-mode)))
+    (add-to-list 'major-mode-remap-alist mapping))
+  :config
+  (mp-setup-install-grammars))
+
 (use-package python
   :defer t
   :custom
@@ -888,84 +981,6 @@
   (when (file-exists-p custom-file)
     (load custom-file 'noerror 'nomessage)))
 
-(use-package ibuffer
-  :defer t
-  :custom
-  (ibuffer-expert t)	      ; don't confirm for dangerous operations
-  (ibuffer-display-summary nil)	     ; don't summarize ibuffer columns
-  (ibuffer-show-empty-filter-groups nil) ; don't show empty filter groups
-  (ibuffer-default-sorting-mode 'major-mode) ; sort order
-  (ibuffer-use-header-line t)		     ; show header line
-  (ibuffer-default-shrink-to-minimum-size nil) ; don't minimize window size
-  (ibuffer-formats
-   '((mark modified read-only locked " "
-	   (name 40 40 :left :elide)
-	   " "
-	   (size 9 -1 :right)
-	   " "
-	   (mode 16 16 :left :elide)
-	   " " filename-and-process)
-     (mark " "
-	   (name 16 -1)
-	   " " filename)))
-  (ibuffer-saved-filter-groups nil)	; no defined filter by default
-  (ibuffer-old-time 48)	  ; hours after which buffer is considered old
-  (ibuffer-human-readable-size t)	; human readable size
-  :config
-  ;; Ibuffer filters
-  (setq ibuffer-saved-filter-groups
-	'(("default"
-	   ("org"     (or
-		       (mode . org-mode)
-		       (name . "^\\*Org Src")
-		       (name . "^\\*Org Agenda\\*$")))
-	   ("tramp"   (name . "^\\*tramp.*"))
-	   ("emacs"   (or
-		       (name . "^\\*scratch\\*$")
-		       (name . "^\\*Messages\\*$")
-		       (name . "^\\*Warnings\\*$")
-		       (name . "^\\*Shell Command Output\\*$")
-		       (name . "^\\*Async-native-compile-log\\*$")))
-	   ("ediff"   (name . "^\\*[Ee]diff.*"))
-	   ("vc"      (name . "^\\*vc-.*"))
-	   ("dired"   (mode . dired-mode))
-	   ("terminal" (or
-			(mode . term-mode)
-			(mode . shell-mode)
-			(mode . eshell-mode)))
-	   ("help"    (or
-		       (name . "^\\*Help\\*$")
-		       (name . "^\\*info\\*$")))
-	   ("news"    (name . "^\\*Newsticker.*"))
-	   ("gnus"    (or
-		       (mode . message-mode)
-		       (mode . gnus-group-mode)
-		       (mode . gnus-summary-mode)
-		       (mode . gnus-article-mode)
-		       (name . "^\\*Group\\*")
-		       (name . "^\\*Summary\\*")
-		       (name . "^\\*Article\\*")
-		       (name . "^\\*BBDB\\*")))
-	   ("chat"    (or
-		       (mode . rcirc-mode)
-		       (mode . erc-mode)
-		       (name . "^\\*rcirc.*")
-		       (name . "^\\*ERC.*"))))))
-
-  (add-hook 'ibuffer-mode-hook
-	    (lambda ()
-	      (ibuffer-switch-to-saved-filter-groups "default")))
-  :bind
-  (:map ibuffer-mode-map
-	("* f" . ibuffer-mark-by-file-name-regexp)
-	("* g" . ibuffer-mark-by-content-regexp)
-	("* n" . ibuffer-mark-by-name-regexp)
-	("s n" . ibuffer-do-sort-by-alphabetic)
-	("/ g" . ibuffer-filter-by-content)
-	("M-o" . other-window))
-  (:map ctl-x-map
-	("C-b" . ibuffer-jump)))
-
 (use-package which-key
   :ensure t
   :demand t
@@ -1007,28 +1022,6 @@
 (setq org-confirm-babel-evaluate nil)	; don't ask when evaluating code blocks
 )
 
-(use-package dired
-  :defer t
-  :custom
-  (dired-dwim-target t)		       ; try to guess target directory
-  (dired-create-destination-dirs 'ask) ; ask to create non existant directories when copying
-  (dired-kill-when-opening-new-dired-buffer t) ; kill current buffer when opening new directoy
-  (dired-listing-switches "-alh")	       ; long human readable including dot files
-  (dired-copy-preserve-time t)		; preserve last modified time
-  (dired-recursive-copies 'top)     ; recursive copy confirm only for top level dir
-  (dired-vc-rename-file t)	    ; if under version control, use vc-rename-file
-  (dired-hide-details-hide-absolute-location t)            ; EMACS-31
-  (ls-lisp-use-insert-directory-program nil) ; use ls-lisp instead of ls, useful for windows
-  (image-dired-dir (expand-file-name "cache/image-dired" user-emacs-directory))
-  )
-(use-package wdired
-  :defer t
-  :commands (wdired-change-to-wdired-mode)
-  :config
-  (setq wdired-allow-to-change-permissions t)
-  (setq wdired-create-parent-directories t)
-  )
-
 (use-package proced
   :defer t
   :custom
@@ -1042,15 +1035,6 @@
   (add-hook 'proced-mode-hook
 	    (lambda ()
 	      (proced-toggle-auto-update 1))))
-
-(use-package doc-view
-  :defer t
-  :custom
-  (doc-view-resolution 200)
-  (doc-view-continuous t)
-  :config
-  (add-hook 'doc-view-mode-hook (lambda () (display-line-numbers-mode -1)))
-  )
 
 (use-package epg
   :defer t

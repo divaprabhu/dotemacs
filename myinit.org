@@ -721,19 +721,19 @@
   |                                             | 4 - maximum                                             |
   |---------------------------------------------+---------------------------------------------------------|
 ** Interactive highlighting
-- Hilight change mode - Minor mode that highlights part of buffer that were changed recently
+- Highlight change mode - Minor mode that highlights part of buffer that were changed recently
 - Hi Lock mode - minor mode that highlights text matching REGEXP specified
-  |-------------------------------+-------------------------------------------------|
-  | M-x highlight-changes-mode    | toggle highlight changes mode                   |
-  | M-x hi-lock-mode              | toggle hi lock mode for buffer                  |
-  | M-x global-hi-lock-mode       | toggle hi lock mode for all buffers             |
+  |-----------------------------+-------------------------------------------------|
+  | M-x highlight-changes-mode  | toggle highlight changes mode                   |
+  | M-x hi-lock-mode            | toggle hi lock mode for buffer                  |
+  | M-x global-hi-lock-mode     | toggle hi lock mode for all buffers             |
   | *M-s h r REGEXP RET FACE RET* | highlight-regexp                                |
-  |                               | highlight text that matches REGEXP using FACE   |
-  |                               | use M-n or M-p to cycle through available faces |
+  |                             | highlight text that matches REGEXP using FACE   |
+  |                             | use M-n or M-p to cycle through available faces |
   | *M-s h u REGEXP RET*          | unhighlight-regexp                              |
-  |                               | Use M-n or M-p to cycle over available regexp   |
-  | M-s h .                       | highligh-symbol-at-point                        |
-  |-------------------------------+-------------------------------------------------|
+  |                             | Use M-n or M-p to cycle over available regexp   |
+  | M-s h .                     | highligh-symbol-at-point                        |
+  |-----------------------------+-------------------------------------------------|
 
 ** Window Fringes
 - Narrow line on left and right of a window used to display symbols like line continuation,
@@ -1062,14 +1062,15 @@
   logical line
 - Line truncation only display till what fits on screen. An arrow is
   show in fringe to indiecate truncation
-  |----------------------------------+---------------------------------------------------------|
-  | M-x toggle-truncate-lines        | toggle line truncation                                  |
-  | 'truncate-partial-width-windows' | controls line truncation behavior in split windows      |
-  | M-x visual-line-mode             | toggle visual line mode                                 |
-  | M-x next-logical-line            | move by logical line instead of screen line used by C-n |
-  | M-x previous-logical-line        | move by logical line instead of screen line used by C-p |
-  | 'visual-line-fringe-indicators'  | display fringe indicator for wrapped lines              |
-  |----------------------------------+---------------------------------------------------------|
+  |--------------------------------------+---------------------------------------------------------|
+  | C-x x t or M-x toggle-truncate-lines | toggle line truncation                                  |
+  | 'truncate-partial-width-windows'     | controls line truncation behavior in split windows      |
+  | M-x visual-line-mode                 | toggle visual line mode                                 |
+  |                                      | visual-line-mode disables truncate-lines and vice versa |
+  | M-x next-logical-line                | move by logical line instead of screen line used by C-n |
+  | M-x previous-logical-line            | move by logical line instead of screen line used by C-p |
+  | 'visual-line-fringe-indicators'      | display fringe indicator for wrapped lines              |
+  |--------------------------------------+---------------------------------------------------------|
 
 ** Customization
 |-------------------------------------------+------------------------------------------------------------|
@@ -1101,12 +1102,12 @@
     (display-raw-bytes-as-hex t)	   ; display raw bytes as hex 
     (visible-bell t)		   ; don't beep but flash
     (truncate-lines t)	  ; truncate display of long lines, don't wrap
+    (indicate-empty-lines t)		; show empty lines at the end of buffer
     :config
     (set-face-attribute 'default nil :height 120)
     (put 'scroll-left 'disabled nil)	; allow scrolling left
     (put 'narrow-to-region 'disabled nil) ; allow region narrowing
     (put 'narrow-to-page 'disabled nil)	; allow narrow to page
-    (setq-default indicate-empty-lines t) ; show blank lines at the end of buffer
     (setq blink-cursor-blink -1)		; don't stop cursor blink
     (global-display-line-numbers-mode 1)
 
@@ -1122,7 +1123,7 @@
 | *C-u C-SPC*    | *``*  | return to where point was before starting search |
 | *C-s [C-s ..]* | *n*   | isearch-repeat-forward                           |
 | *C-r [C-r...]* | *N*   | isearch-repeat-backward                          |
-| *M-e*          |     | isearch-edit-string                              |
+| *M-e* or *M-s e* |     | isearch-edit-string                              |
 | *M-e C-f*      | *C-w* | add search string characters following point     |
 |--------------+-----+--------------------------------------------------|
 ** Isearch Yanking
@@ -1235,6 +1236,8 @@
   |                                                 |                       | only replace some occurence and not all                          |
   |                                                 |                       | prompt before each replacement                                   |
   | *C-M-% REGEXP RET NEWSTRING RET*                  |                       | query-replace-regexp                                             |
+  |                                                 |                       | The query replace versions prompt for each match whereas         |
+  |                                                 |                       | other replace replaces all instances                             |
   | y                                               |                       | replace with newstring                                           |
   | n                                               |                       | skip to next, don't replace current one                          |
   | q                                               |                       | quit - no more replacement                                       |
@@ -1365,7 +1368,6 @@
 
 ** Configuration
 #+begin_src emacs-lisp
-
   (use-package emacs			; letter case
     :bind
     ;; change case commands map to dwim variant which apply to region if selected
@@ -1386,7 +1388,6 @@
     (text-mode-hook . flyspell-mode)	; fly-spell in text mode
     (prog-mode-hook . flyspell-prog-mode) ; fly-spell in progmode comment
     )
-
 #+end_src
 
 * Keyboard Macros
@@ -1438,14 +1439,14 @@
   sequence of numbers on each line like 1, 2, 3 etc
 
 ** Variations
-|----------+-----------------------------------------------------------------------|
-| C-x q    | kbd-macro-query (this key binding is entered during macro definition) |
-|          | stop macro execution at this point and ask for confirmation           |
-| SPC or y | continue executing macro                                              |
-| DEL or n | skip current iteration and start with next iteration                  |
-| RET or q | skip current iteration and cancel further iteration                   |
-| C-r      | enter recursive editing. Use C-M-c to return to macro execution       |
-|----------+-----------------------------------------------------------------------|
+|-----------+-----------------------------------------------------------------------|
+| C-x C-k q | kbd-macro-query (this key binding is entered during macro definition) |
+|           | stop macro execution at this point and ask for confirmation           |
+| SPC or y  | continue executing macro                                              |
+| DEL or n  | skip current iteration and start with next iteration                  |
+| RET or q  | skip current iteration and cancel further iteration                   |
+| C-r       | enter recursive editing. Use C-M-c to return to macro execution       |
+|-----------+-----------------------------------------------------------------------|
 
 ** Naming and saving
 |----------------------+---------------------------------------------------------------|
@@ -1623,6 +1624,7 @@
   | M-x do-auto-save                   | auto save manually                                                  |
   | M-x recover-file RET FILE RET      | visit file FILE and restores its contents from auto save file       |
   |                                    | the auto save file must be latest than actual file                  |
+  |                                    | Typing = or diff at prompts shows the diff between two files        |
   |                                    | file must be explicitly saved with C-x C-s                          |
   | M-x recover-session                | If Emacs or computer crashes, all files can be recovered from their |
   |                                    | autosave files using this command                                   |
@@ -1671,25 +1673,33 @@
 - Major mode for output of M-x diff and similar command
 - Can be started manually with M-x diff-mode
 - Editing patch in diff mode tries to maintain line number so the patch is still valid
-  |-------------------------------------+------------------------------------------------------------|
-  | 'diff-update-on-the-fly'            | disable automatic line number correction                   |
-  | *M-n*                                 | diff-hunk-next                                             |
-  | *M-p*                                 | diff-hunk-prev                                             |
-  | M-k                                 | diff-hunk-kill                                             |
-  | *C-c C-a*                             | diff-apply-hunk (apply hunk to target file)                |
-  |                                     | with prefix, revert hunk                                   |
-  | *C-c C-c*                             | diff-goto-source (goes to new version)                     |
-  |                                     | use prefix to go to old version                            |
-  | C-c C-e                             | start ediff session                                        |
-  | C-c C-n                             | diff-restrict-view (narrow to current hunk)                |
-  | *C-c C-r*                             | diff-reverse-direction (create patch to change new to old) |
-  | C-c C-w                             | diff-ignore-whitespace-hunk                                |
-  | C-c C-s                             | diff-split-hunk (split hunk at point)                      |
-  | C-c C-u                             | diff-context->unified (convert to unified)                 |
-  | C-c C-d                             | diff-unified->context (convert to context)                 |
-  | C-c C-l                             | diff-refresh-hunk (regenerate current hunk)                |
-  | M-x diff-delete-trailing-whitespace | delete trailing whitespace from patch and patched source   |
-  |-------------------------------------+------------------------------------------------------------|
+  |-------------------------------------+-------------------------------------------------------------------------|
+  | 'diff-update-on-the-fly'            | disable automatic line number correction                                |
+  | *M-n*                                 | diff-hunk-next                                                          |
+  | *M-p*                                 | diff-hunk-prev                                                          |
+  | M-}                                 | diff-file-next                                                          |
+  |                                     | Move to next file start in multi-file patch Move to previous file-start |
+  | M-{                                 | diff-file-prev                                                          |
+  | *M-k*                                 | diff-hunk-kill                                                          |
+  | M-K                                 | diff-file-kill (in multi-file patch kill current file part)             |
+  | *C-c C-a*                             | diff-apply-hunk (apply hunk to target file)                             |
+  |                                     | with prefix, revert hunk                                                |
+  | *C-c RET a*                           | diff-apply-buffer (apply all hunks in the buffer)                       |
+  | *C-c C-b*                             | diff-refine-hunk (highlight char/words that are different in the line)  |
+  | *C-c C-c*                             | diff-goto-source (goes to new version)                                  |
+  |                                     | use prefix to go to old version                                         |
+  |                                     | with vc, jump to current working version                                |
+  |                                     | with prefix, jump to old revision                                       |
+  | C-c C-e                             | start ediff session                                                     |
+  | C-c C-n                             | diff-restrict-view (narrow to current hunk)                             |
+  | *C-c C-r*                             | diff-reverse-direction (create patch to change new to old)              |
+  | C-c C-w                             | diff-ignore-whitespace-hunk                                             |
+  | *C-c C-s*                             | diff-split-hunk (split hunk at point, works only in unified diff))      |
+  | *C-c C-u*                             | diff-context->unified (convert to unified)                              |
+  | *C-c C-d*                             | diff-unified->context (convert to context)                              |
+  | *C-c C-l*                             | diff-refresh-hunk (regenerate current hunk)                             |
+  | M-x diff-delete-trailing-whitespace | delete trailing whitespace from patch and patched source                |
+  |-------------------------------------+-------------------------------------------------------------------------|
 
 ** Copy and Move
 - if NEW file already exists, all below commands ask for confirmation
@@ -1727,7 +1737,7 @@
   | I                       | add a new empty file to archive (can be edited using e)          |
   | d                       | mark file for deletion when x is pressed                         |
   | u                       | unmark a file                                                    |
-  | c                       | copy file from archive to disk                                   |
+  | C                       | copy file from archive to disk                                   |
   | R                       | rename a file in archive                                         |
   | g                       | revert buffer from archive                                       |
   | m                       | mark file (archive mode only)                                    |
@@ -1763,43 +1773,63 @@
 
 ** Image files
 - Opening image selects Image Mode
-  |----------+-----------------------------------------------------------------|
-  | *C-c C-c*  | image-toggle-display (toggle between showing image and rawbytes |
-  | C-c C-x  | image-toggle-hex-display (toggle between image and hex display) |
-  | *s h*      | image-transform-fit-to-height                                   |
-  | *s i*      | image-transform-fit-to-width                                    |
-  | *s b*      | image-transform-fit-both (fit to both window height and width)  |
-  | s s      | image-transform-set-scale (scale image with a factor)           |
-  | *s o*      | image-transform-reset-to-original (reset all scaling)           |
-  | *s r*      | image-transform-set-rotation                                    |
-  | *s p*      | image-transform-set-percent                                     |
-  | *n*        | image-next-file                                                 |
-  | *p*        | image-previous-file                                             |
-  | *m*        | image-mode-mark-file                                            |
-  | *u*        | image-mode-unmark-file                                          |
-  | *w*        | image-mode-copy-file-name-as-kill                               |
-  | RET      | image-toggle-animation                                          |
-  | f        | image-next-frame                                                |
-  | b        | image-previous-frame                                            |
-  | i + +... | image-increase-size                                             |
-  | i - -... | image-decrease-size                                             |
-  | i v      | image-flip-vertically                                           |
-  | i h      | image-flip-horizontally                                         |
-  | i r r... | image-rotate                                                    |
-  |----------+-----------------------------------------------------------------|
+  |------------------------------+-------------------------------------------------------------------|
+  | *C-c C-c*                      | image-toggle-display (toggle between showing image and rawbytes   |
+  | C-c C-x                      | image-toggle-hex-display (toggle between image and hex display)   |
+  | *s w*                          | image-transform-fit-to-window                                     |
+  | *s h*                          | image-transform-fit-to-height                                     |
+  | *s i*                          | image-transform-fit-to-width                                      |
+  | *s b*                          | image-transform-fit-both (fit to both window height and width)    |
+  | s s                          | image-transform-set-scale (scale image with a factor)             |
+  | *s 0*                          | image-transform-reset-to-initial                                  |
+  | *s o*                          | image-transform-reset-to-original (reset all scaling)             |
+  | *s r*                          | image-transform-set-rotation                                      |
+  | *s p*                          | image-transform-set-percent                                       |
+  | *n*                            | image-next-file                                                   |
+  | *p*                            | image-previous-file                                               |
+  | *m*                            | image-mode-mark-file                                              |
+  | *u*                            | image-mode-unmark-file                                            |
+  | *w*                            | image-mode-copy-file-name-as-kill                                 |
+  | RET                          | image-toggle-animation (play or pause animation)                  |
+  | image-animate-loop           | if non-nil, play animation in loop                                |
+  | f                            | image-next-frame (of animation)                                   |
+  | b                            | image-previous-frame                                              |
+  | i + +...                     | image-increase-size (of animation)                                |
+  | i - -...                     | image-decrease-size                                               |
+  | i v                          | image-flip-vertically                                             |
+  | i h                          | image-flip-horizontally                                           |
+  | i r r...                     | image-rotate                                                      |
+  | i o                          | image-save (prompts file name to save)                            |
+  | i c                          | image-crop (works only if external program is available)          |
+  | image-crop-crop-command      | defaults to imagemagick convert                                   |
+  | i x                          | image-cut (same as crop but fill removed part with color)         |
+  | image-crop-cut-command       | defaults to imagemagick covert                                    |
+  | image-cut-color              | default color to fill                                             |
+  | imagemagick-enabled-types    | image types rendered using ImageMagick                            |
+  |                              | setting to t uses ImageMagick for all images                      |
+  | imagemagick-types-inhibit    | image types that should never be rendered using ImageMagick       |
+  |                              | setting to t, disable ImageMagick entirely                        |
+  | image-use-external-converter | if t, use external converters to convert image to png and display |
+  | image-converter              | external program which should be used for converting unsupported  |
+  |                              | image type                                                        |
+  | image-convert-to-format      | format to which converter should convert the image to render      |
+  |------------------------------+-------------------------------------------------------------------|
 ** Configuration
 #+begin_src emacs-lisp
   (use-package emacs			; file handling
     :init
     (make-directory (expand-file-name "autosave/" user-emacs-directory) t)
     :custom
+    (require-final-newline t)		; automatically add newline at the end of file
     (make-backup-files nil) ; don't create file backups
     (backup-directory-alist `(("." . ,(expand-file-name "backups/" user-emacs-directory)))) ; backup directory
     (auto-revert-verbose nil)	       ; don't flash echo area message
-    (global-auto-revert-non-file-buffers t) ; auto revert for dired buffers etc
     (auto-revert-remote-files nil)	      ; disable for tramp
-    (auto-save-list-file-prefix (expand-file-name "autosave/" user-emacs-directory)) ; auto-save directory
-    (auto-save-file-name-transforms `((".*" ,(expand-file-name "autosave/" user-emacs-directory) t)))
+    (auto-revert-use-notify t)		      ; rely on file system notification
+    (auto-revert-interval 5)		      ; poll for changes every 5 seconds
+    (global-auto-revert-non-file-buffers t) ; auto revert for dired buffers etc
+    (auto-save-file-name-transforms `((".*" ,(expand-file-name "autosave/" user-emacs-directory) t))) ; auto save directory
+    (auto-save-list-file-prefix (expand-file-name "autosave/" user-emacs-directory)) ; directory for recover session
     (delete-auto-save-files t) ; delete on buffer save
     (clean-buffer-list-delay-general 1) ; auto kill buffer after 1 day
     (delete-by-moving-to-trash t) ; delete from dired moves to trash
@@ -1807,6 +1837,8 @@
     (remote-file-name-inhibit-auto-save t)		 ; don't autosave remote files
     (remote-file-name-inhibit-locks t)			 ; don't create lock files
     (remote-file-name-inhibit-auto-save-visited t)	 ; don't create auto save files
+    (remote-file-name-access-timeout 3)			 ; don't block emacs waiting for remote files
+    (ange-ftp-generate-anonymous-password nil)		 ; prompt password
     (image-use-external-converter t)			 ; use image-magick for image not supported natively
     (image-converter 'imagemagick)			 ; use image-magick to convert
     :config
@@ -1833,12 +1865,18 @@
 - Buffer name is displayed in mode line and case matters
 - At any time only one buffer is selected which is called current
   buffer
-
+- Buffer local variables are used to store buffer specific information
+  like file it is visiting, major and minor modes, whether modified etc
+- For a 64 bit machine, max buffer size is 2^{61} -2 bytes. In
+  addition system memory also limits buffer size
+  
 ** Create and Select buffers
 |--------------------+-----------+--------------------------------------------|
 | *C-x b BUFFER RET*   | *:b BUFFER* | switch-to-buffer (create or select buffer) |
 | *C-x 4 b BUFFER RET* |           | switch-to-buffer-other-window              |
 | C-x 5 b BUFFER RET |           | switch-to-buffer-other-frame               |
+| *C-x <LEFT>*         |           | previous-buffer                            |
+| *C-x <RIGHT>*        |           | next-buffer                                |
 |--------------------+-----------+--------------------------------------------|
 - Buffer names that start with space are used by Emacs internally
 ** List buffers
@@ -1865,14 +1903,20 @@
 | C-o      |          | Buffer-menu-switch-other-window (same as o but don't     |
 |          |          | select it)                                               |
 | f or RET |          | Buffer-menu-this-window                                  |
+| ~        |          | Buffer-menu-not-modified (mark buffer unmodified)        |
+| %        |          | Buffer-menu-toggle-read-only                             |
 | 1        |          | Buffer-menu-1-window (open in full frame window)         |
 | 2        |          | Buffer-menu-2-window (open in other window)              |
+| b        |          | Buffer-menu-bury (move to end of buffer list)            |
 | m        |          | Buffer-menu-mark (mark for viewing)                      |
 | v        |          | Buffer-menu-select (like 1. If there are marked buffers  |
 |          |          | then open them in other window)                          |
 | T        |          | Buffer-menu-toggle-files-only                            |
 | S        |          | tabulated-list-sort                                      |
 |          |          | Sort entries by column at point                          |
+| {        |          | narrow current column width by prefix characters         |
+| }        |          | widen current column width by prefix characters          |
+| I        |          | Toggle display of internal buffers                       |
 |----------+----------+----------------------------------------------------------|
 ** Other options
 |----------------------------------+---------------------------------------------|
@@ -1936,6 +1980,8 @@
     :custom
     (uniquify-buffer-name-style 'forward)
     (clean-buffer-list-delay-general 1)	; number of days after which buffer is autokilled
+    :bind
+    ("C-x C-b" . buffer-menu-other-window)
     :config
     ;; A Protesilaos life savier HACK
     ;; Add option "d" to whenever using C-x s or C-x C-c, allowing a quick preview
@@ -2302,7 +2348,7 @@ preceding line.
 |---------+---------+-----------------------------------------------------------|
 | *TAB*     |         | indent-for-tab-command                                    |
 |         |         | insert whitespace or indent current line                  |
-|         |         | if region is active, index all lines in it                |
+|         |         | if region is active, indent all lines in it               |
 | *C-q TAB* | *C-v TAB* | insert tab character in buffer                            |
 | C-M-o   |         | split-line (split at point and text after point aligns    |
 |         |         | with where point was before)                              |
@@ -3662,6 +3708,473 @@ preceding line.
     (abbrev-mode -1)			; don't expand automatically on space or punctuation
     )
 #+end_src
+* Dired
+- Dired creates an Emacs buffer containing directory listing which
+  can be used for file and directory operations
+- You flag files for deletion. You mark files for everything else
+  (i.e. copy, move, link files…). There are many marking commands
+  for specialized file types. Except for m, % m and % g, all marking
+  commands have prefix *
+- Command that use regexp have % as prefix
+
+  |----------------------------------------+---+---------------------------------------------------------------------------|
+  | *C-x d*                                  |   | dired                                                                     |
+  |                                        |   | prompt directory and lists its contents in Dired buffer                   |
+  |                                        |   | shell wild-card may be passed in the prompt                               |
+  |                                        |   | with prefix, prompt switches for ls command                               |
+  | *M-n*                                    |   | show next history dired prompt                                            |
+  | *M-p*                                    |   | show previous history in dired prompt                                     |
+  | *C-x C-f*                                |   | find-file (opens dired if directory name is passed)                       |
+  | 'dired-listing-switches'               |   | options passed to ls command when Dired is invoked                        |
+  | 'dired-use-ls-dired'                   |   | whether to pass --dired option to ls command                              |
+  | *C-x 4 d*                                |   | dired-other-window                                                        |
+  | C-x 5 d                                |   | dired-other-frame                                                         |
+  | *q*                                      | *q* | quit-window                                                               |
+  | *j*                                      | *J* | dired-goto-file (prompt file-name and move point to it)                   |
+  | *d*                                      |   | dired-flag-file-deletion (mark file or empty folder for deletion)         |
+  |                                        |   | files marked for deletion show D in buffer                                |
+  |                                        |   | with prefix, mark that many files for deletion                            |
+  | *u*                                      |   | dired-unmark                                                              |
+  | *x*                                      |   | dired-do-flagged-delete                                                   |
+  | 'dired-recursive-deletes'              |   | allow Dired to delete nonempty directories                                |
+  | *#*                                      |   | dired-flag-auto-save-files (mark all auto save files for deletion)        |
+  |                                        |   | files start and end with #                                                |
+  | *~*                                      |   | dired-flag-backup-files (files end with ~)                                |
+  | *f or RET*                               |   | dired-find-file (visit file on current line)                              |
+  | *o*                                      |   | dired-find-file-other-window                                              |
+  | *C-o*                                    |   | dired-display-file (open file in other window but stay in current window) |
+  | *v*                                      |   | dired-view-file (open file in view mode)                                  |
+  | *^*                                      |   | dired-up-directory (go up one directory)                                  |
+  | *m*                                      |   | dired-mark (mark current file or files in active region)                  |
+  |                                        |   | if prefix, mark that many files                                           |
+  |                                        |   | if sub-directory, mark all files in sub-directory                         |
+  | **N*                                     |   | dired-number-of-marked-files (number and size of marked files)            |
+  | **@*                                     |   | dired-mark-symlinks                                                       |
+  | **/*                                     |   | dired-mark-directories                                                    |
+  | *u*                                      |   | dired-unmark                                                              |
+  | *U*                                      |   | dired-unmark-all-marks                                                    |
+  | *t*                                      |   | dired-toggle-marks (mark unmarked files and vice-verse                    |
+  | *C-/*                                    |   | dired-undo (does not revert file operations)                              |
+  | 'dired-dwim-target'                    |   | non-nil - try to guess default target directory for copy, link etc        |
+  |                                        |   | nil - use dired default directory                                         |
+  | *C*                                      |   | dired-do-copy (copy file with new name if single file or to different     |
+  |                                        |   | directory if multiple files)                                              |
+  | 'dired-create-destination-dirs'        |   | create non existent directories when copying/renaming                     |
+  | 'dired-copy-preserve-time'             |   | preserve modification time                                                |
+  | 'dired-recursive-copies'               |   | like cp -r                                                                |
+  | *D*                                      |   | dired-do-delete                                                           |
+  | *R*                                      |   | dired-do-rename (like mv)                                                 |
+  | 'dired-vc-rename-file'                 |   | rename using vc-rename-file if file is under version control              |
+  | *H*                                      |   | dired-do-hardlink (if multiple files, then directory to create link in)   |
+  | *S*                                      |   | dired-do-symlink (like ln -s)                                             |
+  | *M*                                      |   | dired-do-chmod (can be octal or symbolic permission)                      |
+  | *G*                                      |   | dired-do-chgrp (change group)                                             |
+  | *O*                                      |   | dired-do-chown (change owner)                                             |
+  | *T*                                      |   | dired-do-touch                                                            |
+  | *P*                                      |   | dired-do-print (print file using 'lpr-comand')                            |
+  | *Z*                                      |   | dired-do-compress (each file is compressed separately)                    |
+  |                                        |   | decompress if already compressed                                          |
+  |                                        |   | if directory, create .tar.gz                                              |
+  | *c*                                      |   | dired-do-compress-to (compress marked files into single archive)          |
+  |                                        |   | 'dired-compress-files-alist' to decide algorithm based on extension       |
+  | *:d*                                     |   | epa-dired-do-decrypt                                                      |
+  | *:v*                                     |   | epa-dired-do-verify                                                       |
+  | *:s*                                     |   | epa-dired-do-sign                                                         |
+  | *:e*                                     |   | epa-dired-do-encrypt                                                      |
+  | *L*                                      |   | dired-do-load (load Elisp files)                                          |
+  | *A*                                      |   | dired-do-find-regexp (search files for regexp)                            |
+  |                                        |   | like xref-find-references, displays in xref buffer                        |
+  |                                        |   | recursively searches in directories                                       |
+  |                                        |   | ignores grep-find-ignored-files and grep-find-ignored-directories         |
+  | *Q*                                      |   | dired-do-find-regexp-and-replace                                          |
+  |                                        |   | like xref-query-replace-in-results                                        |
+  | *!*                                      |   | dired-do-shell-command (run shell command on marked files)                |
+  | *&*                                      |   | dired-to-async-shell-command (like appending & to end of command)         |
+  |                                        |   | if multiple files, run the command for each in separate process)          |
+  |                                        |   | if command ends in ;, then run in sequence for each file                  |
+  |                                        |   | if * is used with surrounding space, it is replaced by marked files       |
+  |                                        |   | to use * as wild-card, use *""                                            |
+  | *%u*                                     |   | dired-upcase (rename each file to upper case)                             |
+  | *%l*                                     |   | dired-downcase                                                            |
+  | *%m*                                     |   | dired-mark-files-regexp                                                   |
+  | *%d*                                     |   | dired-flag-files-regexp (for deletion)                                    |
+  | *%R*                                     |   | rename, copy, hardlink and symlink each file using regexp substitution    |
+  | *%C*                                     |   | \& - refer to entire match                                                |
+  | *%H*                                     |   | \DIGIT - part of pattern                                                  |
+  | *%S*                                     |   | \0 - refers entire path                                                   |
+  | *%g*                                     |   | dired-mark-files-containing-regexp                                        |
+  | *=*                                      |   | dired-diff (compare current file with another file given in minibuffer)   |
+  |                                        |   | file at point is file B, and file given in minibuffer is file A           |
+  | *i*                                      |   | dired-may-be-insert-subdir                                                |
+  |                                        |   | if point is on sub-directory, list it in the same dired buffer            |
+  |                                        |   | if sub-directory is already listed, move point to it                      |
+  |                                        |   | it also sets mark so we can go back using C-u C-SPC                       |
+  | *C-u k*                                  |   | remote sub-directory listing                                              |
+  | *C-M-n*                                  |   | dired-next-subdir                                                         |
+  | *C-M-p*                                  |   | dired-prev-subdir                                                         |
+  | *C-M-u*                                  |   | dired-tree-up (go-to parent directory listing)                            |
+  | *C-M-d*                                  |   | dired-tree-down                                                           |
+  | *$*                                      |   | dired-hide-subdir                                                         |
+  |                                        |   | hide sub-directory listing showing only header line                       |
+  | *M-$*                                    |   | dired-hide-all                                                            |
+  |                                        |   | even if the files in hidden directories are marked, they are ignored      |
+  |                                        |   | when running dired commands                                               |
+  | *g*                                      |   | revert-buffer (refresh dired contents)                                    |
+  | *s*                                      |   | dired-sort-toggle-or-edit (toggle alphabetical or date/time sort)         |
+  | *C-u s*                                  |   | update listing with new switches for ls                                   |
+  | M-x find-name-dired                    |   | like find command                                                         |
+  | M-x find-grep-dired                    |   | like grep -R                                                              |
+  | *C-x C-q*                                |   | dired-toggle-read-only                                                    |
+  |                                        |   | allows to rename files including rectangle operations                     |
+  |                                        |   | can also change link target, delete files etc                             |
+  | *C-c C-c*                                |   | wdired-finish-edit (switches back to dired mode)                          |
+  | *C-t d*                                  |   | image-dired-display-thumbs                                                |
+  |                                        |   | mark image files and type C-t d to enter image-dired                      |
+  | RET                                    |   | image-dired-display-thumbnail-original-image                              |
+  |                                        |   | open image at point to full size window                                   |
+  | SPC                                    |   | image-dired-display-next-thumbnail-original                               |
+  | DEL                                    |   | image-dired-display-previous-thumbnail-original                           |
+  | C-RET                                  |   | image-dired-thumbnail-display-external                                    |
+  |                                        |   | display in image-dired-external-viewer                                    |
+  | d                                      |   | image-dired-flag-thumb-original-file                                      |
+  | *+*                                      |   | dired-create-directory                                                    |
+  | *w*                                      |   | dired-copy-filename-as-kill                                               |
+  | *W*                                      |   | browse-url-of-dired-file                                                  |
+  | M-x dired-compare-directories          |   | compare current dired buffer with another directory (only file names)     |
+  | 'ls-lisp-use-insert-directory-program' |   | if nil, use ls-lisp instead of ls program                                 |
+  |----------------------------------------+---+---------------------------------------------------------------------------|
+
+** Configuration
+#+begin_src emacs-lisp
+  (use-package dired
+    :defer t
+    :custom
+    (dired-dwim-target t)		       ; try to guess target directory
+    (dired-create-destination-dirs 'ask) ; ask to create non existant directories when copying
+    (dired-kill-when-opening-new-dired-buffer t) ; kill current buffer when opening new directoy
+    (dired-listing-switches "-alh")	       ; long human readable including dot files
+    (dired-copy-preserve-time t)		; preserve last modified time
+    (dired-recursive-copies 'top)     ; recursive copy confirm only for top level dir
+    (dired-vc-rename-file t)	    ; if under version control, use vc-rename-file
+    (dired-hide-details-hide-absolute-location t)            ; EMACS-31
+    (ls-lisp-use-insert-directory-program nil) ; use ls-lisp instead of ls, useful for windows
+    (image-dired-dir (expand-file-name "cache/image-dired" user-emacs-directory))
+    )
+  (use-package wdired
+    :defer t
+    :commands (wdired-change-to-wdired-mode)
+    :config
+    (setq wdired-allow-to-change-permissions t)
+    (setq wdired-create-parent-directories t)
+    )
+
+#+end_src
+* Gnus
+- Gnus is Emacs package for reading and posting Usenet news and
+  mails
+- Gnus has group buffer, summary buffer and article buffer
+- The “group buffer” contains a list of article sources (e.g.,
+  newsgroups and email inboxes), which are collectively referred to
+  as “groups”.  This is the first buffer Gnus displays when it
+  starts up. It normally displays only the groups to which you
+  subscribe and that contain unread articles.  From this buffer, you
+  can select a group to read.
+- The “summary buffer” lists the articles in a single group, showing
+  one article per line.  By default, it displays each article’s
+  author, subject, and line number, but this is customizable The
+  summary buffer is created when you select a group in the group
+  buffer, and is killed when you exit the group.
+- From the summary buffer, you can choose an article to view.  The
+  article is displayed in the “article buffer”.  In normal Gnus
+  usage, you view this buffer but do not select it—all useful Gnus
+  commands can be invoked from the summary buffer.  But you can
+  select the article buffer, and execute Gnus commands from it, if
+  you wish.
+
+  |---------------------------------+-------------------------------------------------------|
+  | *M-x gnus*                        | start Gnus                                            |
+  |                                 | reads .newsrc file in home directory.                 |
+  |                                 | this is a common file used by many newsreaders        |
+  |                                 | this file lists all the news groups and subscriptions |
+  | 'gnus-select-method'            | primary method of selecting newsgroups                |
+  | 'gnus-secondary-select-methods' | additional methods for reading news                   |
+  | *q*                               | quit group buffer updating .newsrc and .newsrc.eld    |
+  |---------------------------------+-------------------------------------------------------|
+
+** Basic Settings
+[[https://www.bounga.org/tips/2020/05/03/multiple-smtp-accounts-in-gnus-without-external-tools/][Source]]
+#+begin_src
+  ;; don't create newsrc file that other clients may use
+  (setq gnus-save-newsrc-file t)
+  (setq gnus-read-newsrc-file t)
+
+  ;; save emacs specific newsrc file in cache
+  (setq gnus-startup-file (expand-file-name "newsrc" user-emacs-directory))
+
+  ;;save dribble file in cache and read on start up without prompt if exists
+  (setq gnus-dribble-directory user-emacs-directory)
+  (setq gnus-always-read-dribble-file t)
+
+  ;; about you
+  (setq user-mail-address "name@domain.com"
+	user-full-name "Divakar V Prabhu")
+
+  (setq gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\”]\”[#’()]")
+#+end_src
+
+** Accounts
+#+begin_src
+  ;; define everything via secondary method
+  ;; read credentials from authinfo.gpg
+  (setq gnus-select-method '(nnnil nil))
+  (setq gnus-secondary-select-methods
+	'((nntp   "gwene"
+		  (nntp-address "news.gwene.org"))))
+  (if (file-exists-p "~/etc/gnupg/authinfo.gpg")
+      (load-file "~/etc/gnus_mail.el"))
+#+end_src
+
+** Group buffer
+Buffer where all the mail folders like inbox from all servers will be shown
+|-----------+-----------------------------------------------------------------------------|
+| *SPC*     | gnus-group-read-group                                                       |
+|           | switch to summary buffer for group on current line                          |
+| *l (ell)* | gnus-group-list-groups                                                      |
+|           | show only groups with unread articles                                       |
+| *L*       | gnus-group-list-all-groups                                                  |
+|           | show all subscribed and unsubscribed groups but not killed or zombie groups |
+| *A A*     | gnus-group-list-active                                                      |
+|           | list all groups available from server including killed and zombie           |
+| *u*       | gnus-group-unsubscribe-current-group                                        |
+|           | toggle subscription status of group on current line                         |
+| *C-k*     | gnus-group-kill-group (kill group which won't show in l or L listing)       |
+| *p*       | gnus-group-prev-unread-group                                                |
+| *n*       | gnus-group-next-unread-group                                                |
+| *q*       | gnus-group-exit                                                             |
+| *g*       | refresh to check new news and mail                                          |
+| *c*       | mark all unread article in group as read                                    |
+| *m*       | create new email                                                            |
+| *^*       | enter server buffer (list all configured servers                            |
+| #         | mark a group                                                                |
+|-----------+-----------------------------------------------------------------------------|
+
+** Topic mode
+Categorize multiple groups based on topic
+
+|---------+---------------------|
+| t       | Enter topic mode    |
+| T n     | Create new topic    |
+| T <DEL> | delete topic        |
+| T m     | move group to topic |
+|---------+---------------------|
+#+begin_src
+  (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
+#+end_src
+
+** Summary and article buffer
+When a group is entered, a summary buffer showing all article is entered
+|---------+-------------------------------------------------------------------------------|
+| *SPC*   | gnus-summary-next-page                                                        |
+|         | if no article is selected, select article on current line and                 |
+|         | display in article buffer.                                                    |
+|         | Else scroll down article and on reaching end of article buffer                |
+|         | select next unread article                                                    |
+| *DEL*   | gnus-summary-prev-page (opposite of SPC)                                      |
+| *n*     | gnus-summary-next-unread-article                                              |
+| *p*     | gnus-summary-prev-unread-article                                              |
+| *s*     | gnus-summary-isearch-article                                                  |
+|         | incremental search on article buffer (like running C-s in article buffer)     |
+| M-s     | gnus-summary-search-article-forward                                           |
+|         | search articles containing match for regexp                                   |
+| M-r     | gnus-summary-search-article-backward                                          |
+| *q*     | gnus-summary-exit                                                             |
+| *R*     | gnus-summary-reply-with-original (Reply by email and cite article)            |
+| *r*     | gnus-summary-reply (Reply by email and don't cite article)                    |
+| *m*     | gnus-summary-mail-other-window *new email)                                    |
+| *c*     | gnus-summary-catchup-and-exit (mark all article in the current group as read) |
+| C-u / t | show only articles younger than given days                                    |
+| / t     | show only articles older than given days                                      |
+| T T     | toggle threading                                                              |
+| t       | show all headers                                                              |
+| W w     | wordwrap current article                                                      |
+| ^       | fetch parent article                                                          |
+|---------+-------------------------------------------------------------------------------|
+** Message buffer
+Write body after the line "--text follows this line--"
+Linebreaks
+#+begin_src
+  (defun my-message-mode-setup ()
+    (setq fill-column 72)
+    (turn-on-auto-fill))
+  (add-hook 'message-mode-hook 'my-message-mode-setup)
+#+end_src
+|-----------+--------------------|
+| C-c C-c   | send message       |
+| C-c C-d   | save as draft      |
+| C-c C-k   | kill message       |
+| C-c C-m f | attach file        |
+| M-q       | reformat paragraph |
+|-----------+--------------------|
+
+** Terminology
+- select method - another term for server
+- primary server is specified using gnus-select-method
+- secondary servers are specified using gnus-secondary-select-methods
+- groups from news server are called news groups and folders from mail server are called mail groups
+- A character indicates the mark
+  |-------+------------+--------------------------------------------------------|
+  | space | M-u        | there is no mark or the message is unmarked.           |
+  |       |            | Marking message with space actually removes all marks  |
+  | !     | ! or u     | Ticked message or mark important.                      |
+  |       |            | Ticked messages are always shown when group is entered |
+  | ?     | ?          | Dormant mark                                           |
+  |       |            | They are not shown by default                          |
+  | R     | <SPC> or g | Message has been read                                  |
+  | r     | d or M-r   | Mark message as read without actually reading it       |
+  | 0     |            | Message was read in previous session                   |
+  |-------+------------+--------------------------------------------------------|
+
+** Mail
+- Mail is fetched from mail sources whereas mail backend tells how to store them
+- For imap - mail is not fetched
+
+** Expiry
+- On news servers, as messages grow disk usage increases.
+- News servers are configured per group to tell after how many days the message should be deleted
+- In case of mail server, the expiry should be in your control
+  |-----------+---------------------------------------------------|
+  | E         | Expire a message                                  |
+  | C-u M-g   | Show read messages                                |
+  | C-u <RET> | From group buffer, show read message when entered |
+  | / D       | Show dormant messages                             |
+  |-----------+---------------------------------------------------|
+
+  - When a new followup comes in a thread, also show previous message from that thread
+    #+begin_src
+      (setq gnus-fetch-old-headers t)
+    #+end_src
+    |-------+--------------------------------+---------------------|
+    | n     | next group with unread article | next unread article |
+    | p     | prev group with unread article | prev unread article |
+    | N     | next group                     | next article        |
+    | P     | prev group                     | prev article        |
+    | C-n   | next line                      | next line           |
+    | C-p   | prev line                      | prev line           |
+    | <SPC> |                                | scroll article down |
+    | <DEL> |                                | scroll article up   |
+    |-------+--------------------------------+---------------------|
+
+    - Article and summary buffer have similar keybindings
+
+** Format
+#+begin_src
+  (setq-default
+   gnus-summary-line-format "%U%R%z%I%(%&user-date; [%4L: %-23,23f%]%) %s\n"
+   gnus-user-date-format-alist '((t . "%Y-%m-%d %H:%M"))
+   gnus-summary-thread-gathering-function 'gnus-gather-threads-by-references
+   gnus-thread-sort-functions '(gnus-thread-sort-by-date)
+   gnus-sum-thread-tree-false-root ""
+   gnus-sum-thread-tree-indent " "
+   gnus-sum-thread-tree-leaf-with-other "├► "
+   gnus-sum-thread-tree-root ""
+   gnus-sum-thread-tree-single-leaf "╰► "
+   gnus-sum-thread-tree-vertical "│")
+#+end_src
+
+** Custom keybinding
+- Press e to mark expired and then go to next article
+  #+begin_src
+    (add-hook 'gnus-summary-mode-hook 'my-summary-mode-map)
+    (add-hook 'gnus-article-prepare-hook 'my-summary-mode-map)
+    (defun my-summary-mode-map ()
+      (local-set-key "e" "MMen")
+      (local-set-key "E" 'gnus-summary-edit-article))
+  #+end_src
+  |-----+-----------------------------------------|
+  | Key | Description                             |
+  |-----+-----------------------------------------|
+  | e   | expire article and move to next article |
+  | E   | edit article                            |
+  |-----+-----------------------------------------|
+
+  - Expire immediately
+  #+begin_src
+    (setq nnmail-expiry-wait 'immediate)
+  #+end_src
+
+** Windows
+[[https://www.emacswiki.org/emacs/GnusWindowLayout][GnusWindowLayout]]
+#+begin_src
+  (gnus-add-configuration
+   '(article
+     (horizontal 1.0
+		 (vertical 0.25
+			   (group 1.0))
+		 (vertical 1.0
+			   (summary 0.25 point)
+			   (article 1.0)))))
+
+  (gnus-add-configuration
+   '(summary
+     (horizontal 1.0
+		 (vertical 0.25
+			   (group 1.0))
+		 (vertical 1.0
+			   (summary 1.0 point)))))
+
+
+#+end_src
+
+* Document Viewing
+- major mode for viewing DVI, PS PDF formats
+- opening a document that can be viewed in DocView mode, Emacs
+  automatically uses the mode
+  |-----------------------+-------------------------------------------------------------------|
+  | *C-c C-c*               | doc-view-toggle-display                                           |
+  |                       | toggle between DocView mode and displaying file contents as text) |
+  | *C-c C-t*               | doc-view-open-text (show file contents as text)                   |
+  | M-x doc-view-mode     | explicitly enable DocView mode                                    |
+  | *k*                     | dov-view-kill-proc-and-buffer (kill DocView buffer)               |
+  | *q*                     | quit-window                                                       |
+  | *C-p*                   | scroll previous in page                                           |
+  | *C-n*                   | scroll next in page                                               |
+  | 'doc-view-continuous' | allow C-p and C-n cross page boundary                             |
+  | *n*                     | doc-view-next-page                                                |
+  | *p*                     | doc-view-previous-page                                            |
+  | *SPC*                   | doc-view-scroll-up-or-next-page                                   |
+  | *DEL*                   | doc-view-scroll-down-or-previous-page                             |
+  | *M-<*                   | doc-view-first-page                                               |
+  | *M->*                   | doc-view-last-page                                                |
+  | *M-g g or M-g M-g*      | doc-view-goto-page                                                |
+  | *+*                     | doc-view-enlarge                                                  |
+  | *-*                     | doc-view-shrink                                                   |
+  | *C-s*                   | doc-view-search                                                   |
+  | *C-r*                   | doc-view-search-backward                                          |
+  | *C-t*                   | doc-view-show-tooltip (display search results in tooltip)         |
+  |-----------------------+-------------------------------------------------------------------|
+
+  - Slicing allows to hide document margins and zooms in on the
+    portion requested
+  |-----+-----------------------------------------------------------------------------------|
+  | *c s* | doc-view-set-slice                                                                |
+  |     | enter top left pixel position and width/height of slice                           |
+  | *c m* | doc-view-set-slice-using-mouse                                                    |
+  |     | press and hold left mouse and drag from top left to bottom right to form a region |
+  | *c b* | doc-view-set-slice-from-bounding-box                                              |
+  |     | automatically do slice                                                            |
+  | *c r* | doc-view-reset-slice                                                              |
+  |-----+-----------------------------------------------------------------------------------|
+** Configuration
+#+begin_src emacs-lisp
+  (use-package doc-view
+    :defer t
+    :custom
+    (doc-view-resolution 200)
+    (doc-view-continuous t)
+    :config
+    (add-hook 'doc-view-mode-hook (lambda () (display-line-numbers-mode -1)))
+    )
+#+end_src
 * Shell
 |--------------------------------------+---------------------------------------------------------------------|
 | *M-!*                                  | shell-command (run shell command and                                |
@@ -3735,6 +4248,43 @@ preceding line.
     )
 
 #+end_src
+* Emacs Server
+#+begin_src emacs-lisp
+  (use-package server
+    :config
+    (when (not (server-running-p))
+      (server-start)))
+#+end_src
+* Sorting
+|-------------------------+----------------------------------------------------------------------------|
+| 'sort-fold-case'        | ignore case difference                                                     |
+| M-x sort-lines          | sort lines in region                                                       |
+|                         | divide region into lines and sort by comparing entire text of a line       |
+|                         | with prefix, sort in descending order                                      |
+| M-x sort-paragraphs     | divide region into paragraphs and sort by comparing entire paragraph       |
+| M-x sort-pages          | divide region into pages and sort by comparing entire page                 |
+| M-x sort-fields         | divide region into lines and sort by comparing specific field              |
+|                         | fields are separated by whitespace                                         |
+|                         | prefix indicates which of the fields to use as sort key (default 1)        |
+|                         | negative prefix starts count from right (last field is -1 etc)             |
+|                         | if multiple lines have same values for the field, they are sort order      |
+|                         | is preserved, such that they appear in the same relative order as in       |
+|                         | original buffer                                                            |
+| M-x sort-numeric-fields | like sort-fields but specified field is converted to integer for           |
+|                         | numeric comparison                                                         |
+| 'sort-numeric-base'     | default base for numeric sort. numbers that begins with 0x and 0 are       |
+|                         | treated as hex and octal respectively                                      |
+| M-x sort-columns        | For example, to sort a table by information found in columns 10 to         |
+|                         | 15, you could put the mark on column 10 in the first line of the table,    |
+|                         | and point on column 15 in the last line of the table, and then run         |
+|                         | ‘sort-columns’.  Equivalently, you could run it with the mark on column 15 |
+|                         | in the first line and point on column 10 in the last line.                 |
+|                         | This can be thought of as sorting the rectangle specified by point         |
+|                         | and the mark, except that the text on each line to the left or             |
+|                         | right of the rectangle moves along with the text inside the rectangle      |
+| M-x reverse-region      | reverse the order of lines in region                                       |
+|-------------------------+----------------------------------------------------------------------------|
+
 * Saving Emacs Sessions
 |-----------------------------+-----------------------------------------------|
 | 'desktop-restore-frames'    | restore window and frame configs also along   |
@@ -3764,20 +4314,20 @@ preceding line.
     :init
     (setq desktop-dirname (expand-file-name user-emacs-directory))
     :custom
-    (setq desktop-restore-eager 2) ; number of buffers to restore eagerly
-    (desktop-lazy-idle-delay 2) ; idle delay for creating other buffers lazily
-    (desktop-load-locked-desktop 'ask) ; notify if another emacs instance is locking session
-    (desktop-restore-frames 1) ; save and restore frames and window config
+    (desktop-restore-eager 2) ; number of buffers to restore eagerly
+    (desktop-lazy-idle-delay 5) ; idle delay for creating other buffers lazily
+    (desktop-load-locked-desktop t) ; notify if another emacs instance is locking session
+    (desktop-restore-frames t) ; save and restore frames and window config
     (desktop-save t)	     ; always save desktop when quitting emacs
     (desktop-path (list user-emacs-directory)) ; list of directories to search for desktop file
-    (desktop-auto-save-timeout 60) ; idle time seconds before autosaving
+    (desktop-auto-save-timeout 10) ; idle time seconds before autosaving
     (desktop-base-file-name "emacs.desktop") ; desktop file name
     (desktop-globals-to-save		; global variables to be saved
      '(desktop-missing-file-warning tags-file-name tags-table-list search-ring regexp-search-ring register-alist file-name-history))
     (desktop-locals-to-save		; local variables to be saved
      '(buffer-undo-list eww-history-position desktop-locals-to-save truncate-lines case-fold-search case-replace fill-column overwrite-mode change-log-default-name line-number-mode column-number-mode size-indication-mode buffer-file-coding-system buffer-display-time indent-tabs-mode tab-width indicate-buffer-boundaries indicate-empty-lines show-trailing-whitespace))
     :config
-    (desktop-save-mode t)			; save desktop
+    (desktop-save-mode t)		; enable desktop save mode
     )
   (use-package saveplace
     :demand t
@@ -3790,20 +4340,42 @@ preceding line.
     )
 
 #+end_src
-* Tramp
-** Configuration
-#+begin_src emacs-lisp
-  (use-package tramp
-    :defer t
-    :custom
-    (tramp-copy-size-limit (* 2 1024 1024)) ;; 2MB
-    (tramp-use-scp-direct-remote-copying t)
-    (enable-remote-dir-locals t)
-    (tramp-verbose 2)
-    :config
-    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-    )
-#+end_src
+* Recursive Editing
+- A “recursive edit” is a situation in which you are using Emacs
+  commands to perform arbitrary editing while in the middle of
+  another Emacs command.  For example, when you type ‘C-r’ inside of
+  a ‘query-replace’, you enter a recursive edit in which you can
+  change the current buffer. On exiting from the recursive edit, you
+  go back to the ‘query-replace’.
+  |---------------+-------------------------------------------------------------------------------|
+  | *C-M-c*         | exit-recursive-edit                                                           |
+  |               | exit recursive edit returning to unfinished command which continues execution |
+  | *C-]*           | abort-recursive-edit                                                          |
+  |               | like exiting but also quits the unfinished command                            |
+  |               | mode line displays square brackets around parenthesis that surround modes     |
+  |               | each nested level of recursive edit displays a pair of square brackets        |
+  | M-x top-level | abort all recursive edits returning to top level command                      |
+  |---------------+-------------------------------------------------------------------------------|
+
+* Hyperlinking
+** FFAP
+- FFAP package remaps certain commands with ffap variants such
+  that it provides better defaults
+- We can still run non ffap version by passing a prefix
+- If point is on filename or url, default filename or url is set
+  to it
+  #+begin_src
+    (ffap-bindings)
+  #+end_src
+  |---------------+-----------------------------------------------------------|
+  | C-x C-f       | find-file-at-point (guess default from text around point) |
+  | C-x C-r       | ffap-read-only                                            |
+  | C-x C-v       | ffap-alternate-file                                       |
+  | C-x d         | dired-at-point                                            |
+  | C-x C-d       | ffap-list-directory                                       |
+  | M-x ffap-next | search buffer for next file name or url                   |
+  | M-x ffap-menu | display a menu of files and URLs in current buffer        |
+  |---------------+-----------------------------------------------------------|
 
 * Packages
 - Packages are Emacs Lisp libraries. For a package to be available
@@ -3861,6 +4433,21 @@ preceding line.
   | 'package-user-dir'               | location where package files are placed                                  |
   | 'package-directory-list'         | used for system-wide packages                                            |
   |----------------------------------+--------------------------------------------------------------------------|
+* Tramp
+** Configuration
+#+begin_src emacs-lisp
+  (use-package tramp
+    :defer t
+    :custom
+    (tramp-copy-size-limit (* 2 1024 1024)) ;; 2MB
+    (tramp-use-scp-direct-remote-copying t)
+    (enable-remote-dir-locals t)
+    (tramp-verbose 2)
+    :config
+    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+    )
+#+end_src
+
 * Use Package
 - declarative way to setup package
 - allow gathering all config of package in one place
@@ -4326,7 +4913,7 @@ preceding line.
 
 #+end_src
 * Treesitter
-#+begin_src
+#+begin_src emacs-lisp
   (use-package treesit
     :defer t
     :mode (("\\.tsx\\'" . tsx-ts-mode))
@@ -4806,7 +5393,7 @@ Create a .dir-locals.el file in root of folder with contents like
 	      (ibuffer-switch-to-saved-filter-groups "default")))
 #+end_src
 ** Configuration
-#+begin_src emacs-lisp
+#+begin_src
   (use-package ibuffer
     :defer t
     :custom
@@ -4988,167 +5575,6 @@ Create a .dir-locals.el file in root of folder with contents like
   )
 #+end_src
 
-* Dired
-- Dired creates an Emacs buffer containing directory listing which
-  can be used for file and directory operations
-- You flag files for deletion. You mark files for everything else
-  (i.e. copy, move, link files…). There are many marking commands
-  for specialized file types. Except for m, % m and % g, all marking
-  commands have prefix *
-- Command that use regexp have % as prefix
-
-  |----------------------------------------+---+---------------------------------------------------------------------------|
-  | *C-x d*                                  |   | dired                                                                     |
-  |                                        |   | prompt directory and lists its contents in Dired buffer                   |
-  |                                        |   | shell wild-card may be passed in the prompt                               |
-  |                                        |   | with prefix, prompt switches for ls command                               |
-  | *M-n*                                    |   | show next history dired prompt                                            |
-  | *M-p*                                    |   | show previous history in dired prompt                                     |
-  | *C-x C-f*                                |   | find-file (opens dired if directory name is passed)                       |
-  | 'dired-listing-switches'               |   | options passed to ls command when Dired is invoked                        |
-  | 'dired-use-ls-dired'                   |   | whether to pass --dired option to ls command                              |
-  | *C-x 4 d*                                |   | dired-other-window                                                        |
-  | C-x 5 d                                |   | dired-other-frame                                                         |
-  | *q*                                      | *q* | quit-window                                                               |
-  | *j*                                      | *J* | dired-goto-file (prompt file-name and move point to it)                   |
-  | *d*                                      |   | dired-flag-file-deletion (mark file or empty folder for deletion)         |
-  |                                        |   | files marked for deletion show D in buffer                                |
-  |                                        |   | with prefix, mark that many files for deletion                            |
-  | *u*                                      |   | dired-unmark                                                              |
-  | *x*                                      |   | dired-do-flagged-delete                                                   |
-  | 'dired-recursive-deletes'              |   | allow Dired to delete nonempty directories                                |
-  | *#*                                      |   | dired-flag-auto-save-files (mark all auto save files for deletion)        |
-  |                                        |   | files start and end with #                                                |
-  | *~*                                      |   | dired-flag-backup-files (files end with ~)                                |
-  | *f or RET*                               |   | dired-find-file (visit file on current line)                              |
-  | *o*                                      |   | dired-find-file-other-window                                              |
-  | *C-o*                                    |   | dired-display-file (open file in other window but stay in current window) |
-  | *v*                                      |   | dired-view-file (open file in view mode)                                  |
-  | *^*                                      |   | dired-up-directory (go up one directory)                                  |
-  | *m*                                      |   | dired-mark (mark current file or files in active region)                  |
-  |                                        |   | if prefix, mark that many files                                           |
-  |                                        |   | if sub-directory, mark all files in sub-directory                         |
-  | **N*                                     |   | dired-number-of-marked-files (number and size of marked files)            |
-  | **@*                                     |   | dired-mark-symlinks                                                       |
-  | **/*                                     |   | dired-mark-directories                                                    |
-  | *u*                                      |   | dired-unmark                                                              |
-  | *U*                                      |   | dired-unmark-all-marks                                                    |
-  | *t*                                      |   | dired-toggle-marks (mark unmarked files and vice-verse                    |
-  | *C-/*                                    |   | dired-undo (does not revert file operations)                              |
-  | 'dired-dwim-target'                    |   | non-nil - try to guess default target directory for copy, link etc        |
-  |                                        |   | nil - use dired default directory                                         |
-  | *C*                                      |   | dired-do-copy (copy file with new name if single file or to different     |
-  |                                        |   | directory if multiple files)                                              |
-  | 'dired-create-destination-dirs'        |   | create non existent directories when copying/renaming                     |
-  | 'dired-copy-preserve-time'             |   | preserve modification time                                                |
-  | 'dired-recursive-copies'               |   | like cp -r                                                                |
-  | *D*                                      |   | dired-do-delete                                                           |
-  | *R*                                      |   | dired-do-rename (like mv)                                                 |
-  | 'dired-vc-rename-file'                 |   | rename using vc-rename-file if file is under version control              |
-  | *H*                                      |   | dired-do-hardlink (if multiple files, then directory to create link in)   |
-  | *S*                                      |   | dired-do-symlink (like ln -s)                                             |
-  | *M*                                      |   | dired-do-chmod (can be octal or symbolic permission)                      |
-  | *G*                                      |   | dired-do-chgrp (change group)                                             |
-  | *O*                                      |   | dired-do-chown (change owner)                                             |
-  | *T*                                      |   | dired-do-touch                                                            |
-  | *P*                                      |   | dired-do-print (print file using 'lpr-comand')                            |
-  | *Z*                                      |   | dired-do-compress (each file is compressed separately)                    |
-  |                                        |   | decompress if already compressed                                          |
-  |                                        |   | if directory, create .tar.gz                                              |
-  | *c*                                      |   | dired-do-compress-to (compress marked files into single archive)          |
-  |                                        |   | 'dired-compress-files-alist' to decide algorithm based on extension       |
-  | *:d*                                     |   | epa-dired-do-decrypt                                                      |
-  | *:v*                                     |   | epa-dired-do-verify                                                       |
-  | *:s*                                     |   | epa-dired-do-sign                                                         |
-  | *:e*                                     |   | epa-dired-do-encrypt                                                      |
-  | *L*                                      |   | dired-do-load (load Elisp files)                                          |
-  | *A*                                      |   | dired-do-find-regexp (search files for regexp)                            |
-  |                                        |   | like xref-find-references, displays in xref buffer                        |
-  |                                        |   | recursively searches in directories                                       |
-  |                                        |   | ignores grep-find-ignored-files and grep-find-ignored-directories         |
-  | *Q*                                      |   | dired-do-find-regexp-and-replace                                          |
-  |                                        |   | like xref-query-replace-in-results                                        |
-  | *!*                                      |   | dired-do-shell-command (run shell command on marked files)                |
-  | *&*                                      |   | dired-to-async-shell-command (like appending & to end of command)         |
-  |                                        |   | if multiple files, run the command for each in separate process)          |
-  |                                        |   | if command ends in ;, then run in sequence for each file                  |
-  |                                        |   | if * is used with surrounding space, it is replaced by marked files       |
-  |                                        |   | to use * as wild-card, use *""                                            |
-  | *%u*                                     |   | dired-upcase (rename each file to upper case)                             |
-  | *%l*                                     |   | dired-downcase                                                            |
-  | *%m*                                     |   | dired-mark-files-regexp                                                   |
-  | *%d*                                     |   | dired-flag-files-regexp (for deletion)                                    |
-  | *%R*                                     |   | rename, copy, hardlink and symlink each file using regexp substitution    |
-  | *%C*                                     |   | \& - refer to entire match                                                |
-  | *%H*                                     |   | \DIGIT - part of pattern                                                  |
-  | *%S*                                     |   | \0 - refers entire path                                                   |
-  | *%g*                                     |   | dired-mark-files-containing-regexp                                        |
-  | *=*                                      |   | dired-diff (compare current file with another file given in minibuffer)   |
-  |                                        |   | file at point is file B, and file given in minibuffer is file A           |
-  | *i*                                      |   | dired-may-be-insert-subdir                                                |
-  |                                        |   | if point is on sub-directory, list it in the same dired buffer            |
-  |                                        |   | if sub-directory is already listed, move point to it                      |
-  |                                        |   | it also sets mark so we can go back using C-u C-SPC                       |
-  | *C-u k*                                  |   | remote sub-directory listing                                              |
-  | *C-M-n*                                  |   | dired-next-subdir                                                         |
-  | *C-M-p*                                  |   | dired-prev-subdir                                                         |
-  | *C-M-u*                                  |   | dired-tree-up (go-to parent directory listing)                            |
-  | *C-M-d*                                  |   | dired-tree-down                                                           |
-  | *$*                                      |   | dired-hide-subdir                                                         |
-  |                                        |   | hide sub-directory listing showing only header line                       |
-  | *M-$*                                    |   | dired-hide-all                                                            |
-  |                                        |   | even if the files in hidden directories are marked, they are ignored      |
-  |                                        |   | when running dired commands                                               |
-  | *g*                                      |   | revert-buffer (refresh dired contents)                                    |
-  | *s*                                      |   | dired-sort-toggle-or-edit (toggle alphabetical or date/time sort)         |
-  | *C-u s*                                  |   | update listing with new switches for ls                                   |
-  | M-x find-name-dired                    |   | like find command                                                         |
-  | M-x find-grep-dired                    |   | like grep -R                                                              |
-  | *C-x C-q*                                |   | dired-toggle-read-only                                                    |
-  |                                        |   | allows to rename files including rectangle operations                     |
-  |                                        |   | can also change link target, delete files etc                             |
-  | *C-c C-c*                                |   | wdired-finish-edit (switches back to dired mode)                          |
-  | *C-t d*                                  |   | image-dired-display-thumbs                                                |
-  |                                        |   | mark image files and type C-t d to enter image-dired                      |
-  | RET                                    |   | image-dired-display-thumbnail-original-image                              |
-  |                                        |   | open image at point to full size window                                   |
-  | SPC                                    |   | image-dired-display-next-thumbnail-original                               |
-  | DEL                                    |   | image-dired-display-previous-thumbnail-original                           |
-  | C-RET                                  |   | image-dired-thumbnail-display-external                                    |
-  |                                        |   | display in image-dired-external-viewer                                    |
-  | d                                      |   | image-dired-flag-thumb-original-file                                      |
-  | *+*                                      |   | dired-create-directory                                                    |
-  | *w*                                      |   | dired-copy-filename-as-kill                                               |
-  | *W*                                      |   | browse-url-of-dired-file                                                  |
-  | M-x dired-compare-directories          |   | compare current dired buffer with another directory (only file names)     |
-  | 'ls-lisp-use-insert-directory-program' |   | if nil, use ls-lisp instead of ls program                                 |
-  |----------------------------------------+---+---------------------------------------------------------------------------|
-
-** Configuration
-#+begin_src emacs-lisp
-  (use-package dired
-    :defer t
-    :custom
-    (dired-dwim-target t)		       ; try to guess target directory
-    (dired-create-destination-dirs 'ask) ; ask to create non existant directories when copying
-    (dired-kill-when-opening-new-dired-buffer t) ; kill current buffer when opening new directoy
-    (dired-listing-switches "-alh")	       ; long human readable including dot files
-    (dired-copy-preserve-time t)		; preserve last modified time
-    (dired-recursive-copies 'top)     ; recursive copy confirm only for top level dir
-    (dired-vc-rename-file t)	    ; if under version control, use vc-rename-file
-    (dired-hide-details-hide-absolute-location t)            ; EMACS-31
-    (ls-lisp-use-insert-directory-program nil) ; use ls-lisp instead of ls, useful for windows
-    (image-dired-dir (expand-file-name "cache/image-dired" user-emacs-directory))
-    )
-  (use-package wdired
-    :defer t
-    :commands (wdired-change-to-wdired-mode)
-    :config
-    (setq wdired-allow-to-change-permissions t)
-    (setq wdired-create-parent-directories t)
-    )
-
-#+end_src
 * Proced
 ** Configuration
 #+begin_src emacs-lisp
@@ -5167,56 +5593,6 @@ Create a .dir-locals.el file in root of folder with contents like
   	      (proced-toggle-auto-update 1))))
 #+end_src
 
-* Document Viewing
-- major mode for viewing DVI, PS PDF formats
-- opening a document that can be viewed in DocView mode, Emacs
-  automatically uses the mode
-  |-----------------------+-------------------------------------------------------------------|
-  | *C-c C-c*               | doc-view-toggle-display                                           |
-  |                       | toggle between DocView mode and displaying file contents as text) |
-  | *C-c C-t*               | doc-view-open-text (show file contents as text)                   |
-  | M-x doc-view-mode     | explicitly enable DocView mode                                    |
-  | *k*                     | dov-view-kill-proc-and-buffer (kill DocView buffer)               |
-  | *q*                     | quit-window                                                       |
-  | *C-p*                   | scroll previous in page                                           |
-  | *C-n*                   | scroll next in page                                               |
-  | 'doc-view-continuous' | allow C-p and C-n cross page boundary                             |
-  | *n*                     | doc-view-next-page                                                |
-  | *p*                     | doc-view-previous-page                                            |
-  | *SPC*                   | doc-view-scroll-up-or-next-page                                   |
-  | *DEL*                   | doc-view-scroll-down-or-previous-page                             |
-  | *M-<*                   | doc-view-first-page                                               |
-  | *M->*                   | doc-view-last-page                                                |
-  | *M-g g or M-g M-g*      | doc-view-goto-page                                                |
-  | *+*                     | doc-view-enlarge                                                  |
-  | *-*                     | doc-view-shrink                                                   |
-  | *C-s*                   | doc-view-search                                                   |
-  | *C-r*                   | doc-view-search-backward                                          |
-  | *C-t*                   | doc-view-show-tooltip (display search results in tooltip)         |
-  |-----------------------+-------------------------------------------------------------------|
-
-  - Slicing allows to hide document margins and zooms in on the
-    portion requested
-  |-----+-----------------------------------------------------------------------------------|
-  | *c s* | doc-view-set-slice                                                                |
-  |     | enter top left pixel position and width/height of slice                           |
-  | *c m* | doc-view-set-slice-using-mouse                                                    |
-  |     | press and hold left mouse and drag from top left to bottom right to form a region |
-  | *c b* | doc-view-set-slice-from-bounding-box                                              |
-  |     | automatically do slice                                                            |
-  | *c r* | doc-view-reset-slice                                                              |
-  |-----+-----------------------------------------------------------------------------------|
-** Configuration
-#+begin_src emacs-lisp
-  (use-package doc-view
-    :defer t
-    :custom
-    (doc-view-resolution 200)
-    (doc-view-continuous t)
-    :config
-    (add-hook 'doc-view-mode-hook (lambda () (display-line-numbers-mode -1)))
-    )
-#+end_src
 * EPG
 ** Configuration
 #+begin_src emacs-lisp
@@ -5870,312 +6246,6 @@ Create a .dir-locals.el file in root of folder with contents like
 | 'printer-name'   | printer to use (nil means default printer)                     |
 |------------------+----------------------------------------------------------------|
 
-** Gnus
-- Gnus is Emacs package for reading and posting Usenet news and
-  mails
-- Gnus has group buffer, summary buffer and article buffer
-- The “group buffer” contains a list of article sources (e.g.,
-  newsgroups and email inboxes), which are collectively referred to
-  as “groups”.  This is the first buffer Gnus displays when it
-  starts up. It normally displays only the groups to which you
-  subscribe and that contain unread articles.  From this buffer, you
-  can select a group to read.
-- The “summary buffer” lists the articles in a single group, showing
-  one article per line.  By default, it displays each article’s
-  author, subject, and line number, but this is customizable The
-  summary buffer is created when you select a group in the group
-  buffer, and is killed when you exit the group.
-- From the summary buffer, you can choose an article to view.  The
-  article is displayed in the “article buffer”.  In normal Gnus
-  usage, you view this buffer but do not select it—all useful Gnus
-  commands can be invoked from the summary buffer.  But you can
-  select the article buffer, and execute Gnus commands from it, if
-  you wish.
-
-  |---------------------------------+-------------------------------------------------------|
-  | *M-x gnus*                        | start Gnus                                            |
-  |                                 | reads .newsrc file in home directory.                 |
-  |                                 | this is a common file used by many newsreaders        |
-  |                                 | this file lists all the news groups and subscriptions |
-  | 'gnus-select-method'            | primary method of selecting newsgroups                |
-  | 'gnus-secondary-select-methods' | additional methods for reading news                   |
-  | *q*                               | quit group buffer updating .newsrc and .newsrc.eld    |
-  |---------------------------------+-------------------------------------------------------|
-
-*** Basic Settings
-[[https://www.bounga.org/tips/2020/05/03/multiple-smtp-accounts-in-gnus-without-external-tools/][Source]]
-#+begin_src
-  ;; don't create newsrc file that other clients may use
-  (setq gnus-save-newsrc-file t)
-  (setq gnus-read-newsrc-file t)
-
-  ;; save emacs specific newsrc file in cache
-  (setq gnus-startup-file (expand-file-name "newsrc" user-emacs-directory))
-
-  ;;save dribble file in cache and read on start up without prompt if exists
-  (setq gnus-dribble-directory user-emacs-directory)
-  (setq gnus-always-read-dribble-file t)
-
-  ;; about you
-  (setq user-mail-address "name@domain.com"
-	user-full-name "Divakar V Prabhu")
-
-  (setq gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\”]\”[#’()]")
-#+end_src
-
-*** Accounts
-#+begin_src
-  ;; define everything via secondary method
-  ;; read credentials from authinfo.gpg
-  (setq gnus-select-method '(nnnil nil))
-  (setq gnus-secondary-select-methods
-	'((nntp   "gwene"
-		  (nntp-address "news.gwene.org"))))
-  (if (file-exists-p "~/etc/gnupg/authinfo.gpg")
-      (load-file "~/etc/gnus_mail.el"))
-#+end_src
-
-*** Group buffer
-Buffer where all the mail folders like inbox from all servers will be shown
-|-----------+-----------------------------------------------------------------------------|
-| *SPC*     | gnus-group-read-group                                                       |
-|           | switch to summary buffer for group on current line                          |
-| *l (ell)* | gnus-group-list-groups                                                      |
-|           | show only groups with unread articles                                       |
-| *L*       | gnus-group-list-all-groups                                                  |
-|           | show all subscribed and unsubscribed groups but not killed or zombie groups |
-| *A A*     | gnus-group-list-active                                                      |
-|           | list all groups available from server including killed and zombie           |
-| *u*       | gnus-group-unsubscribe-current-group                                        |
-|           | toggle subscription status of group on current line                         |
-| *C-k*     | gnus-group-kill-group (kill group which won't show in l or L listing)       |
-| *p*       | gnus-group-prev-unread-group                                                |
-| *n*       | gnus-group-next-unread-group                                                |
-| *q*       | gnus-group-exit                                                             |
-| *g*       | refresh to check new news and mail                                          |
-| *c*       | mark all unread article in group as read                                    |
-| *m*       | create new email                                                            |
-| *^*       | enter server buffer (list all configured servers                            |
-| #         | mark a group                                                                |
-|-----------+-----------------------------------------------------------------------------|
-
-*** Topic mode
-Categorize multiple groups based on topic
-
-|---------+---------------------|
-| t       | Enter topic mode    |
-| T n     | Create new topic    |
-| T <DEL> | delete topic        |
-| T m     | move group to topic |
-|---------+---------------------|
-#+begin_src
-  (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
-#+end_src
-
-*** Summary and article buffer
-When a group is entered, a summary buffer showing all article is entered
-|---------+-------------------------------------------------------------------------------|
-| *SPC*   | gnus-summary-next-page                                                        |
-|         | if no article is selected, select article on current line and                 |
-|         | display in article buffer.                                                    |
-|         | Else scroll down article and on reaching end of article buffer                |
-|         | select next unread article                                                    |
-| *DEL*   | gnus-summary-prev-page (opposite of SPC)                                      |
-| *n*     | gnus-summary-next-unread-article                                              |
-| *p*     | gnus-summary-prev-unread-article                                              |
-| *s*     | gnus-summary-isearch-article                                                  |
-|         | incremental search on article buffer (like running C-s in article buffer)     |
-| M-s     | gnus-summary-search-article-forward                                           |
-|         | search articles containing match for regexp                                   |
-| M-r     | gnus-summary-search-article-backward                                          |
-| *q*     | gnus-summary-exit                                                             |
-| *R*     | gnus-summary-reply-with-original (Reply by email and cite article)            |
-| *r*     | gnus-summary-reply (Reply by email and don't cite article)                    |
-| *m*     | gnus-summary-mail-other-window *new email)                                    |
-| *c*     | gnus-summary-catchup-and-exit (mark all article in the current group as read) |
-| C-u / t | show only articles younger than given days                                    |
-| / t     | show only articles older than given days                                      |
-| T T     | toggle threading                                                              |
-| t       | show all headers                                                              |
-| W w     | wordwrap current article                                                      |
-| ^       | fetch parent article                                                          |
-|---------+-------------------------------------------------------------------------------|
-*** Message buffer
-Write body after the line "--text follows this line--"
-Linebreaks
-#+begin_src
-  (defun my-message-mode-setup ()
-    (setq fill-column 72)
-    (turn-on-auto-fill))
-  (add-hook 'message-mode-hook 'my-message-mode-setup)
-#+end_src
-|-----------+--------------------|
-| C-c C-c   | send message       |
-| C-c C-d   | save as draft      |
-| C-c C-k   | kill message       |
-| C-c C-m f | attach file        |
-| M-q       | reformat paragraph |
-|-----------+--------------------|
-
-*** Terminology
-- select method - another term for server
-- primary server is specified using gnus-select-method
-- secondary servers are specified using gnus-secondary-select-methods
-- groups from news server are called news groups and folders from mail server are called mail groups
-- A character indicates the mark
-  |-------+------------+--------------------------------------------------------|
-  | space | M-u        | there is no mark or the message is unmarked.           |
-  |       |            | Marking message with space actually removes all marks  |
-  | !     | ! or u     | Ticked message or mark important.                      |
-  |       |            | Ticked messages are always shown when group is entered |
-  | ?     | ?          | Dormant mark                                           |
-  |       |            | They are not shown by default                          |
-  | R     | <SPC> or g | Message has been read                                  |
-  | r     | d or M-r   | Mark message as read without actually reading it       |
-  | 0     |            | Message was read in previous session                   |
-  |-------+------------+--------------------------------------------------------|
-
-*** Mail
-- Mail is fetched from mail sources whereas mail backend tells how to store them
-- For imap - mail is not fetched
-
-*** Expiry
-- On news servers, as messages grow disk usage increases.
-- News servers are configured per group to tell after how many days the message should be deleted
-- In case of mail server, the expiry should be in your control
-  |-----------+---------------------------------------------------|
-  | E         | Expire a message                                  |
-  | C-u M-g   | Show read messages                                |
-  | C-u <RET> | From group buffer, show read message when entered |
-  | / D       | Show dormant messages                             |
-  |-----------+---------------------------------------------------|
-
-  - When a new followup comes in a thread, also show previous message from that thread
-    #+begin_src
-      (setq gnus-fetch-old-headers t)
-    #+end_src
-    |-------+--------------------------------+---------------------|
-    | n     | next group with unread article | next unread article |
-    | p     | prev group with unread article | prev unread article |
-    | N     | next group                     | next article        |
-    | P     | prev group                     | prev article        |
-    | C-n   | next line                      | next line           |
-    | C-p   | prev line                      | prev line           |
-    | <SPC> |                                | scroll article down |
-    | <DEL> |                                | scroll article up   |
-    |-------+--------------------------------+---------------------|
-
-    - Article and summary buffer have similar keybindings
-
-*** Format
-#+begin_src
-  (setq-default
-   gnus-summary-line-format "%U%R%z%I%(%&user-date; [%4L: %-23,23f%]%) %s\n"
-   gnus-user-date-format-alist '((t . "%Y-%m-%d %H:%M"))
-   gnus-summary-thread-gathering-function 'gnus-gather-threads-by-references
-   gnus-thread-sort-functions '(gnus-thread-sort-by-date)
-   gnus-sum-thread-tree-false-root ""
-   gnus-sum-thread-tree-indent " "
-   gnus-sum-thread-tree-leaf-with-other "├► "
-   gnus-sum-thread-tree-root ""
-   gnus-sum-thread-tree-single-leaf "╰► "
-   gnus-sum-thread-tree-vertical "│")
-#+end_src
-
-*** Custom keybinding
-- Press e to mark expired and then go to next article
-  #+begin_src
-    (add-hook 'gnus-summary-mode-hook 'my-summary-mode-map)
-    (add-hook 'gnus-article-prepare-hook 'my-summary-mode-map)
-    (defun my-summary-mode-map ()
-      (local-set-key "e" "MMen")
-      (local-set-key "E" 'gnus-summary-edit-article))
-  #+end_src
-  |-----+-----------------------------------------|
-  | Key | Description                             |
-  |-----+-----------------------------------------|
-  | e   | expire article and move to next article |
-  | E   | edit article                            |
-  |-----+-----------------------------------------|
-
-  - Expire immediately
-  #+begin_src
-    (setq nnmail-expiry-wait 'immediate)
-  #+end_src
-
-*** Windows
-[[https://www.emacswiki.org/emacs/GnusWindowLayout][GnusWindowLayout]]
-#+begin_src
-  (gnus-add-configuration
-   '(article
-     (horizontal 1.0
-		 (vertical 0.25
-			   (group 1.0))
-		 (vertical 1.0
-			   (summary 0.25 point)
-			   (article 1.0)))))
-
-  (gnus-add-configuration
-   '(summary
-     (horizontal 1.0
-		 (vertical 0.25
-			   (group 1.0))
-		 (vertical 1.0
-			   (summary 1.0 point)))))
-
-
-#+end_src
-
-** Sorting
-|-------------------------+----------------------------------------------------------------------------|
-| 'sort-fold-case'        | ignore case difference                                                     |
-| M-x sort-lines          | sort lines in region                                                       |
-|                         | divide region into lines and sort by comparing entire text of a line       |
-|                         | with prefix, sort in descending order                                      |
-| M-x sort-paragraphs     | divide region into paragraphs and sort by comparing entire paragraph       |
-| M-x sort-pages          | divide region into pages and sort by comparing entire page                 |
-| M-x sort-fields         | divide region into lines and sort by comparing specific field              |
-|                         | fields are separated by whitespace                                         |
-|                         | prefix indicates which of the fields to use as sort key (default 1)        |
-|                         | negative prefix starts count from right (last field is -1 etc)             |
-|                         | if multiple lines have same values for the field, they are sort order      |
-|                         | is preserved, such that they appear in the same relative order as in       |
-|                         | original buffer                                                            |
-| M-x sort-numeric-fields | like sort-fields but specified field is converted to integer for           |
-|                         | numeric comparison                                                         |
-| 'sort-numeric-base'     | default base for numeric sort. numbers that begins with 0x and 0 are       |
-|                         | treated as hex and octal respectively                                      |
-| M-x sort-columns        | For example, to sort a table by information found in columns 10 to         |
-|                         | 15, you could put the mark on column 10 in the first line of the table,    |
-|                         | and point on column 15 in the last line of the table, and then run         |
-|                         | ‘sort-columns’.  Equivalently, you could run it with the mark on column 15 |
-|                         | in the first line and point on column 10 in the last line.                 |
-|                         | This can be thought of as sorting the rectangle specified by point         |
-|                         | and the mark, except that the text on each line to the left or             |
-|                         | right of the rectangle moves along with the text inside the rectangle      |
-| M-x reverse-region      | reverse the order of lines in region                                       |
-|-------------------------+----------------------------------------------------------------------------|
-
-** Hyperlinking
-*** FFAP
-- FFAP package remaps certain commands with ffap variants such
-  that it provides better defaults
-- We can still run non ffap version by passing a prefix
-- If point is on filename or url, default filename or url is set
-  to it
-  #+begin_src
-    (ffap-bindings)
-  #+end_src
-  |---------------+-----------------------------------------------------------|
-  | C-x C-f       | find-file-at-point (guess default from text around point) |
-  | C-x C-r       | ffap-read-only                                            |
-  | C-x C-v       | ffap-alternate-file                                       |
-  | C-x d         | dired-at-point                                            |
-  | C-x C-d       | ffap-list-directory                                       |
-  | M-x ffap-next | search buffer for next file name or url                   |
-  | M-x ffap-menu | display a menu of files and URLs in current buffer        |
-  |---------------+-----------------------------------------------------------|
-
 ** Keepass mode
 #+begin_src
     (unless (package-installed-p 'keepass-mode)
@@ -6386,23 +6456,6 @@ Linebreaks
   (define-key corfu-map (kbd "S-TAB") 'corfu-previous)
 
 #+end_src
-** Recursive Editing
-- A “recursive edit” is a situation in which you are using Emacs
-  commands to perform arbitrary editing while in the middle of
-  another Emacs command.  For example, when you type ‘C-r’ inside of
-  a ‘query-replace’, you enter a recursive edit in which you can
-  change the current buffer. On exiting from the recursive edit, you
-  go back to the ‘query-replace’.
-  |---------------+-------------------------------------------------------------------------------|
-  | *C-M-c*         | exit-recursive-edit                                                           |
-  |               | exit recursive edit returning to unfinished command which continues execution |
-  | *C-]*           | abort-recursive-edit                                                          |
-  |               | like exiting but also quits the unfinished command                            |
-  |               | mode line displays square brackets around parenthesis that surround modes     |
-  |               | each nested level of recursive edit displays a pair of square brackets        |
-  | M-x top-level | abort all recursive edits returning to top level command                      |
-  |---------------+-------------------------------------------------------------------------------|
-
 ** Expand Region
 [[https://emacsrocks.com/e09.html][Emacs Rocks - Expand Region]]
 - Expand region increases the selected region by semantic
