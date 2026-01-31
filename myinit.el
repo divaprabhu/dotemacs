@@ -1,19 +1,13 @@
-(define-prefix-command 'my/global-prefix-map nil "Global Prefix")
+(define-prefix-command 'my/global-prefix-map nil)
 (keymap-set global-map "C-c" my/global-prefix-map)
-
-(define-prefix-command 'my/emacs-prefix-map nil "Core Emacs Prefix")
-(keymap-set my/global-prefix-map "e" '("Emacs Prefix" . my/emacs-prefix-map))
-
-(define-prefix-command 'my/gpt-prefix-map nil "GPT Prefix")
-(keymap-set my/global-prefix-map "g" '("GPT Prefix" . my/gpt-prefix-map))  
-
-(define-prefix-command 'my/hideshow-prefix-map nil "Hideshow Prefix")
-(keymap-set my/global-prefix-map "h" '("Hideshow Prefix" . my/hideshow-prefix-map))  
-
-(define-prefix-command 'my/lsp-prefix-map nil "LSP Prefix")
-(keymap-set my/global-prefix-map "l" '("LSP Prefix" . my/lsp-prefix-map))  
-
-
+(define-prefix-command 'my/emacs-prefix-map nil)
+(keymap-set my/global-prefix-map "e" '("Emacs" . my/emacs-prefix-map))
+(define-prefix-command 'my/gpt-prefix-map nil)
+(keymap-set my/global-prefix-map "g" '("GPT" . my/gpt-prefix-map))
+(define-prefix-command 'my/lsp-prefix-map nil)
+(keymap-set my/global-prefix-map "l" '("LSP" . my/lsp-prefix-map))
+(define-prefix-command 'my/outline-prefix-map nil)
+(keymap-set my/global-prefix-map "o" '("Outline" . my/outline-prefix-map))
 (use-package emacs
   :init
   (repeat-mode 1)
@@ -69,7 +63,6 @@
   (minibuffer-completion-auto-choose t) ; insert current completion candidate in mini-buffer
   (confirm-nonexistent-file-or-buffer nil) ; don't ask confirmation
   (use-short-answers t)		     ; use y or n instead of yes or no
-
   ;; mini-buffer completion
   (completion-styles '(partial-completion flex initials)) ; completion styles
   (completion-auto-help 'lazy) ; show completion buffer if can't complete
@@ -84,7 +77,6 @@
   (read-buffer-completion-ignore-case t) ; ignore case for buffer name completion
   (read-file-name-completion-ignore-case t) ; ignore case for file name completion
   (minibuffer-default-prompt-format " [%s]") ; format string for default values
-
   ;; mini-buffer history
   (history-length 1000)		; minibuffer history length
   (history-delete-duplicates t)	; remove duplicates
@@ -93,17 +85,14 @@
 				   register-alist ; macros
 				   mark-ring global-mark-ring ; marks
 				   search-ring regexp-search-ring)) ; searches
-
   (isearch-resume-in-command-history t) ; add isearch-resume command to command history
   :config
   (setq
    enable-recursive-minibuffer t ; allow to use mini-buffer recursively
    minibuffer-electric-default-mode t
-
    ;; mini-buffer completion
    completion-eager-update t	   ;
    completion-ignore-case t	   ; case insensitive completion
-
    ;; mini-buffer history
    savehist-minibuffer-history-variables '(minibuffer-history
 					   query-replace-history
@@ -115,15 +104,18 @@
 					   read-expression-history
 					   command-history)
    )
-
   ;; mini-buffer
   (file-name-shadow-mode 1) ; shadow ignored file path in mini-buffer
-
   ;; history
   (savehist-mode 1)			; save minibuffer history
   :bind
   ("<escape>" . keyboard-escape-quit)
   )
+
+(use-package simple
+  :custom
+  (suggest-key-bindings 5)
+  (extended-command-suggest-shorter t))
 
 (use-package emacs			; help and info
   :custom
@@ -142,8 +134,6 @@
   (global-mark-ring-max 512)      ; global mark ring size
   :config
   (delete-selection-mode 1)    ; typing with region active replaces it
-
-
   )
 
 (use-package emacs			; killing and moving text
@@ -186,7 +176,7 @@
   (display-line-numbers 'relative)	; relative line numbers
   (display-line-numbers-width nil) ; dynamically compute line number width
   (display-line-numbers-widen t)   ; show actual line number in narrow
-  (display-raw-bytes-as-hex t)	   ; display raw bytes as hex 
+  (display-raw-bytes-as-hex t)	   ; display raw bytes as hex
   (visible-bell t)		   ; don't beep but flash
   (truncate-lines t)	  ; truncate display of long lines, don't wrap
   (indicate-empty-lines t)		; show empty lines at the end of buffer
@@ -197,7 +187,6 @@
   (put 'narrow-to-page 'disabled nil)	; allow narrow to page
   (setq blink-cursor-blink -1)		; don't stop cursor blink
   (global-display-line-numbers-mode 1)
-
   )
 
 (use-package isearch
@@ -232,7 +221,6 @@
   :config
   (setq ispell-personal-dictionary (expand-file-name "dictionary" user-emacs-directory) ; location of personal
 	)
-
   :hook
   (text-mode-hook . flyspell-mode)	; fly-spell in text mode
   (prog-mode-hook . flyspell-prog-mode) ; fly-spell in progmode comment
@@ -260,7 +248,7 @@
   (auto-revert-interval 5)		      ; poll for changes every 5 seconds
   (global-auto-revert-non-file-buffers t) ; auto revert for dired buffers etc
   (auto-save-file-name-transforms `((".*" ,(expand-file-name "autosave/" user-emacs-directory) t))) ; auto save directory
-  (auto-save-list-file-prefix (expand-file-name "autosave/" user-emacs-directory)) ; directory for recover session
+  (auto-save-list-file-prefix (expand-file-name "autosave/list" user-emacs-directory)) ; directory for recover session
   (delete-auto-save-files t) ; delete on buffer save
   (clean-buffer-list-delay-general 1) ; auto kill buffer after 1 day
   (delete-by-moving-to-trash t) ; delete from dired moves to trash
@@ -279,7 +267,7 @@
   :defer t
   :custom
   (recentf-max-saved-items 300) ; default is 20
-  (recentf-max-menu-items 15)
+  (recentf-max-menu-items 300)
   ;; (recentf-exclude (list "^/\\(?:ssh\\|su\\|sudo\\)?:"))
   (recentf-save-file (expand-file-name "recentf" user-emacs-directory))
   :config
@@ -292,17 +280,17 @@
   :custom
   (uniquify-buffer-name-style 'forward)
   (clean-buffer-list-delay-general 1)	; number of days after which buffer is autokilled
-  :bind
-  ("C-x C-b" . buffer-menu-other-window)
+  ;; :bind
+  ;; ("C-x C-b" . buffer-menu-other-window)
   :config
   ;; A Protesilaos life savier HACK
   ;; Add option "d" to whenever using C-x s or C-x C-c, allowing a quick preview
   ;; of the diff (if you choose `d') of what you're asked to save.
   (add-to-list 'save-some-buffers-action-alist
-	       (list "d"
-		     (lambda (buffer) (diff-buffer-with-file (buffer-file-name buffer)))
-		     "show diff between the buffer and its file"))
-  )   
+  	       (list "d"
+  		     (lambda (buffer) (diff-buffer-with-file (buffer-file-name buffer)))
+  		     "show diff between the buffer and its file"))
+  )
 (use-package icomplete
   :defer t
   :custom
@@ -317,16 +305,15 @@
   (icomplete-max-delay-chars 0)
   (icomplete-scroll t)			; scroll instead of rotate
   :bind (:map icomplete-minibuffer-map
-	      ("C-n" . icomplete-forward-completions)
-	      ("C-p" . icomplete-backward-completions)
-	      ("RET" . icomplete-force-complete-and-exit)
-	      ;; to ignore icomplete and take what is entered literally
-	      ;; we can exit commands like `multi-file-replace-regexp-as-diff'
-	      ("C-j" . exit-minibuffer))
+  	      ("C-n" . icomplete-forward-completions)
+  	      ("C-p" . icomplete-backward-completions)
+  	      ("RET" . icomplete-force-complete-and-exit)
+  	      ;; to ignore icomplete and take what is entered literally
+  	      ("C-j" . exit-minibuffer))
   :hook
   (after-init-hook . (lambda ()
-		       (fido-mode -1)
-		       (icomplete-vertical-mode 1)))
+  		       (fido-mode -1)
+  		       (icomplete-vertical-mode 1)))
   :config
   (advice-add 'completion-at-point :after #'minibuffer-hide-completions) ; don't show "*completions*" buffer
   )
@@ -409,14 +396,12 @@
 	   (side . bottom)
 	   (window-height . 0.4)
 	   (slot . 0))))
-  
+
   (winner-mode 1)
   (windmove-mode 1)
   :bind
   ("M-o" . other-window)
   ("C-x w =" . balance-windows)
-  ("C-x w b" . windmove-swap-states-left)
-  ("C-x w f" . windmove-swap-states-right)
   ("C-x w u" . winner-undo)
   ("C-x w r" . winner-redo)
   ("C-x w 1" . delete-other-windows)
@@ -449,12 +434,16 @@
   )
 
 (use-package emacs			; indentation
-    :custom
-    (tab-always-indent 'complete)
-    ;; distance between tab stops in columns. control width of tab characters to display
-    ;; it should be positive integer and default is 8
-    (tab-width 8)
-)
+  :custom
+  (tab-always-indent 'complete)
+  ;; distance between tab stops in columns. control width of tab
+  ;; characters to display it should be positive integer and default
+  ;; is 8
+  (tab-width 8)
+  (tab-first-completion 'eol)
+  :config
+  (electric-indent-mode 1)
+  )
 
 (use-package emacs			; text
   :custom
@@ -462,11 +451,40 @@
   :hook
   (text-mode . turn-on-auto-fill)   ; automatic line breaking on space
   )
+(use-package outline
+  :custom
+  (outline-blank-line t)
+  (outline-minor-mode-use-buttons 'in-margins) ; show button in margin. pressing RET or click toggles fold
+  (outline-minor-mode-cycle t)		; tab and s-tab on heading cycles fold
+  (outline-default-state 'outline-show-only-headings)		; don't fold to start with
+  :hook
+  (prog-mode . outline-minor-mode)
+  :bind (:repeat-map my/outline-prefix-map
+		     ("n" . outline-next-visible-heading)
+		     ("p" . outline-previous-visible-heading)
+		     ("f" . outline-forward-same-level)
+		     ("b" . outline-backward-same-level)
+		     ("o" . outline-toggle-children)
+		     ("a" . outline-show-all)
+		     ("h" . outline-hide-body)
+		     ("c" . outline-hide-entry)
+		     ("e" . outline-show-entry)
+		     ("d" . outline-hide-subtree)
+		     ("s" . outline-show-subtree)
+		     ("l" . outline-hide-leaves)
+		     ("k" . outline-show-branches)
+		     ("i" . outline-show-children))
+  )
 
 (use-package imenu
   :defer t
   :custom
   (imenu-auto-rescan t)			; rescan buffer automatically
+  (imenu-auto-rescan-maxout 100000000)
+  (imenu-max-index-time 10)
+  (imenu-sort-function 'imenu--sort-by-position)
+  (imenu-flatten 'annotation)		; flatten list but show type as annotation
+  (org-imenu-depth 10)
   )
 (use-package emacs			; programs
   :custom
@@ -480,6 +498,7 @@
   (electric-pair-preserve-balance t)	; balance paren
   (electric-pair-delete-adjacent-pairs t) ; backspace of open paren also deletes close paren when both are nearby
   (electric-pair-open-newline-between-pairs t) ; newline between adjacent parens open new one
+  (electric-pair-skip-whitespace t)	       ; skip whitespace when skipping over closing paren
   (delete-pair-blink-delay 0.1)		       ; delete pair immediately
   (delete-pair-push-mark t)		       ; delete-pair pushes a mark at the end of delimited region
   :bind
@@ -488,7 +507,7 @@
   (show-paren-mode 1)
   :hook
   (prog-mode . electric-pair-local-mode)
-  ;; (prog-mode . superword-mode) ; treat underscore as word char for navigation
+  (prog-mode . superword-mode) ; treat underscore as word char for navigation
   (c-mode . cwarn-mode)
   )
 (use-package eldoc
@@ -503,19 +522,19 @@
   :config
   (global-eldoc-mode 1)			; enable eldoc mode
   )
-(use-package hideshow
-  :defer t
-  :custom
-  (hs-isearch-open t) ; unhide code and comment if match is in hidden block during isearch
-  (hs-hide-comments-when-hiding-all t) ; hide comments also when hs-hide-all
-  :bind
-  (:repeat-map my/hideshow-prefix-map
-	       ("h" . hs-toggle-hiding)
-	       ("c" . hs-hide-all)
-	       ("o" . hs-show-all))
-  :hook
-  (prog-mode . hs-minor-mode)
-  )
+;; (use-package hideshow
+;;   :defer t
+;;   :custom
+;;   (hs-isearch-open t) ; unhide code and comment if match is in hidden block during isearch
+;;   (hs-hide-comments-when-hiding-all t) ; hide comments also when hs-hide-all
+;;   :bind
+;;   (:repeat-map my/hideshow-prefix-map
+;;   	       ("h" . hs-toggle-hiding)
+;;   	       ("c" . hs-hide-all)
+;;   	       ("o" . hs-show-all))
+;;   :hook
+;;   (prog-mode . hs-minor-mode)
+;;   )
 (use-package completion-preview
   :defer t
   :hook
@@ -528,10 +547,10 @@
   (push 'org-self-insert-command completion-preview-commands)
   :bind
   (:map completion-preview-active-mode-map
-	("M-n" . completion-preview-next-candidate)
-	("M-p" . completion-preview-prev-candidate)
-	("TAB" . completion-preview-complete)
-	("M-i" . completion-preview-insert))
+  	("M-n" . completion-preview-next-candidate)
+  	("M-p" . completion-preview-prev-candidate)
+  	("TAB" . completion-preview-complete)
+  	("M-i" . completion-preview-insert))
   )
 
 (use-package compile
@@ -546,6 +565,8 @@
   :config
   (add-hook 'compilation-finish-functions ; switch to compile buffer immediately
     	    'switch-to-buffer-other-window 'compilation)
+  :hook
+  (comilation-mode . next-error-follow-minor-mode)
   )
 (use-package grep
   :defer t
@@ -554,6 +575,8 @@
    '("SCCS" "RCS" "CVS" "MCVS" ".src" ".svn" ".venv" ".jj" ".git" ".hg" ".bzr" "_MTN" "_darcs" "{arch}" "node_modules" "build" "dist"))
   (grep-save-buffers 'ask)		 ; ask to save buffer
   (grep-use-null-filename-separator nil) ; don't use --null option of grep
+  :hook
+  (grep-mode . next-error-follow-minor-mode)
   )
 (use-package flymake
   :defer t
@@ -590,15 +613,19 @@
   (vc-command-messages t)	      ; log backend commands being run
   :hook
   (diff-mode . next-error-follow-minor-mode)	; auto enable follow mode
+  :config
+  (add-to-list 'vc-directory-exclusion-list ".venv")
   )
 (use-package project
   :defer t
   :custom
+  (project-mode-line t)
   (project-list-file (expand-file-name "projects" user-emacs-directory)) ; file to save knows projects
   )
 (use-package xref
   :defer t
   :custom
+  (xref-auto-jump-to-first-definition 'show)
   (xref-search-program-alist '((grep . "xargs -0 grep <C> -snHE -e <R>"))) ; argument to xref-search-program
   )
 
@@ -620,23 +647,91 @@
 (use-package dired
   :defer t
   :custom
+  (dired-listing-switches "-alh")	       ; long human readable including dot files
+  (dired-recursive-deletes 'top)    ; recursive delete confirm only for top level dir
+  (dired-kill-when-opening-new-dired-buffer t) ; kill current buffer when opening new directoy
   (dired-dwim-target t)		       ; try to guess target directory
   (dired-create-destination-dirs 'ask) ; ask to create non existant directories when copying
-  (dired-kill-when-opening-new-dired-buffer t) ; kill current buffer when opening new directoy
-  (dired-listing-switches "-alh")	       ; long human readable including dot files
+  (dired-create-destination-dirs-on-trailing-dirsep t) ; trailing / treates destination as directory,
+                                                      ; so rename directory actually moves into this directory
   (dired-copy-preserve-time t)		; preserve last modified time
   (dired-recursive-copies 'top)     ; recursive copy confirm only for top level dir
   (dired-vc-rename-file t)	    ; if under version control, use vc-rename-file
   (dired-hide-details-hide-absolute-location t)            ; EMACS-31
   (ls-lisp-use-insert-directory-program nil) ; use ls-lisp instead of ls, useful for windows
-  (image-dired-dir (expand-file-name "cache/image-dired" user-emacs-directory))
+  (dired-free-space nil)		     ; don't display free space
+  ;; (dired-omit-files "\\`[.]\\|\\`[.]?#\\|\\`[.][.]?\\'") ; hide dot files in dired omit mode
+  :hook
+  (dired-mode . dired-omit-mode)	; hide . and ..
   )
 (use-package wdired
   :defer t
   :commands (wdired-change-to-wdired-mode)
+  :custom
+  (wdired-allow-to-change-permissions t)
+  (wdired-create-parent-directories t)
+  )
+(use-package image-dired
+  :defer t
+  :custom
+  (image-dired-thumbnail-storage 'standard)
+  (image-dired-dir (expand-file-name "image-dired" user-emacs-directory))
+  )
+
+(use-package gnus
+  :preface
+  (defun my/gnus-group-mail ()
+    (interactive)
+    (gnus-group-mail 2))
+  :custom
+  (mail-user-agent 'gnus-user-agent)	; prefer gnus to compose email
+  (read-mail-command #'gnus)		; prefer gnus for reading email
+  (gnus-home-directory (expand-file-name "gnus/" user-emacs-directory)) ; directory to keep all gnus files
+  (gnus-save-newsrc-file nil)		; just use eld, dont' bother with compatibility with other tools
+  (gnus-read-newsrc-file nil)
+  (gnus-interactive-exit t)		; prompt before exiting, reconnecting nntp and imap is takes time
+  (gnus-select-method '(nntp "news.gmane.io")) ; default nntp server
+  (nnimap-record-commands t)		       ; log commands to imap log buffer
+  (message-confirm-send t)		       ; prompt before sending email
+  (message-forward-as-mime t)		       ; forward mail as inline mime section
+  (gnus-use-dribble-file t)		       ; use dribble so gnus can recover from crash
+  (gnus-always-read-dribble-file t)	       ; silently load dribble file if exists
+  (gnus-fetch-old-headers t)		       ; build threads by pulling old headers even if that is expired
+  (gnus-large-newsgroup nil)		       ; don't prompt number of articles
+  (gnus-user-date-format-alist		       ; date format in summary buffer
+   '(((gnus-seconds-today) . "Today at %R")
+     ((+ (* 60 60 24) (gnus-seconds-today)) . "Yesterday, %R")
+     (t . "%Y-%m-%d %R")))
+  (gnus-summary-line-format "%U%R%3i %(%-18,18&user-date;  %-20,20f  %B%s%)\n") ; content display format in summary buffer
+  (gnus-sum-thread-tree-false-root "")
+  (gnus-sum-thread-tree-indent " ")
+  (gnus-sum-thread-tree-single-indent "")
+  (gnus-sum-thread-tree-leaf-with-other "├► ")
+  (gnus-sum-thread-tree-root "")
+  (gnus-sum-thread-tree-single-leaf "╰► ")
+  (gnus-sum-thread-tree-vertical "│")
+  (gnus-summary-mode-line-format "[%U] %g") ; modeline shows unread and compact group name
+  (gnus-show-threads t)			; display mails as threads
+  (gnus-thread-indent-level 2)		; indent by 2 spaces
+  (gnus-summary-make-false-root 'adopt)	; make one of the children as parent for loose threads
+  (gnus-summary-gather-subject-limit 'fuzzy) ; use fuzzy match to group loose threads
+  (gnus-summary-thread-gathering-function #'gnus-gather-threads-by-references) ; build loose threads by reference instead of subject
+  (gnus-thread-sort-functions '(gnus-thread-sort-by-most-recent-date)) ; sort summary buffer by recent first
+  :bind
+  ("C-c m" . gnus)
+  (:map gnus-group-mode-map
+	("m" . #'my/gnus-group-mail))
+  :hook
+  (gnus-group-mode . gnus-topic-mode)
+  (message-mode . flyspell-mode)
   :config
-  (setq wdired-allow-to-change-permissions t)
-  (setq wdired-create-parent-directories t)
+  (if (file-exists-p "~/.gnupg/authinfo.gpg")
+      (progn
+	(use-package auth-source-xoauth2-plugin
+	  :ensure t
+	  :config
+	  (auth-source-xoauth2-plugin-mode 1))
+	(load-file "~/etc/gnus_mail.el")))
   )
 
 (use-package doc-view
@@ -663,15 +758,12 @@
 
 (use-package desktop
   :demand t
-  :init
-  (setq desktop-dirname (expand-file-name user-emacs-directory))
   :custom
   (desktop-restore-eager 2) ; number of buffers to restore eagerly
   (desktop-lazy-idle-delay 5) ; idle delay for creating other buffers lazily
   (desktop-load-locked-desktop t) ; notify if another emacs instance is locking session
   (desktop-restore-frames t) ; save and restore frames and window config
   (desktop-save t)	     ; always save desktop when quitting emacs
-  (desktop-path (list user-emacs-directory)) ; list of directories to search for desktop file
   (desktop-auto-save-timeout 10) ; idle time seconds before autosaving
   (desktop-base-file-name "emacs.desktop") ; desktop file name
   (desktop-globals-to-save		; global variables to be saved
@@ -691,6 +783,8 @@
   (save-place-mode 1)			; enable saveplace mode
   )
 
+(ffap-bindings)
+
 (use-package tramp
   :defer t
   :custom
@@ -698,6 +792,8 @@
   (tramp-use-scp-direct-remote-copying t)
   (enable-remote-dir-locals t)
   (tramp-verbose 2)
+  ; don't use auth-sources-search for completion. This conflicts with file name completion
+  (tramp-completion-use-auth-sources nil)
   :config
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   )
@@ -840,7 +936,6 @@
   (eglot-autoreconnect t "Automatically reconnect to LSP server")
   (eglot-connect-timeout 60 "Time out connection attempt after specified seconds")
   (eglot-sync-connect nil "Don't block Emacs user interface when connecting")
-  (eglot-events-buffer-size 200000000 "Max number of chars on event buffer")
   (eglot-autoshutdown t "Shutdown language server when last buffer managed by it is killed")
   (eglot-confirm-server-initiated-edits nil "don't confirm server initiated edits with user")
   (eglot-ignored-server-capabilities nil "LSP capabilities that should not be used")
@@ -854,7 +949,6 @@
     (setq buffer-file-name (or (alist-get :file (caddr info))
                                "org-src-babel-tmp"))
     (eglot-ensure))
-
   (advice-add 'org-edit-src-code
               :before (defun my/org-edit-src-code/before (&rest args)
 			(when-let* ((element (org-element-at-point))
@@ -868,17 +962,19 @@
                               (advice-add edit-pre :after #'my/org-babel-edit-prep)
                             (fset edit-pre #'my/org-babel-edit-prep)))))
   :bind
-    (:repeat-map my/lsp-prefix-map
+  (:repeat-map my/lsp-prefix-map
 	       ("a" . eglot-code-actions)
 	       ("b e" . eglot-events-buffer)
 	       ("b s" . eglot-stderr-buffer)
-	       ("c" . eglot-reconnect)
+	       ("c" . eglot-signal-didChangeConfiguration)
 	       ("f" . eglot-format)
-	       ("i" . eglot-inlay-hints-mode)
+	       ("h" . eglot-inlay-hints-mode)
 	       ("l" . eglot)
 	       ("o" . eglot-code-action-organize-imports)
 	       ("r" . eglot-rename)
-	       ("s" . eglot-shutdown-all))
+	       ("R" . eglot-reconnect)
+	       ("s" . eglot-shutdown)
+	       ("S" . eglot-shutdown-all))
   )
 
 (use-package treesit
@@ -909,10 +1005,8 @@
       ;; this obviously prevents that from happening.
       (unless (treesit-language-available-p (car grammar))
 	(treesit-install-language-grammar (car grammar)))))
-
   ;; Optional. Combobulate works in both xxxx-ts-modes and
   ;; non-ts-modes.
-
   ;; You can remap major modes with `major-mode-remap-alist'. Note
   ;; that this does *not* extend to hooks! Make sure you migrate them
   ;; also
@@ -941,21 +1035,31 @@
       (make-directory pylspdir t)
       (cond
        ((eq system-type 'windows-nt)
-	(shell-command (concat "python -m venv " pylspdir))
-	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] && deactivate")))
+  	(shell-command (concat "python -m venv " pylspdir))
+  	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] debugpy && deactivate")))
        (t
-	(shell-command (concat "python3 -m venv " pylspdir))
-	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] && deactivate"))))))
+  	(shell-command (concat "python3 -m venv " pylspdir))
+  	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] debugpy && deactivate"))))))
   :config
   (add-hook 'python-base-mode-hook
-	    (progn
-	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
-	      (setq exec-path (split-string (getenv "PATH") path-separator))
-	      'eglot-ensure))
+  	    (progn
+  	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
+  	      (setq exec-path (split-string (getenv "PATH") path-separator))
+  	      'eglot-ensure))
+  (add-hook 'python-base-mode-hook
+  	    (lambda ()
+  	      (setq-local outline-regexp
+			  (rx (or
+			       ;; Branch 1: class (no async)
+			       (group (group (* space)) bow "class" eow)
+			       ;; Branch 2: def or async def
+			       (group (group (* space)) bow (optional "async" (+ space)) "def" eow)
+			       ;; Branch 3: decorators
+			       (group (group (* space)) "@"))))))
   ;; (add-hook 'python-mode-hook
   ;; 	    (progn
   ;; 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
-  
+
   ;; 	      (setq exec-path (split-string (getenv "PATH") path-separator))
   ;; 	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))
   ;; 	      'eglot-ensure))
@@ -981,12 +1085,90 @@
   (when (file-exists-p custom-file)
     (load custom-file 'noerror 'nomessage)))
 
+(use-package ibuffer
+  :defer t
+  :custom
+  (ibuffer-expert t)	      ; don't confirm for dangerous operations
+  (ibuffer-display-summary nil)	     ; don't summarize ibuffer columns
+  (ibuffer-show-empty-filter-groups nil) ; don't show empty filter groups
+  (ibuffer-default-sorting-mode 'major-mode) ; sort order
+  (ibuffer-use-header-line t)		     ; show header line
+  (ibuffer-default-shrink-to-minimum-size nil) ; don't minimize window size
+  (ibuffer-formats
+   '((mark modified read-only locked " "
+	   (name 40 40 :left :elide)
+	   " "
+	   (size 9 -1 :right)
+	   " "
+	   (mode 16 16 :left :elide)
+	   " " filename-and-process)
+     (mark " "
+	   (name 16 -1)
+	   " " filename)))
+  (ibuffer-saved-filter-groups nil)	; no defined filter by default
+  (ibuffer-old-time 48)	  ; hours after which buffer is considered old
+  (ibuffer-human-readable-size t)	; human readable size
+  :config
+  ;; Ibuffer filters
+  (setq ibuffer-saved-filter-groups
+	'(("default"
+	   ("org"     (or
+		       (mode . org-mode)
+		       (name . "^\\*Org Src")
+		       (name . "^\\*Org Agenda\\*$")))
+	   ("tramp"   (name . "^\\*tramp.*"))
+	   ("emacs"   (or
+		       (name . "^\\*scratch\\*$")
+		       (name . "^\\*Messages\\*$")
+		       (name . "^\\*Warnings\\*$")
+		       (name . "^\\*Shell Command Output\\*$")
+		       (name . "^\\*Async-native-compile-log\\*$")))
+	   ("ediff"   (name . "^\\*[Ee]diff.*"))
+	   ("vc"      (name . "^\\*vc-.*"))
+	   ("dired"   (mode . dired-mode))
+	   ("terminal" (or
+			(mode . term-mode)
+			(mode . shell-mode)
+			(mode . eshell-mode)))
+	   ("help"    (or
+		       (name . "^\\*Help\\*$")
+		       (name . "^\\*info\\*$")))
+	   ("news"    (name . "^\\*Newsticker.*"))
+	   ("gnus"    (or
+		       (mode . message-mode)
+		       (mode . gnus-group-mode)
+		       (mode . gnus-summary-mode)
+		       (mode . gnus-article-mode)
+		       (name . "^\\*Group\\*")
+		       (name . "^\\*Summary\\*")
+		       (name . "^\\*Article\\*")
+		       (name . "^\\*BBDB\\*")))
+	   ("chat"    (or
+		       (mode . rcirc-mode)
+		       (mode . erc-mode)
+		       (name . "^\\*rcirc.*")
+		       (name . "^\\*ERC.*"))))))
+  (add-hook 'ibuffer-mode-hook
+	    (lambda ()
+	      (ibuffer-switch-to-saved-filter-groups "default")))
+  :bind
+  (:map ibuffer-mode-map
+	("* f" . ibuffer-mark-by-file-name-regexp)
+	("* g" . ibuffer-mark-by-content-regexp)
+	("* n" . ibuffer-mark-by-name-regexp)
+	("s n" . ibuffer-do-sort-by-alphabetic)
+	("/ g" . ibuffer-filter-by-content)
+	("M-o" . other-window))
+  (:map ctl-x-map
+	("C-b" . ibuffer-jump)))
+
 (use-package which-key
   :ensure t
   :demand t
   :custom
   (which-key-idle-delay 1)
   (which-key-side-window-max-height 0.5)
+  (which-key-max-description-length 0.3)
   :config
   (which-key-setup-side-window-bottom)
   (which-key-mode)
@@ -996,19 +1178,21 @@
   :defer t
   :custom
   (org-hide-emphasis-markers t)
+  (org-goto-interface 'outline-path-completion)
+  (org-outline-path-complete-in-steps nil)
   :bind
-  (:map org-mode-map                                
-	("C-c C-n" . org-next-visible-heading)          
-	("C-c C-p" . org-previous-visible-heading)      
-	("C-c C-f" . org-forward-heading-same-level)    
-	("C-c C-b" . org-backward-heading-same-level)   
-	("C-c C-u" . outline-up-heading))               
-  (:repeat-map my/org-repeat-map                    
-               ("C-n" . org-next-visible-heading)       
-               ("C-p" . org-previous-visible-heading)   
-               ("C-f" . org-forward-heading-same-level) 
+  (:map org-mode-map
+	("C-c C-n" . org-next-visible-heading)
+	("C-c C-p" . org-previous-visible-heading)
+	("C-c C-f" . org-forward-heading-same-level)
+	("C-c C-b" . org-backward-heading-same-level)
+	("C-c C-u" . outline-up-heading))
+  (:repeat-map my/org-repeat-map
+               ("C-n" . org-next-visible-heading)
+               ("C-p" . org-previous-visible-heading)
+               ("C-f" . org-forward-heading-same-level)
                ("C-b" . org-backward-heading-same-level)
-               ("C-u" . outline-up-heading))           
+               ("C-u" . outline-up-heading))
 :config
 (org-babel-do-load-languages 'org-babel-load-languages
   			     '((C . t)
@@ -1018,7 +1202,6 @@
   			       (python . t)
   			       (shell . t)
   			       (emacs-lisp . t)))
-
 (setq org-confirm-babel-evaluate nil)	; don't ask when evaluating code blocks
 )
 
@@ -1039,7 +1222,7 @@
 (use-package epg
   :defer t
   :custom
-  (auth-sources '("~/etc/gnupg/authinfo.gpg" "~/etc/gnupg/authinfo" "~/etc/gnupg/netrc"))
+  (auth-sources '("~/.gnupg/authinfo.gpg" "~/.gnupg/authinfo" "~/.gnupg/netrc"))
   (epg-pinentry-mode 'loopback)
   )
 
@@ -1093,9 +1276,7 @@
 This is useful if FUNC creates a temp buffer, because that will
 not inherit any buffer-local values of variables `exec-path' and
 `process-environment'.
-
 This function is designed for convenient use as an \"around\" advice.
-
 ARGS is as for ORIG."
     (cl-letf* (((default-value 'process-environment) process-environment)
                ((default-value 'exec-path) exec-path))
@@ -1105,7 +1286,6 @@ ARGS is as for ORIG."
                      ((default-value 'tramp-remote-process-environment) tramp-remote-process-environment))
             (apply func args))
 	(apply func args))))
-
   (advice-add 'eshell :around #'buffer-env-inherit)
   (advice-add 'shell  :around #'buffer-env-inherit)
   )
@@ -1149,43 +1329,49 @@ Prompts the user for the directory path."
       	("s" . gptel-send)
     	("t" . gptel-org-set-topic))
   :config
-  (setq gptel-backend
-        (gptel-make-openai "llamafile"
-          :stream t
-          :protocol "http"
-          :host "localhost:8080"
-	  :models '(Llama-3.2-3B))
-  	)
+  ;; (setq gptel-backend
+  ;;       (gptel-make-openai "llamafile"
+  ;;         :stream t
+  ;;         :protocol "http"
+  ;;         :host "localhost:8080"
+  ;; 	  :models '(Llama-3.2-3B))
+  ;; 	)
   (gptel-make-openai "OpenAI"
     :stream t
     :key 'gptel-api-key-from-auth-source
+    :models '(gpt-5)
     )
   (gptel-make-gemini "Gemini"
     :stream t
     :key 'gptel-api-key-from-auth-source
     )
-  (setq gptel-backend
-	(gptel-make-openai "GitHub"
-	  :stream t
-	  :host "models.inference.ai.azure.com"
-	  :endpoint "/chat/completions?api-version=2024-05-01-preview"
-	  :key 'gptel-api-key-from-auth-source
-	  :models '(gpt-4o))
-	)
-  ;; (setq
-  ;;  gptel-model 'deepseek-r1:7b
-  ;;  gptel-backend (gptel-make-ollama "Ollama"
-  ;;                  :host "localhost:11434"
-  ;;                  :stream t
-  ;;                  :models '(deepseek-r1:7b qwen2.5-coder:3b)))
+
+  (gptel-make-openai "GitHub"
+    :stream t
+    :host "models.inference.ai.azure.com"
+    :endpoint "/chat/completions?api-version=2024-05-01-preview"
+    :key 'gptel-api-key-from-auth-source
+    :models '(gpt-4o)
+    )
+  (setq gptel-backend (gptel-make-ollama "Ollama"
+			:host "localhost:11434"
+			:stream t
+			:models '(llama3.2:latest qwen2.5-coder:3b)))
   )
 
 (use-package minuet
   :ensure t
   :defer t
+  :custom
+  (minuet-provider 'openai)
+  (minuet-n-completions 1)
+  (minuet-context-window 512)
+  (minuet-auto-suggestion-debounce-delay 1) ; when typing stops for these many seconds, send completion request
+  (minuet-auto-suggestion-throttle-dely 1)   ; delay between two completion requests
+  (minuet-request-timeout 10)
   :bind
   (:map my/gpt-prefix-map
-	("c" . #'minuet-show-suggestion)) ; show completion
+	("c" . #'minuet-auto-suggestion-mode)) ; show completion
   (:map minuet-active-mode-map
   	("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
   	("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
@@ -1195,10 +1381,13 @@ Prompts the user for the directory path."
   ;; :init
   ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
   :config
+  (setenv "GEMINI_API_KEY" (auth-source-pick-first-password :host "generativelanguage.googleapis.com"))
   (setenv "OPENAI_API_KEY" (auth-source-pick-first-password :host "api.openai.com"))
-  (setq minuet-provider 'openai)
-  (setq minuet-auto-suggestion-debounce-delay 3)
-  (setq minuet-auto-suggestion-throttle-delay 20)
+  (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
+  (plist-put minuet-openai-fim-compatible-options :name "Ollama")
+  (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
+  (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder:3b")
+  (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 56)
   )
 
 (use-package ediff

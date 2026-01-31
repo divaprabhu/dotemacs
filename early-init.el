@@ -32,15 +32,11 @@
 ;; Always start Emacs and new frames maximized
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
+
 ;; Better Window Management handling
 (setq frame-resize-pixelwise t
       frame-inhibit-implied-resize t
-      frame-title-format
-      '(:eval
-        (let ((project (project-current)))
-          (if project
-              (concat "Emacs - [p] " (project-name project))
-              (concat "Emacs - " (buffer-name))))))
+      )
 
 (when (eq system-type 'darwin)
   (setq ns-use-proxy-icon nil))
