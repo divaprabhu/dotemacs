@@ -4159,6 +4159,7 @@ preceding line.
     (ls-lisp-use-insert-directory-program nil) ; use ls-lisp instead of ls, useful for windows
     (dired-free-space nil)		     ; don't display free space
     ;; (dired-omit-files "\\`[.]\\|\\`[.]?#\\|\\`[.][.]?\\'") ; hide dot files in dired omit mode
+    (dired-omit-verbose nil)		; don't spam echo area
     :hook
     (dired-mode . dired-omit-mode)	; hide . and ..
     )
