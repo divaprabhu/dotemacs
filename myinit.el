@@ -456,7 +456,7 @@
   (outline-blank-line t)
   (outline-minor-mode-use-buttons 'in-margins) ; show button in margin. pressing RET or click toggles fold
   (outline-minor-mode-cycle t)		; tab and s-tab on heading cycles fold
-  (outline-default-state 'outline-show-only-headings)		; don't fold to start with
+  (outline-default-state nil)		; don't fold to start with
   :hook
   (prog-mode . outline-minor-mode)
   :bind (:repeat-map my/outline-prefix-map
@@ -691,7 +691,11 @@
   (gnus-save-newsrc-file nil)		; just use eld, dont' bother with compatibility with other tools
   (gnus-read-newsrc-file nil)
   (gnus-interactive-exit t)		; prompt before exiting, reconnecting nntp and imap is takes time
-  (gnus-select-method '(nntp "news.gmane.io")) ; default nntp server
+  (gnus-select-method '(nnnil nil))
+  ;; (gnus-select-method '(nntp "gmane"
+			     ;; (nntp-address "news.gmane.io"))) ; default nntp server
+  ;; (gnus-newgroup-maximum-articles 50)	       ; max articles to pull for a newsgroup
+  ;; (nntp-maximum-request 10)		       ; dont' send too many head requests
   (nnimap-record-commands t)		       ; log commands to imap log buffer
   (message-confirm-send t)		       ; prompt before sending email
   (message-forward-as-mime t)		       ; forward mail as inline mime section
@@ -699,7 +703,14 @@
   (gnus-always-read-dribble-file t)	       ; silently load dribble file if exists
   (gnus-fetch-old-headers t)		       ; build threads by pulling old headers even if that is expired
   (gnus-large-newsgroup nil)		       ; don't prompt number of articles
-  (gnus-user-date-format-alist		       ; date format in summary buffer
+  (gnus-message-archive-group nil)	       ; dont' store sent mail by default. Customize account wise in gnus-parameters
+  (gnus-gcc-externalize-attachments nil)       ; store attachments as mime parts
+  (gnus-gcc-mark-as-read t)		       ; automatically mark sent mail as read
+  (gnus-asynchronous t)			       ; enable asynchronous article fetching
+  (gnus-use-article-prefetch 5)		       ; prefetch only 5 articles
+  (gnus-use-cache t)			       ; cache articles aggressively
+  (gnus-use-header-prefetch t)		       ; prefetch headers to next group
+  (gnus-user-date-format-alist	       ; date format in summary buffer
    '(((gnus-seconds-today) . "Today at %R")
      ((+ (* 60 60 24) (gnus-seconds-today)) . "Yesterday, %R")
      (t . "%Y-%m-%d %R")))
@@ -712,12 +723,15 @@
   (gnus-sum-thread-tree-single-leaf "╰► ")
   (gnus-sum-thread-tree-vertical "│")
   (gnus-summary-mode-line-format "[%U] %g") ; modeline shows unread and compact group name
-  (gnus-show-threads t)			; display mails as threads
-  (gnus-thread-indent-level 2)		; indent by 2 spaces
+  (gnus-show-threads t)			    ; display mails as threads
+  (gnus-thread-indent-level 2)		    ; indent by 2 spaces
   (gnus-summary-make-false-root 'adopt)	; make one of the children as parent for loose threads
   (gnus-summary-gather-subject-limit 'fuzzy) ; use fuzzy match to group loose threads
   (gnus-summary-thread-gathering-function #'gnus-gather-threads-by-references) ; build loose threads by reference instead of subject
   (gnus-thread-sort-functions '(gnus-thread-sort-by-most-recent-date)) ; sort summary buffer by recent first
+  (gnus-message-replysign t)		; auto sign reply to signed messages
+  (gnus-message-replyencrypt t)		; auto encrypt replies to encrypted messages
+  (gnus-message-replysign-encrypted t)	; auto sign encrypted messages
   :bind
   ("C-c m" . gnus)
   (:map gnus-group-mode-map
