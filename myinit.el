@@ -680,6 +680,7 @@
   )
 
 (use-package gnus
+  :demand t
   :preface
   (defun my/gnus-group-mail ()
     (interactive)
@@ -693,7 +694,7 @@
   (gnus-interactive-exit t)		; prompt before exiting, reconnecting nntp and imap is takes time
   (gnus-select-method '(nnnil nil))
   ;; (gnus-select-method '(nntp "gmane"
-			     ;; (nntp-address "news.gmane.io"))) ; default nntp server
+  ;; (nntp-address "news.gmane.io"))) ; default nntp server
   ;; (gnus-newgroup-maximum-articles 50)	       ; max articles to pull for a newsgroup
   ;; (nntp-maximum-request 10)		       ; dont' send too many head requests
   (nnimap-record-commands t)		       ; log commands to imap log buffer
@@ -728,10 +729,16 @@
   (gnus-summary-make-false-root 'adopt)	; make one of the children as parent for loose threads
   (gnus-summary-gather-subject-limit 'fuzzy) ; use fuzzy match to group loose threads
   (gnus-summary-thread-gathering-function #'gnus-gather-threads-by-references) ; build loose threads by reference instead of subject
+  (gnus-thread-ignore-subject t)	; ignore subject and look at In-Reply-To and References headers
   (gnus-thread-sort-functions '(gnus-thread-sort-by-most-recent-date)) ; sort summary buffer by recent first
   (gnus-message-replysign t)		; auto sign reply to signed messages
   (gnus-message-replyencrypt t)		; auto encrypt replies to encrypted messages
   (gnus-message-replysign-encrypted t)	; auto sign encrypted messages
+  (mm-verify-option 'known)		; verify sign for known protocols
+  (mm-decrypt-option 'known)		; auto decrypt know protocols
+  (mm-sign-option nil)			; use default key to sign
+  (mm-encrypt-option 'guided)		; ask user to select receipient key
+  (gnus-unbuttonized-mime-types nil)	; buttonize all mime types
   :bind
   ("C-c m" . gnus)
   (:map gnus-group-mode-map
@@ -1157,6 +1164,8 @@
 		       (name . "^\\*Group\\*")
 		       (name . "^\\*Summary\\*")
 		       (name . "^\\*Article\\*")
+		       (name . "^\\.newsrc.*")
+		       (name . "\\*imap log\\*")
 		       (name . "^\\*BBDB\\*")))
 	   ("chat"    (or
 		       (mode . rcirc-mode)

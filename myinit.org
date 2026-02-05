@@ -4200,41 +4200,41 @@ preceding line.
   select the article buffer, and execute Gnus commands from it, if
   you wish.
   |---------------------------------+-------------------------------------------------------|
-  | *M-x gnus*                      | start Gnus                                            |
+  | *M-x gnus*                        | start Gnus                                            |
   |                                 | reads .newsrc file in home directory.                 |
   |                                 | this is a common file used by many newsreaders        |
   |                                 | this file lists all the news groups and subscriptions |
   | 'gnus-select-method'            | primary method of selecting newsgroups                |
   | 'gnus-secondary-select-methods' | additional methods for reading news                   |
-  | *q*                             | quit group buffer updating .newsrc and .newsrc.eld    |
+  | *q*                               | quit group buffer updating .newsrc and .newsrc.eld    |
   |---------------------------------+-------------------------------------------------------|
 ** Group buffer
 Buffer where all the mail folders like inbox from all servers will be shown
-|--------------------+-----------------------------------------------------------------------------|
-| *SPC*              | gnus-group-read-group                                                       |
-|                    | switch to summary buffer for group on current line                          |
+|----------------+-----------------------------------------------------------------------------|
+| *SPC*            | gnus-group-read-group                                                       |
+|                | switch to summary buffer for group on current line                          |
 | *A s* or *l (ell)* | gnus-group-list-groups                                                      |
-|                    | show only groups with unread articles                                       |
+|                | show only groups with unread articles                                       |
 | *A u* or *L*       | gnus-group-list-all-groups                                                  |
-|                    | show all subscribed and unsubscribed groups but not killed or zombie groups |
-| *A A*              | gnus-group-list-active                                                      |
-|                    | list all groups available from server including killed and zombie           |
-| *A k*              | gnus-group-list-killed                                                      |
-| *A z*              | gnus-group-list-zombies                                                     |
-| *u*                | gnus-group-unsubscribe-current-group                                        |
-|                    | toggle subscription status of group on current line                         |
-| *C-k*              | gnus-group-kill-group (kill group which won't show in l or L listing)       |
-| *p* or <DEL>       | gnus-group-prev-unread-group                                                |
-| *n*                | gnus-group-next-unread-group                                                |
-| *P*                | gnus-group-prev-group                                                       |
-| *N*                | gnus-group-next-group                                                       |
-| *q*                | gnus-group-exit                                                             |
-| *g*                | refresh to check new news and mail                                          |
-| *c*                | mark all unread article in group as read                                    |
-| *m*                | create new email                                                            |
-| *^*                | enter server buffer (list all configured servers                            |
-| #                  | mark a group                                                                |
-|--------------------+-----------------------------------------------------------------------------|
+|                | show all subscribed and unsubscribed groups but not killed or zombie groups |
+| *A A*            | gnus-group-list-active                                                      |
+|                | list all groups available from server including killed and zombie           |
+| *A k*            | gnus-group-list-killed                                                      |
+| *A z*            | gnus-group-list-zombies                                                     |
+| *u*              | gnus-group-unsubscribe-current-group                                        |
+|                | toggle subscription status of group on current line                         |
+| *C-k*            | gnus-group-kill-group (kill group which won't show in l or L listing)       |
+| *p* or <DEL>     | gnus-group-prev-unread-group                                                |
+| *n*              | gnus-group-next-unread-group                                                |
+| *P*              | gnus-group-prev-group                                                       |
+| *N*              | gnus-group-next-group                                                       |
+| *q*              | gnus-group-exit                                                             |
+| *g*              | refresh to check new news and mail                                          |
+| *c*              | mark all unread article in group as read                                    |
+| *m*              | create new email                                                            |
+| *^*              | enter server buffer (list all configured servers                            |
+| #              | mark a group                                                                |
+|----------------+-----------------------------------------------------------------------------|
 ** Summary and article buffer
 When a group is entered, a summary buffer showing all article is entered
 |--------------------+-------------------------------------------------------------------------------|
@@ -4279,8 +4279,9 @@ When a group is entered, a summary buffer showing all article is entered
     (gnus-save-newsrc-file nil)		; just use eld, dont' bother with compatibility with other tools
     (gnus-read-newsrc-file nil)
     (gnus-interactive-exit t)		; prompt before exiting, reconnecting nntp and imap is takes time
+    (gnus-select-method '(nnnil nil))
     ;; (gnus-select-method '(nntp "gmane"
-  			     ;; (nntp-address "news.gmane.io"))) ; default nntp server
+    ;; (nntp-address "news.gmane.io"))) ; default nntp server
     ;; (gnus-newgroup-maximum-articles 50)	       ; max articles to pull for a newsgroup
     ;; (nntp-maximum-request 10)		       ; dont' send too many head requests
     (nnimap-record-commands t)		       ; log commands to imap log buffer
@@ -4315,10 +4316,16 @@ When a group is entered, a summary buffer showing all article is entered
     (gnus-summary-make-false-root 'adopt)	; make one of the children as parent for loose threads
     (gnus-summary-gather-subject-limit 'fuzzy) ; use fuzzy match to group loose threads
     (gnus-summary-thread-gathering-function #'gnus-gather-threads-by-references) ; build loose threads by reference instead of subject
+    (gnus-thread-ignore-subject t)	; ignore subject and look at In-Reply-To and References headers
     (gnus-thread-sort-functions '(gnus-thread-sort-by-most-recent-date)) ; sort summary buffer by recent first
     (gnus-message-replysign t)		; auto sign reply to signed messages
     (gnus-message-replyencrypt t)		; auto encrypt replies to encrypted messages
     (gnus-message-replysign-encrypted t)	; auto sign encrypted messages
+    (mm-verify-option 'known)		; verify sign for known protocols
+    (mm-decrypt-option 'known)		; auto decrypt know protocols
+    (mm-sign-option nil)			; use default key to sign
+    (mm-encrypt-option 'guided)		; ask user to select receipient key
+    (gnus-unbuttonized-mime-types nil)	; buttonize all mime types
     :bind
     ("C-c m" . gnus)
     (:map gnus-group-mode-map
@@ -6065,6 +6072,8 @@ Create a .dir-locals.el file in root of folder with contents like
   		       (name . "^\\*Group\\*")
   		       (name . "^\\*Summary\\*")
   		       (name . "^\\*Article\\*")
+  		       (name . "^\\.newsrc.*")
+  		       (name . "\\*imap log\\*")
   		       (name . "^\\*BBDB\\*")))
   	   ("chat"    (or
   		       (mode . rcirc-mode)
