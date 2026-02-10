@@ -680,7 +680,6 @@
   )
 
 (use-package gnus
-  :demand t
   :preface
   (defun my/gnus-group-mail ()
     (interactive)
@@ -1248,6 +1247,12 @@
   :custom
   (auth-sources '("~/.gnupg/authinfo.gpg" "~/.gnupg/authinfo" "~/.gnupg/netrc"))
   (epg-pinentry-mode 'loopback)
+  :config
+  ;; Unset SSH_AGENT_PID by setting it to an empty string
+  (setenv "SSH_AGENT_PID" "")
+  ;; Set SSH_AUTH_SOCK to the output of the gpgconf command
+  (setenv "SSH_AUTH_SOCK" 
+	  (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket"))) 
   )
 
 (use-package popper

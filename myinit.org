@@ -6197,9 +6197,6 @@ Create a .dir-locals.el file in root of folder with contents like
   )
 #+end_src
 
-#+RESULTS:
-: outline-up-heading
-
 * Proced
 ** Configuration
 #+begin_src emacs-lisp
@@ -6220,12 +6217,19 @@ Create a .dir-locals.el file in root of folder with contents like
 * EPG
 ** Configuration
 #+begin_src emacs-lisp
-  (use-package epg
-    :defer t
-    :custom
-    (auth-sources '("~/.gnupg/authinfo.gpg" "~/.gnupg/authinfo" "~/.gnupg/netrc"))
-    (epg-pinentry-mode 'loopback)
-    )
+      (use-package epg
+        :defer t
+        :custom
+        (auth-sources '("~/.gnupg/authinfo.gpg" "~/.gnupg/authinfo" "~/.gnupg/netrc"))
+        (epg-pinentry-mode 'loopback)
+        :config
+        ;; Unset SSH_AGENT_PID by setting it to an empty string
+        (setenv "SSH_AGENT_PID" "")
+        ;; Set SSH_AUTH_SOCK to the output of the gpgconf command
+        (setenv "SSH_AUTH_SOCK" 
+      	  (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket"))) 
+        )
+
 #+end_src
 * Popper
 #+begin_src emacs-lisp
