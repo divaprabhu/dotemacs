@@ -680,6 +680,7 @@
   )
 
 (use-package gnus
+  :demand t
   :preface
   (defun my/gnus-group-mail ()
     (interactive)
@@ -1216,6 +1217,8 @@
                ("C-f" . org-forward-heading-same-level)
                ("C-b" . org-backward-heading-same-level)
                ("C-u" . outline-up-heading))
+  :hook
+  (org-mode . org-indent-mode)
 :config
 (org-babel-do-load-languages 'org-babel-load-languages
   			     '((C . t)
