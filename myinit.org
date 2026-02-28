@@ -6169,9 +6169,11 @@ Create a .dir-locals.el file in root of folder with contents like
   (use-package org
     :defer t
     :custom
-    (org-hide-emphasis-markers t)
-    (org-goto-interface 'outline-path-completion)
-    (org-outline-path-complete-in-steps nil)
+    (org-hide-emphasis-markers t)			; hide bold, italic etc markers
+    (org-goto-interface 'outline-path-completion) ; use completion
+    (org-outline-path-complete-in-steps nil) ; flat navigation for org-goto
+    (org-insert-heading-respect-content t) ; respect subtree when inserting next heading
+    (org-export-use-babel nil)		; don't evaluate code during export
     :bind
     (:map org-mode-map
   	("C-c C-n" . org-next-visible-heading)
@@ -6186,7 +6188,7 @@ Create a .dir-locals.el file in root of folder with contents like
                  ("C-b" . org-backward-heading-same-level)
                  ("C-u" . outline-up-heading))
     :hook
-    (org-mode . org-indent-mode)
+    (org-mode . org-indent-mode)		; visually indent by outline structure
   :config
   (org-babel-do-load-languages 'org-babel-load-languages
     			     '((C . t)
