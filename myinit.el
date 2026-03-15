@@ -1333,7 +1333,7 @@ ARGS is as for ORIG."
   :preface
   (defun my/run-llamafile ()
     "Finds a .llamafile in a user-specified directory and runs it asynchronously.
-Prompts the user for the directory path."
+  Prompts the user for the directory path."
     (interactive)
     (let* ((llamafile-extension "llamafile")
            (regex (concat "\\." llamafile-extension "$"))
@@ -1349,19 +1349,19 @@ Prompts the user for the directory path."
              (concat file-to-run " " flags)
              (concat "*Async Shell " (file-name-base file-to-run) ".out*")
              (concat "*Async Shell " (file-name-base file-to-run) ".err*")))
-	;; Use the defined 'llamafile-extension' for the error message
-	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
+  	;; Use the defined 'llamafile-extension' for the error message
+  	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
   :bind
   (:map my/gpt-prefix-map
-      	("a" . gptel-add)
-      	("f" . gptel-add-file)
-      	("g" . gptel)
-      	("l" . my/run-llamafile)
-      	("m" . gptel-menu)
-      	("p" . gptel-org-set-properties)
-      	("r" . gptel-rewrite)
-      	("s" . gptel-send)
-    	("t" . gptel-org-set-topic))
+        ("a" . gptel-add)
+        ("f" . gptel-add-file)
+        ("g" . gptel)
+        ("l" . my/run-llamafile)
+        ("m" . gptel-menu)
+        ("p" . gptel-org-set-properties)
+        ("r" . gptel-rewrite)
+        ("s" . gptel-send)
+	("t" . gptel-org-set-topic))
   :config
   ;; (setq gptel-backend
   ;;       (gptel-make-openai "llamafile"
@@ -1370,58 +1370,11 @@ Prompts the user for the directory path."
   ;;         :host "localhost:8080"
   ;; 	  :models '(Llama-3.2-3B))
   ;; 	)
-  (gptel-make-openai "OpenAI"
-    :stream t
-    :key 'gptel-api-key-from-auth-source
-    :models '(gpt-5)
-    )
-  (gptel-make-gemini "Gemini"
-    :stream t
-    :key 'gptel-api-key-from-auth-source
-    )
 
-  (gptel-make-openai "GitHub"
-    :stream t
-    :host "models.inference.ai.azure.com"
-    :endpoint "/chat/completions?api-version=2024-05-01-preview"
-    :key 'gptel-api-key-from-auth-source
-    :models '(gpt-4o)
-    )
   (setq gptel-backend (gptel-make-ollama "Ollama"
-			:host "localhost:11434"
-			:stream t
-			:models '(llama3.2:latest qwen2.5-coder:3b)))
-  )
-
-(use-package minuet
-  :ensure t
-  :defer t
-  :custom
-  (minuet-provider 'openai)
-  (minuet-n-completions 1)
-  (minuet-context-window 512)
-  (minuet-auto-suggestion-debounce-delay 1) ; when typing stops for these many seconds, send completion request
-  (minuet-auto-suggestion-throttle-dely 1)   ; delay between two completion requests
-  (minuet-request-timeout 10)
-  :bind
-  (:map my/gpt-prefix-map
-	("c" . #'minuet-auto-suggestion-mode)) ; show completion
-  (:map minuet-active-mode-map
-  	("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
-  	("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
-  	("C-u <tab>" . #'minuet-accept-suggestion) ;; accept whole completion
-  	("<tab>" . #'minuet-accept-suggestion-line)
-  	("C-g" . #'minuet-dismiss-suggestion))
-  ;; :init
-  ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
-  :config
-  (setenv "GEMINI_API_KEY" (auth-source-pick-first-password :host "generativelanguage.googleapis.com"))
-  (setenv "OPENAI_API_KEY" (auth-source-pick-first-password :host "api.openai.com"))
-  (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
-  (plist-put minuet-openai-fim-compatible-options :name "Ollama")
-  (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
-  (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder:3b")
-  (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 56)
+  			:host "localhost:11434"
+  			:stream t
+  			:models '(gemma3:4b)))
   )
 
 (use-package ediff

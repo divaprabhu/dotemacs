@@ -6317,7 +6317,7 @@ Create a .dir-locals.el file in root of folder with contents like
     :preface
     (defun my/run-llamafile ()
       "Finds a .llamafile in a user-specified directory and runs it asynchronously.
-  Prompts the user for the directory path."
+    Prompts the user for the directory path."
       (interactive)
       (let* ((llamafile-extension "llamafile")
              (regex (concat "\\." llamafile-extension "$"))
@@ -6333,19 +6333,19 @@ Create a .dir-locals.el file in root of folder with contents like
                (concat file-to-run " " flags)
                (concat "*Async Shell " (file-name-base file-to-run) ".out*")
                (concat "*Async Shell " (file-name-base file-to-run) ".err*")))
-  	;; Use the defined 'llamafile-extension' for the error message
-  	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
+    	;; Use the defined 'llamafile-extension' for the error message
+    	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
     :bind
     (:map my/gpt-prefix-map
-        	("a" . gptel-add)
-        	("f" . gptel-add-file)
-        	("g" . gptel)
-        	("l" . my/run-llamafile)
-        	("m" . gptel-menu)
-        	("p" . gptel-org-set-properties)
-        	("r" . gptel-rewrite)
-        	("s" . gptel-send)
-      	("t" . gptel-org-set-topic))
+          ("a" . gptel-add)
+          ("f" . gptel-add-file)
+          ("g" . gptel)
+          ("l" . my/run-llamafile)
+          ("m" . gptel-menu)
+          ("p" . gptel-org-set-properties)
+          ("r" . gptel-rewrite)
+          ("s" . gptel-send)
+  	("t" . gptel-org-set-topic))
     :config
     ;; (setq gptel-backend
     ;;       (gptel-make-openai "llamafile"
@@ -6354,31 +6354,15 @@ Create a .dir-locals.el file in root of folder with contents like
     ;;         :host "localhost:8080"
     ;; 	  :models '(Llama-3.2-3B))
     ;; 	)
-    (gptel-make-openai "OpenAI"
-      :stream t
-      :key 'gptel-api-key-from-auth-source
-      :models '(gpt-5)
-      )
-    (gptel-make-gemini "Gemini"
-      :stream t
-      :key 'gptel-api-key-from-auth-source
-      )
 
-    (gptel-make-openai "GitHub"
-      :stream t
-      :host "models.inference.ai.azure.com"
-      :endpoint "/chat/completions?api-version=2024-05-01-preview"
-      :key 'gptel-api-key-from-auth-source
-      :models '(gpt-4o)
-      )
     (setq gptel-backend (gptel-make-ollama "Ollama"
-  			:host "localhost:11434"
-  			:stream t
-  			:models '(llama3.2:latest qwen2.5-coder:3b)))
+    			:host "localhost:11434"
+    			:stream t
+    			:models '(gemma3:4b)))
     )
 #+end_src
 ** Minuet
-#+begin_src emacs-lisp
+#+begin_src
   (use-package minuet
     :ensure t
     :defer t
@@ -6402,7 +6386,6 @@ Create a .dir-locals.el file in root of folder with contents like
     ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
     :config
     (setenv "GEMINI_API_KEY" (auth-source-pick-first-password :host "generativelanguage.googleapis.com"))
-    (setenv "OPENAI_API_KEY" (auth-source-pick-first-password :host "api.openai.com"))
     (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
     (plist-put minuet-openai-fim-compatible-options :name "Ollama")
     (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
