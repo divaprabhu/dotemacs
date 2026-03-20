@@ -1333,7 +1333,7 @@ ARGS is as for ORIG."
   :preface
   (defun my/run-llamafile ()
     "Finds a .llamafile in a user-specified directory and runs it asynchronously.
-  Prompts the user for the directory path."
+    Prompts the user for the directory path."
     (interactive)
     (let* ((llamafile-extension "llamafile")
            (regex (concat "\\." llamafile-extension "$"))
@@ -1349,8 +1349,8 @@ ARGS is as for ORIG."
              (concat file-to-run " " flags)
              (concat "*Async Shell " (file-name-base file-to-run) ".out*")
              (concat "*Async Shell " (file-name-base file-to-run) ".err*")))
-  	;; Use the defined 'llamafile-extension' for the error message
-  	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
+    	;; Use the defined 'llamafile-extension' for the error message
+    	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
   :bind
   (:map my/gpt-prefix-map
         ("a" . gptel-add)
@@ -1361,7 +1361,7 @@ ARGS is as for ORIG."
         ("p" . gptel-org-set-properties)
         ("r" . gptel-rewrite)
         ("s" . gptel-send)
-	("t" . gptel-org-set-topic))
+        ("t" . gptel-org-set-topic))
   :config
   ;; (setq gptel-backend
   ;;       (gptel-make-openai "llamafile"
@@ -1371,10 +1371,18 @@ ARGS is as for ORIG."
   ;; 	  :models '(Llama-3.2-3B))
   ;; 	)
 
+  ;; OpenRouter offers an OpenAI compatible API
+  (gptel-make-openai "OpenRouter"               ;Any name you want
+    :host "openrouter.ai"
+    :endpoint "/api/v1/chat/completions"
+    :stream t
+    :key #'gptel-api-key-from-auth-source
+    :models '(openrouter/free))
+
   (setq gptel-backend (gptel-make-ollama "Ollama"
-  			:host "localhost:11434"
-  			:stream t
-  			:models '(gemma3:4b)))
+    			:host "localhost:11434"
+    			:stream t
+    			:models '(gemma3:4b)))
   )
 
 (use-package ediff
