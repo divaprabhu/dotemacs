@@ -1227,7 +1227,8 @@
   			       (java . t)
   			       (latex . t)
   			       (lua . t)
-  			       (python . t)
+  			       (js . t)
+             		       (python . t)
   			       (shell . t)
   			       (emacs-lisp . t)))
 (setq org-confirm-babel-evaluate nil)	; don't ask when evaluating code blocks
@@ -1391,3 +1392,6 @@ ARGS is as for ORIG."
   (ediff-window-setup-function 'ediff-setup-windows-plain)
   (ediff-split-window-function 'split-window-horizontally)
   (ediff-keep-variants t))
+
+(use-package markdown-mode
+:ensure t)

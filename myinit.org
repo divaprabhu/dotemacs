@@ -358,24 +358,24 @@
 - DEL commands delete a single char or whitespace
 - Killed text can be reinserted(YANKed) whereas deleted text can't
 - In emacs backspace is indicated with DEL
-  |------------------+------------+----------------------------------------------------|
-  | *C-SPC* OR C-@     | *mm*         | set-mark-command                                   |
-  | *C-x C-x*          | *o* (visual) | exchange-point-and-mark (use twince to find mark)  |
-  | *M-@ [M-@ M-@...]* | *vw*         | mark-word                                          |
-  |                  |            | (set mark after next word, don't move point)       |
-  | *C-M-SPC*          |            | mark-sexp (most cases marks word)                  |
-  | *M-h [M-h M-h...]* | *v]]*        | mark-paragraph                                     |
-  |                  |            | (set point to beginning of para and mark to end)   |
-  | *C-M-h*            |            | mark-defun                                         |
-  |                  |            | (set point to beginning of defun and mark to end)  |
-  | *C-x h*            | *ggVG*       | mark-whole-buffer                                  |
-  |                  |            | (set point to beginning of buffer and mark to end) |
-  |------------------+------------+----------------------------------------------------|
-  |----------------------------+-----+----------------------------------------|
-  | *C-u C-SPC [C-SPC C-SPC...]* | *`m*  | jump to last local mark                |
-  | *C-x C-SPC*                  | *C-o* | pop-global-mark (works across buffers) |
-  | C-SPC C-SPC                |     | set and unset mark (good for jumping)  |
-  |----------------------------+-----+----------------------------------------|
+  |----------------------------+------------+----------------------------------------------------|
+  | *C-SPC* OR C-@               | *mm*         | set-mark-command                                   |
+  | *C-x C-x*                    | *o* (visual) | exchange-point-and-mark (use twince to find mark)  |
+  | *M-@ [M-@ M-@...]*           | *vw*         | mark-word                                          |
+  |                            |            | (set mark after next word, don't move point)       |
+  | *C-M-SPC*                    |            | mark-sexp (most cases marks word)                  |
+  | *M-h [M-h M-h...]*           | *v]]*        | mark-paragraph                                     |
+  |                            |            | (set point to beginning of para and mark to end)   |
+  | *C-M-h*                      |            | mark-defun                                         |
+  |                            |            | (set point to beginning of defun and mark to end)  |
+  | *C-x h*                      | *ggVG*       | mark-whole-buffer                                  |
+  |                            |            | (set point to beginning of buffer and mark to end) |
+  |----------------------------+------------+----------------------------------------------------|
+  |----------------------------+------------+----------------------------------------------------|
+  | *C-u C-SPC [C-SPC C-SPC...]* | *`m*         | jump to last local mark                            |
+  | *C-x C-SPC*                  | *C-o*        | pop-global-mark (works across buffers)             |
+  | C-SPC C-SPC                |            | set and unset mark (good for jumping)              |
+  |----------------------------+------------+----------------------------------------------------|
 - Setting C-<SPC> to activate and highlight region is called transient mode
 - Toggle transient mark mode                          M-x transient-mark-mode
 - When transient mode is off
@@ -6195,7 +6195,8 @@ Create a .dir-locals.el file in root of folder with contents like
     			       (java . t)
     			       (latex . t)
     			       (lua . t)
-    			       (python . t)
+    			       (js . t)
+               		       (python . t)
     			       (shell . t)
     			       (emacs-lisp . t)))
   (setq org-confirm-babel-evaluate nil)	; don't ask when evaluating code blocks
@@ -6519,6 +6520,95 @@ Create a .dir-locals.el file in root of folder with contents like
     (ediff-window-setup-function 'ediff-setup-windows-plain)
     (ediff-split-window-function 'split-window-horizontally)
     (ediff-keep-variants t))
+#+end_src
+* Markdown Mode
+** Insertion Commands (C-c C-s prefix)
+| Key       | Command                             | Description                     |
+|-----------+-------------------------------------+---------------------------------|
+| C-c C-s b | markdown-insert-bold                | Insert bold text or bold region |
+| C-c C-s i | markdown-insert-italic              | Insert italic text              |
+| C-c C-s c | markdown-insert-code                | Insert inline code              |
+| C-c C-s C | markdown-insert-gfm-code-block      | Insert fenced code block        |
+| C-c C-s l | markdown-insert-link                | Insert inline link              |
+| C-c C-s L | markdown-insert-reference-link-dwim | Insert reference-style link     |
+| C-c C-s u | markdown-insert-uri                 | Insert URL                      |
+| C-c C-s f | markdown-insert-footnote            | Insert footnote                 |
+| C-c C-s w | markdown-insert-wiki-link           | Insert wiki link                |
+| C-c C-s i | markdown-insert-image               | Insert image                    |
+| C-c C-s h | markdown-insert-header-dwim         | Insert/update ATX header        |
+| C-c C-s H | markdown-insert-header-setext-dwim  | Insert Setext header            |
+| C-c C-s - | markdown-insert-hr                  | Insert horizontal rule          |
+| C-c C-s q | markdown-insert-blockquote          | Insert blockquote               |
+| C-c C-s Q | markdown-blockquote-region          | Convert region to blockquote    |
+| C-c C-s p | markdown-insert-pre                 | Insert preformatted block       |
+| C-c C-s t | markdown-insert-table               | Insert table                    |
+| C-c C-s T | markdown-table-convert-region       | Convert region to table         |
+| C-c C-s n | markdown-cleanup-list-numbers       | Fix ordered list numbering      |
+** Toggle Commands (C-c C-x prefix)
+| Key         | Command                                      | Description                                |
+|-------------+----------------------------------------------+--------------------------------------------|
+| C-c C-x C-l | markdown-toggle-url-hiding                   | Toggle visibility of URLs                  |
+| C-c C-x C-i | markdown-toggle-inline-images                | Toggle display of inline images            |
+| C-c C-x C-e | markdown-toggle-math                         | Toggle math support                        |
+| C-c C-x C-m | markdown-toggle-markup-hiding                | Toggle hiding of markup syntax             |
+| C-c C-x C-f | markdown-toggle-fontify-code-blocks-natively | Toggle native fontification of code blocks |
+|             |                                              | inside code blocks                         |
+** Navigation Commands
+| Key     | Command                           | Description               |
+|---------+-----------------------------------+---------------------------|
+| C-c C-n | markdown-next-visible-heading     | Jump to next heading      |
+| C-c C-p | markdown-previous-visible-heading | Jump to previous heading  |
+| C-c C-f | markdown-forward-paragraph        | Move forward paragraph    |
+| C-c C-b | markdown-backward-paragraph       | Move backward paragraph   |
+| C-c C-u | markdown-backward-up-heading      | Move up heading hierarchy |
+** Editing / Structure Commands
+| Key         | Command                      | Description                      |
+|-------------+------------------------------+----------------------------------|
+| C-c C--     | markdown-promote             | Promote heading or list          |
+| C-c C-=     | markdown-demote              | Demote heading or list           |
+| C-c <left>  | markdown-promote             | Promote element                  |
+| C-c <right> | markdown-demote              | Demote element                   |
+| M-<left>    | markdown-promote-subtree     | Promote subtree                  |
+| M-<right>   | markdown-demote-subtree      | Demote subtree                   |
+| M-<up>      | markdown-move-subtree-up     | Move subtree up                  |
+| M-<down>    | markdown-move-subtree-down   | Move subtree down                |
+| C-c C-k     | markdown-kill-thing-at-point | Remove markup but keep text      |
+| C-c C-w     | markdown-kill-ring-save      | Copy Markdown element            |
+| C-c C-d     | markdown-do                  | Perform action on thing at point |
+** Completion & Cycling
+| Key     | Command           | Description             |
+|---------+-------------------+-------------------------|
+| TAB     | markdown-cycle    | Cycle visibility / fold |
+| S-TAB   | markdown-shifttab | Cycle global visibility |
+| C-c C-] | markdown-complete | Complete markup         |
+** Export / Preview Commands
+| Key       | Command                     | Description                 |
+|-----------+-----------------------------+-----------------------------|
+| C-c C-c m | markdown-command            | Run Markdown processor      |
+| C-c C-c p | markdown-preview            | Preview Markdown in browser |
+| C-c C-c e | markdown-export             | Export to file              |
+| C-c C-c v | markdown-export-and-preview | View exported output        |
+** Following Links
+| Key     | Command                        | Description            |
+|---------+--------------------------------+------------------------|
+| C-c C-o | markdown-follow-thing-at-point | Open link or reference |
+| RET     | markdown-follow-thing-at-point | Follow link at point   |
+| mouse-1 | markdown-follow-thing-at-point | Click to follow link   |
+** Miscellaneous
+| Key       | Command                  | Description                |
+|-----------+--------------------------+----------------------------|
+| C-c C-a l | markdown-insert-link     | Alternative link insertion |
+| C-c C-a u | markdown-insert-uri      | Insert URL                 |
+| C-c C-a f | markdown-insert-footnote | Insert footnote            |
+** Notes
+- Many commands operate on the *active region* if selected.
+- Otherwise, they act on the *element at point*.
+- Uppercase variants often force operation on region.
+- Some bindings may vary depending on configuration or extensions.
+** Configuration
+#+begin_src emacs-lisp
+  (use-package markdown-mode
+  :ensure t)
 #+end_src
 * Unused
 ** LSP Mode
