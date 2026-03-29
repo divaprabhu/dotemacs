@@ -1051,24 +1051,26 @@
   :defer t
   :custom
   (python-indent-guess-indent-offset-verbose nil)
-  :init
-  (let ((pylspdir (expand-file-name "lsp/pylsp" "~/.cache")))
-    (unless (file-directory-p pylspdir)
-      (make-directory pylspdir t)
-      (cond
-       ((eq system-type 'windows-nt)
-  	(shell-command (concat "python -m venv " pylspdir))
-  	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] debugpy && deactivate")))
-       (t
-  	(shell-command (concat "python3 -m venv " pylspdir))
-  	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] debugpy && deactivate"))))))
+  ;; :init
+  ;; (let ((pylspdir (expand-file-name "lsp/pylsp" "~/.cache")))
+  ;;   (unless (file-directory-p pylspdir)
+  ;;     (make-directory pylspdir t)
+  ;;     (cond
+  ;;      ((eq system-type 'windows-nt)
+  ;; 	(shell-command (concat "python -m venv " pylspdir))
+  ;; 	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] debugpy && deactivate")))
+  ;;      (t
+  ;; 	(shell-command (concat "python3 -m venv " pylspdir))
+  ;; 	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] debugpy && deactivate"))))))
   :config
-  (add-hook 'python-base-mode-hook
-  	    (progn
-  	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
-  	      (setq exec-path (split-string (getenv "PATH") path-separator))
-  	      'eglot-ensure))
-  (add-hook 'python-base-mode-hook
+  ;; (add-hook
+  ;;  'python-base-mode-hook
+  ;; 	    (progn
+  ;; 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
+  ;; 	      (setq exec-path (split-string (getenv "PATH") path-separator))
+  ;; 	      'eglot-ensure))
+  (add-hook
+   'python-base-mode-hook
   	    (lambda ()
   	      (setq-local outline-regexp
 			  (rx (or
@@ -1291,39 +1293,6 @@
           compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1))                ; For echo area hints
-
-(use-package buffer-env
-  :defer t
-  :ensure t
-  :hook
-  (hack-local-variables .  buffer-env-update)
-  (comint-mode .  buffer-env-update)
-  (eshell-mode . buffer-env-update)
-  (org-mode . buffer-env-update)
-  (org-src-mode . buffer-env-update)
-  :custom
-  (buffer-env-script-name '(".envrc" ".venv/bin/activate" ".venv/Scripts/activate.bat" ".env"))
-  :config
-  ;; https://github.com/purcell/inheritenv/blob/main/inheritenv.el
-  (eval-when-compile (require 'cl-lib))
-  (defun buffer-env-inherit (func &rest args)
-    "Apply FUNC such that the environment it sees will match the current value.
-This is useful if FUNC creates a temp buffer, because that will
-not inherit any buffer-local values of variables `exec-path' and
-`process-environment'.
-This function is designed for convenient use as an \"around\" advice.
-ARGS is as for ORIG."
-    (cl-letf* (((default-value 'process-environment) process-environment)
-               ((default-value 'exec-path) exec-path))
-      ;; Don't force tramp to be loaded, but propagate its env/path vars if it is
-      (if (and (boundp 'tramp-remote-path) (boundp 'tramp-remote-process-environment))
-          (cl-letf* (((default-value 'tramp-remote-path) tramp-remote-path)
-                     ((default-value 'tramp-remote-process-environment) tramp-remote-process-environment))
-            (apply func args))
-	(apply func args))))
-  (advice-add 'eshell :around #'buffer-env-inherit)
-  (advice-add 'shell  :around #'buffer-env-inherit)
-  )
 
 (use-package gptel
   :ensure t
