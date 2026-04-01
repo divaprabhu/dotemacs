@@ -5660,63 +5660,6 @@ Create a .dir-locals.el file in root of folder with contents like
     :config
     (add-hook 'python-base-mode-hook 'pet-mode -10))
 #+end_src
-** Configuration
-#+begin_src emacs-lisp
-  (use-package python
-    :defer t
-    :custom
-    (python-indent-guess-indent-offset-verbose nil)
-    ;; :init
-    ;; (let ((pylspdir (expand-file-name "lsp/pylsp" "~/.cache")))
-    ;;   (unless (file-directory-p pylspdir)
-    ;;     (make-directory pylspdir t)
-    ;;     (cond
-    ;;      ((eq system-type 'windows-nt)
-    ;; 	(shell-command (concat "python -m venv " pylspdir))
-    ;; 	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] debugpy && deactivate")))
-    ;;      (t
-    ;; 	(shell-command (concat "python3 -m venv " pylspdir))
-    ;; 	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] debugpy && deactivate"))))))
-    :config
-    ;; (add-hook
-    ;;  'python-base-mode-hook
-    ;; 	    (progn
-    ;; 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
-    ;; 	      (setq exec-path (split-string (getenv "PATH") path-separator))
-    ;; 	      'eglot-ensure))
-    (add-hook
-     'python-base-mode-hook
-    	    (lambda ()
-    	      (setq-local outline-regexp
-  			  (rx (or
-  			       ;; Branch 1: class (no async)
-  			       (group (group (* space)) bow "class" eow)
-  			       ;; Branch 2: def or async def
-  			       (group (group (* space)) bow (optional "async" (+ space)) "def" eow)
-  			       ;; Branch 3: decorators
-  			       (group (group (* space)) "@"))))))
-    ;; (add-hook 'python-mode-hook
-    ;; 	    (progn
-    ;; 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
-
-    ;; 	      (setq exec-path (split-string (getenv "PATH") path-separator))
-    ;; 	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))
-    ;; 	      'eglot-ensure))
-    ;; :bind
-    ;; (:map my/python-prefix-map
-    ;; 	("c"	. python-shell-send-buffer)
-    ;; 	("e"	. python-shell-send-statement)
-    ;; 	("r"	. python-shell-send-region)
-    ;; 	("p"	. run-python)
-    ;; 	("z"	. python-shell-switch-to-shell)
-    ;; 	("t c"	. python-skeleton-class)
-    ;; 	("t d"	. python-skeleton-def)
-    ;; 	("t f"	. python-skeleton-for)
-    ;; 	("t i"	. python-skeleton-if)
-    ;; 	("t t"	. python-skeleton-import)
-    ;; 	("t w"	. python-skeleton-while))
-    )
-#+end_src
 ** Custom Venv Handling
 #+begin_src
   (defvar-local my/env-script ".venv"
@@ -5800,6 +5743,63 @@ Create a .dir-locals.el file in root of folder with contents like
   (add-hook 'org-src-mode-hook #'my/env-script-activate)
   (advice-add 'eshell :around #'my/env-script-activate-inherit)
   (advice-add 'shell :around #'my/env-script-activate-inherit)
+#+end_src
+** Configuration
+#+begin_src emacs-lisp
+  (use-package python
+    :defer t
+    :custom
+    (python-indent-guess-indent-offset-verbose nil)
+    ;; :init
+    ;; (let ((pylspdir (expand-file-name "lsp/pylsp" "~/.cache")))
+    ;;   (unless (file-directory-p pylspdir)
+    ;;     (make-directory pylspdir t)
+    ;;     (cond
+    ;;      ((eq system-type 'windows-nt)
+    ;; 	(shell-command (concat "python -m venv " pylspdir))
+    ;; 	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] debugpy && deactivate")))
+    ;;      (t
+    ;; 	(shell-command (concat "python3 -m venv " pylspdir))
+    ;; 	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] debugpy && deactivate"))))))
+    :config
+    (add-hook
+     'python-base-mode-hook
+     (progn
+       (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "bin" "~/.local")))
+       (setq exec-path (split-string (getenv "PATH") path-separator))
+       'eglot-ensure))
+    (add-hook
+     'python-base-mode-hook
+     (lambda ()
+       (setq-local outline-regexp
+  		 (rx (or
+  		      ;; Branch 1: class (no async)
+  		      (group (group (* space)) bow "class" eow)
+  		      ;; Branch 2: def or async def
+  		      (group (group (* space)) bow (optional "async" (+ space)) "def" eow)
+  		      ;; Branch 3: decorators
+  		      (group (group (* space)) "@"))))))
+    ;; (add-hook 'python-mode-hook
+    ;; 	    (progn
+    ;; 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
+
+    ;; 	      (setq exec-path (split-string (getenv "PATH") path-separator))
+    ;; 	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))
+    ;; 	      'eglot-ensure))
+    ;; :bind
+    ;; (:map my/python-prefix-map
+    ;; 	("c"	. python-shell-send-buffer)
+    ;; 	("e"	. python-shell-send-statement)
+    ;; 	("r"	. python-shell-send-region)
+    ;; 	("p"	. run-python)
+    ;; 	("z"	. python-shell-switch-to-shell)
+    ;; 	("t c"	. python-skeleton-class)
+    ;; 	("t d"	. python-skeleton-def)
+    ;; 	("t f"	. python-skeleton-for)
+    ;; 	("t i"	. python-skeleton-if)
+    ;; 	("t t"	. python-skeleton-import)
+    ;; 	("t w"	. python-skeleton-while))
+    )
 #+end_src
 * Common Lisp
 #+begin_src
@@ -6225,18 +6225,19 @@ Create a .dir-locals.el file in root of folder with contents like
 * EPG
 ** Configuration
 #+begin_src emacs-lisp
-      (use-package epg
-        :defer t
-        :custom
-        (auth-sources '("~/.gnupg/authinfo.gpg" "~/.gnupg/authinfo" "~/.gnupg/netrc"))
-        (epg-pinentry-mode 'loopback)
-        :config
-        ;; Unset SSH_AGENT_PID by setting it to an empty string
-        (setenv "SSH_AGENT_PID" "")
-        ;; Set SSH_AUTH_SOCK to the output of the gpgconf command
-        (setenv "SSH_AUTH_SOCK" 
-      	  (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket"))) 
-        )
+  (use-package epg
+    :defer t
+    :custom
+    (auth-sources '("~/.gnupg/authinfo.gpg" "~/.gnupg/authinfo" "~/.gnupg/netrc"))
+    (epg-pinentry-mode 'loopback)
+    :config
+    ;; Unset SSH_AGENT_PID by setting it to an empty string
+    (setenv "SSH_AGENT_PID" "")
+    ;; Set SSH_AUTH_SOCK to the output of the gpgconf command
+    (setenv "SSH_AUTH_SOCK" 
+  	  (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket")))
+    (async-shell-command "gpg-connect-agent /bye >/dev/null 2>&1")
+    )
 
 #+end_src
 * Popper
@@ -6338,12 +6339,15 @@ Create a .dir-locals.el file in root of folder with contents like
                (concat "*Async Shell " (file-name-base file-to-run) ".err*")))
       	;; Use the defined 'llamafile-extension' for the error message
       	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
+    (defun my/llama-cpp ()
+      (interactive)
+      (async-shell-command "llama-server -hf ggml-org/Qwen3-1.7B-GGUF -ngl 0 -t 6 -b 128"))
     :bind
     (:map my/gpt-prefix-map
           ("a" . gptel-add)
           ("f" . gptel-add-file)
           ("g" . gptel)
-          ("l" . my/run-llamafile)
+          ("l" . my/llama-cpp)
           ("m" . gptel-menu)
           ("p" . gptel-org-set-properties)
           ("r" . gptel-rewrite)
@@ -6366,10 +6370,15 @@ Create a .dir-locals.el file in root of folder with contents like
       :key #'gptel-api-key-from-auth-source
       :models '(openrouter/free))
 
-    (setq gptel-backend (gptel-make-ollama "Ollama"
+    (gptel-make-ollama "Ollama"
       			:host "localhost:11434"
       			:stream t
-      			:models '(gemma3:4b)))
+      			:models '(gemma3:4b))
+    (setq gptel-backend (gptel-make-openai "llama-cpp"
+  			:stream t
+  			:protocol "http"
+  			:host "localhost:8080"
+  			:models '(Qwen3)))
     )
 #+end_src
 ** Minuet
@@ -6611,6 +6620,12 @@ Create a .dir-locals.el file in root of folder with contents like
 #+begin_src emacs-lisp
   (use-package markdown-mode
   :ensure t)
+#+end_src
+* UV Mode
+#+begin_src emacs-lisp
+  (use-package uv-mode
+      :ensure t
+      :hook (python-mode . uv-mode-auto-activate-hook))
 #+end_src
 * Unused
 ** LSP Mode

@@ -1063,23 +1063,23 @@
   ;; 	(shell-command (concat "python3 -m venv " pylspdir))
   ;; 	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] debugpy && deactivate"))))))
   :config
-  ;; (add-hook
-  ;;  'python-base-mode-hook
-  ;; 	    (progn
-  ;; 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
-  ;; 	      (setq exec-path (split-string (getenv "PATH") path-separator))
-  ;; 	      'eglot-ensure))
   (add-hook
    'python-base-mode-hook
-  	    (lambda ()
-  	      (setq-local outline-regexp
-			  (rx (or
-			       ;; Branch 1: class (no async)
-			       (group (group (* space)) bow "class" eow)
-			       ;; Branch 2: def or async def
-			       (group (group (* space)) bow (optional "async" (+ space)) "def" eow)
-			       ;; Branch 3: decorators
-			       (group (group (* space)) "@"))))))
+   (progn
+     (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "bin" "~/.local")))
+     (setq exec-path (split-string (getenv "PATH") path-separator))
+     'eglot-ensure))
+  (add-hook
+   'python-base-mode-hook
+   (lambda ()
+     (setq-local outline-regexp
+		 (rx (or
+		      ;; Branch 1: class (no async)
+		      (group (group (* space)) bow "class" eow)
+		      ;; Branch 2: def or async def
+		      (group (group (* space)) bow (optional "async" (+ space)) "def" eow)
+		      ;; Branch 3: decorators
+		      (group (group (* space)) "@"))))))
   ;; (add-hook 'python-mode-hook
   ;; 	    (progn
   ;; 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
@@ -1260,7 +1260,8 @@
   (setenv "SSH_AGENT_PID" "")
   ;; Set SSH_AUTH_SOCK to the output of the gpgconf command
   (setenv "SSH_AUTH_SOCK" 
-	  (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket"))) 
+	  (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket")))
+  (async-shell-command "gpg-connect-agent /bye >/dev/null 2>&1")
   )
 
 (use-package popper
@@ -1321,12 +1322,15 @@
              (concat "*Async Shell " (file-name-base file-to-run) ".err*")))
     	;; Use the defined 'llamafile-extension' for the error message
     	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
+  (defun my/llama-cpp ()
+    (interactive)
+    (async-shell-command "llama-server -hf ggml-org/Qwen3-1.7B-GGUF -ngl 0 -t 6 -b 128"))
   :bind
   (:map my/gpt-prefix-map
         ("a" . gptel-add)
         ("f" . gptel-add-file)
         ("g" . gptel)
-        ("l" . my/run-llamafile)
+        ("l" . my/llama-cpp)
         ("m" . gptel-menu)
         ("p" . gptel-org-set-properties)
         ("r" . gptel-rewrite)
@@ -1349,10 +1353,15 @@
     :key #'gptel-api-key-from-auth-source
     :models '(openrouter/free))
 
-  (setq gptel-backend (gptel-make-ollama "Ollama"
+  (gptel-make-ollama "Ollama"
     			:host "localhost:11434"
     			:stream t
-    			:models '(gemma3:4b)))
+    			:models '(gemma3:4b))
+  (setq gptel-backend (gptel-make-openai "llama-cpp"
+			:stream t
+			:protocol "http"
+			:host "localhost:8080"
+			:models '(Qwen3)))
   )
 
 (use-package ediff
@@ -1364,3 +1373,7 @@
 
 (use-package markdown-mode
 :ensure t)
+
+(use-package uv-mode
+    :ensure t
+    :hook (python-mode . uv-mode-auto-activate-hook))
