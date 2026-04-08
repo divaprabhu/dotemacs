@@ -276,14 +276,14 @@
      completion-ignore-case t	   ; case insensitive completion
      ;; mini-buffer history
      savehist-minibuffer-history-variables '(minibuffer-history
-		         query-replace-history
-		         file-name-history
-		         buffer-name-history
-		         regexp-history
-		         extended-command-history
-		         shell-command-history
-		         read-expression-history
-		         command-history)
+			 query-replace-history
+			 file-name-history
+			 buffer-name-history
+			 regexp-history
+			 extended-command-history
+			 shell-command-history
+			 read-expression-history
+			 command-history)
      )
     ;; mini-buffer
     (file-name-shadow-mode 1) ; shadow ignored file path in mini-buffer
@@ -636,7 +636,7 @@
 | 'text-scale-mode-step' | change the default from 1.2 to something else  |
 | 'text-scale-set'       | scale height of default face in current buffer |
 |------------------------+------------------------------------------------|
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (set-face-attribute 'default nil :height 120)
 #+end_src
 ** Font Lock mode
@@ -743,7 +743,7 @@
 *** Modeline Format
 - Formatting to the right and left
   [[https://emacs.stackexchange.com/questions/5529/how-to-right-align-some-items-in-the-modeline][StackExchange]]
-  #+begin_src emacs-lisp :eval never
+  #+begin_src emacs-lisp :tangle no
      (setq battery-mode-line-format "[%L %p%%%% %t]"
 	   display-time-format "[%Y-%b-%d %a, %R]"
 	   display-time-default-load-average nil)
@@ -800,7 +800,7 @@
 			    ;; right
 			    (format-mode-line mode-line-right-format))))
   #+end_src
-  #+begin_src emacs-lisp :eval never
+  #+begin_src emacs-lisp :tangle no
     (setq-default mode-line-format
 		  '("%e"
 		    mode-line-front-space
@@ -843,7 +843,7 @@
 		    mode-line-misc-info))
   #+end_src
 *** Minibuffer-line
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
      (unless (package-installed-p 'minibuffer-line)
        (package-refresh-contents)
        (package-install 'minibuffer-line))
@@ -911,7 +911,7 @@
 #+end_src
 *** Telephone Line
 [[https://github.com/dbordak/telephone-line][telephone-line]]
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
       (unless (package-installed-p 'telephone-line)
 	(package-refresh-contents)
 	(package-install 'telephone-line))
@@ -925,7 +925,7 @@
       (telephone-line-mode t)
 #+end_src
 *** DOOM Modeline
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (use-package doom-modeline
     :ensure t
     :config
@@ -953,7 +953,7 @@
     (doom-modeline-mode 1))
 #+end_src
 *** Nano Modeline
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (use-package nano-modeline
     :ensure t
     :config
@@ -1284,7 +1284,7 @@
     :defer t
     :config
     (setq ispell-personal-dictionary (expand-file-name "dictionary" user-emacs-directory) ; location of personal
-  	)
+	)
     :hook
     (text-mode-hook . flyspell-mode)	; fly-spell in text mode
     (prog-mode-hook . flyspell-prog-mode) ; fly-spell in progmode comment
@@ -1971,78 +1971,78 @@
     (switch-to-buffer-obey-display-actions t) ; C-x C-b respects display buffer rules
     :config
     (setq display-buffer-alist
-  	'(("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
-  	   (display-buffer-reuse-window display-buffer-in-side-window)
-  	   (side . right)
-  	   (window-width . 0.5)
-  	   (slot . 1))
-  	  ("\\*\\(.*shell\\|.*ansi-term\\|.*eshell\\|.*terminal\\|Async Shell\\).*"
-  	   (display-buffer-in-side-window)
-  	   (side . bottom)
-  	   (window-height . 0.5)
-  	   (slot . 0))
-  	  ("\\*\\(Messages\\|Output\\).*"
-  	   (display-buffer-in-side-window)
-  	   (side . bottom)
-  	   (window-width . 0.4)
-  	   (slot . 0))
-  	  ("\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
-  	   (display-buffer-reuse-window display-buffer-in-side-window)
-  	   (side . bottom)
-  	   (window-height . 0.6)
-  	   (slot . 0))
-  	  ("\\*\\(log-edit-\\|vc-git\\).*"
-  	   (display-buffer-in-atom-window)
-  	   (side . right)
-  	   (window-width . 0.3)
-  	   (slot . 0))
-  	  ("\\*\\(Diff\\|vc-diff\\).*"
-  	   (display-buffer-in-side-window)
-  	   (side . right)
-  	   (window-width . 0.5)
-  	   (slot . 1))
-  	  ("\\*\\(Open Recent\\).*"
-  	   (display-buffer-in-side-window)
-  	   (side . bottom)
-  	   (window-height . 0.4)
-  	   (slot . 0))
-  	  ("\\*\\(Ibuffer\\).*"
-  	   (display-buffer-in-side-window)
-  	   (side . right)
-  	   (window-width . 0.5)
-  	   (slot . 1))
-  	  ("\\*\\(Proced\\).*"
-  	   (display-buffer-in-side-window)
-  	   (side . right)
-  	   (window-width . 0.5)
-  	   (slot . 1))
-  	  ("\\*\\(Embark\\).*"
-  	   (display-buffer-in-side-window)
-  	   (side . bottom)
-  	   (window-height . 0.4)
-  	   (slot . 0))
-  	  ("\\*\\(eldoc\\|Flymake\\).*"
-  	   (display-buffer-in-side-window)
-  	   (side . right)
-  	   (window-width . 100)
-  	   (slot . 1))
-  	  ("\\*\\(xref\\).*"
-  	   (display-buffer-in-side-window)
-  	   (side . bottom)
-  	   (window-height . 0.4)
-  	   (slot . 0))
-  	  ("\\*\\(Python\\|ielm\\).*"
-  	   (display-buffer-in-side-window)
-  	   (side . bottom)
-  	   (window-height . 0.4)
-  	   (slot . 0))
-  	  ("\\*\\(Org Src\\).*"
-  	   (display-buffer-same-window))
-  	  ("\\*\\(compilation\\|Occur\\|grep\\).*"
-  	   (display-buffer-in-side-window)
-  	   (side . bottom)
-  	   (window-height . 0.4)
-  	   (slot . 0))))
+	'(("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
+	   (display-buffer-reuse-window display-buffer-in-side-window)
+	   (side . right)
+	   (window-width . 0.5)
+	   (slot . 1))
+	  ("\\*\\(.*shell\\|.*ansi-term\\|.*eshell\\|.*terminal\\|Async Shell\\).*"
+	   (display-buffer-in-side-window)
+	   (side . bottom)
+	   (window-height . 0.5)
+	   (slot . 0))
+	  ("\\*\\(Messages\\|Output\\).*"
+	   (display-buffer-in-side-window)
+	   (side . bottom)
+	   (window-width . 0.4)
+	   (slot . 0))
+	  ("\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
+	   (display-buffer-reuse-window display-buffer-in-side-window)
+	   (side . bottom)
+	   (window-height . 0.6)
+	   (slot . 0))
+	  ("\\*\\(log-edit-\\|vc-git\\).*"
+	   (display-buffer-in-atom-window)
+	   (side . right)
+	   (window-width . 0.3)
+	   (slot . 0))
+	  ("\\*\\(Diff\\|vc-diff\\).*"
+	   (display-buffer-in-side-window)
+	   (side . right)
+	   (window-width . 0.5)
+	   (slot . 1))
+	  ("\\*\\(Open Recent\\).*"
+	   (display-buffer-in-side-window)
+	   (side . bottom)
+	   (window-height . 0.4)
+	   (slot . 0))
+	  ("\\*\\(Ibuffer\\).*"
+	   (display-buffer-in-side-window)
+	   (side . right)
+	   (window-width . 0.5)
+	   (slot . 1))
+	  ("\\*\\(Proced\\).*"
+	   (display-buffer-in-side-window)
+	   (side . right)
+	   (window-width . 0.5)
+	   (slot . 1))
+	  ("\\*\\(Embark\\).*"
+	   (display-buffer-in-side-window)
+	   (side . bottom)
+	   (window-height . 0.4)
+	   (slot . 0))
+	  ("\\*\\(eldoc\\|Flymake\\).*"
+	   (display-buffer-in-side-window)
+	   (side . right)
+	   (window-width . 100)
+	   (slot . 1))
+	  ("\\*\\(xref\\).*"
+	   (display-buffer-in-side-window)
+	   (side . bottom)
+	   (window-height . 0.4)
+	   (slot . 0))
+	  ("\\*\\(Python\\|ielm\\).*"
+	   (display-buffer-in-side-window)
+	   (side . bottom)
+	   (window-height . 0.4)
+	   (slot . 0))
+	  ("\\*\\(Org Src\\).*"
+	   (display-buffer-same-window))
+	  ("\\*\\(compilation\\|Occur\\|grep\\).*"
+	   (display-buffer-in-side-window)
+	   (side . bottom)
+	   (window-height . 0.4)
+	   (slot . 0))))
 
     (winner-mode 1)
     (windmove-mode 1)
@@ -2116,7 +2116,7 @@
   point position
 - To use echo area exclusively:
 ** Maximize emacs on starup
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (defun maximize-frame ()
     "Maximizes the active frame in Windows"
     (interactive)
@@ -2144,8 +2144,8 @@
     (tool-bar-mode -1)
     (tab-bar-mode -1)
     (setq frame-title-format
-  	'(:eval
-  	  (let ((project (project-current)))
+	'(:eval
+	  (let ((project (project-current)))
 	      (if project
 	  (concat " "
 	      (file-name-nondirectory (directory-file-name (project-root project))))
@@ -2857,7 +2857,7 @@ preceding line.
 *** Which Function
 - It is a global minor mode that displays current function name in
   mode line
-  #+begin_src emacs-lisp :eval never
+  #+begin_src emacs-lisp :tangle no
     (which-function-mode 1)
   #+end_src
 ** Indentation
@@ -3361,13 +3361,13 @@ preceding line.
       Lisp expressions interactively. Its major mode is
       lisp-interaction-mode. C-j can be used to evaluate last
       expression and print result at point
-      #+begin_src emacs-lisp :eval never
+      #+begin_src emacs-lisp :tangle no
 	(setq initial-scratch-message nil)
       #+end_src
 - M-x ielm can be used to start inferior lisp mode which acts like a
   REPL
 [[https://github.com/daviwil/emacs-from-scratch/blob/master/show-notes/Emacs-Lisp-02.org][Emacs-Lisp-02]]
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (defun my/ielm-send-line-or-region ()
     (interactive)
     (unless (use-region-p)
@@ -3793,7 +3793,7 @@ preceding line.
     :defer t
     :bind
     (:map vc-prefix-map
-  	("e" . vc-ediff))
+	("e" . vc-ediff))
     :custom
     (vc-revert-show-diff t)	      ; revert first shows diff buffer
     (vc-follow-symlinks t)	      ; follow symlinks
@@ -4330,24 +4330,24 @@ When a group is entered, a summary buffer showing all article is entered
     :bind
     ("C-c m" . gnus)
     (:map gnus-group-mode-map
-  	("m" . #'my/gnus-group-mail))
+	("m" . #'my/gnus-group-mail))
     :hook
     (gnus-group-mode . gnus-topic-mode)
     (message-mode . flyspell-mode)
     :config
     (if (file-exists-p "~/.gnupg/authinfo.gpg")
 	(progn
-  	(use-package auth-source-xoauth2-plugin
-  	  :ensure t
-  	  :config
-  	  (auth-source-xoauth2-plugin-mode 1))
-  	(load-file "~/etc/gnus_mail.el")))
+	(use-package auth-source-xoauth2-plugin
+	  :ensure t
+	  :config
+	  (auth-source-xoauth2-plugin-mode 1))
+	(load-file "~/etc/gnus_mail.el")))
     )
 #+end_src
 ** Legacy Setup
 *** Basic Settings
 [[https://www.bounga.org/tips/2020/05/03/multiple-smtp-accounts-in-gnus-without-external-tools/][Source]]
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   ;; don't create newsrc file that other clients may use
   (setq gnus-save-newsrc-file t)
   (setq gnus-read-newsrc-file t)
@@ -4362,7 +4362,7 @@ When a group is entered, a summary buffer showing all article is entered
   (setq gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\”]\”[#’()]")
 #+end_src
 *** Accounts
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   ;; define everything via secondary method
   ;; read credentials from authinfo.gpg
   (setq gnus-select-method '(nnnil nil))
@@ -4380,13 +4380,13 @@ Categorize multiple groups based on topic
 | T <DEL> | delete topic        |
 | T m     | move group to topic |
 |---------+---------------------|
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
 #+end_src
 *** Message buffer
 Write body after the line "--text follows this line--"
 Linebreaks
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (defun my-message-mode-setup ()
     (setq fill-column 72)
     (turn-on-auto-fill))
@@ -4430,7 +4430,7 @@ Linebreaks
   | / D       | Show dormant messages                             |
   |-----------+---------------------------------------------------|
   - When a new followup comes in a thread, also show previous message from that thread
-    #+begin_src emacs-lisp :eval never
+    #+begin_src emacs-lisp :tangle no
       (setq gnus-fetch-old-headers t)
     #+end_src
     |-------+--------------------------------+---------------------|
@@ -4445,7 +4445,7 @@ Linebreaks
     |-------+--------------------------------+---------------------|
     - Article and summary buffer have similar keybindings
 *** Format
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (setq-default
    gnus-summary-line-format "%U%R%z%I%(%&user-date; [%4L: %-23,23f%]%) %s\n"
    gnus-user-date-format-alist '((t . "%Y-%m-%d %H:%M"))
@@ -4460,7 +4460,7 @@ Linebreaks
 #+end_src
 *** Custom keybinding
 - Press e to mark expired and then go to next article
-  #+begin_src emacs-lisp :eval never
+  #+begin_src emacs-lisp :tangle no
     (add-hook 'gnus-summary-mode-hook 'my-summary-mode-map)
     (add-hook 'gnus-article-prepare-hook 'my-summary-mode-map)
     (defun my-summary-mode-map ()
@@ -4474,12 +4474,12 @@ Linebreaks
   | E   | edit article                            |
   |-----+-----------------------------------------|
   - Expire immediately
-  #+begin_src emacs-lisp :eval never
+  #+begin_src emacs-lisp :tangle no
     (setq nnmail-expiry-wait 'immediate)
   #+end_src
 *** Windows
 [[https://www.emacswiki.org/emacs/GnusWindowLayout][GnusWindowLayout]]
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (gnus-add-configuration
    '(article
      (horizontal 1.0
@@ -5052,7 +5052,7 @@ Linebreaks
   #+end_quote
 * Theme
 ** Solarized
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
     (unless (package-installed-p 'solarized-theme)
       (package-refresh-contents)
       (package-install 'solarized-theme))
@@ -5073,7 +5073,7 @@ Linebreaks
     (load-theme 'solarized-dark t)
 #+end_src
 ** DOOM
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
      (unless (package-installed-p 'doom-themes)
        (package-refresh-contents)
        (package-install 'doom-themes))
@@ -5515,7 +5515,7 @@ Linebreaks
     :preface
     (defun my/eglot-eldoc ()
       (setq eldoc-documentation-strategy
-  	  'eldoc-documentation-compose-eagerly))
+	  'eldoc-documentation-compose-eagerly))
     :custom
     (eglot-autoreconnect t "Automatically reconnect to LSP server")
     (eglot-connect-timeout 60 "Time out connection attempt after specified seconds")
@@ -5547,25 +5547,24 @@ Linebreaks
 			      (fset edit-pre #'my/org-babel-edit-prep)))))
     :bind
     (:repeat-map my/lsp-prefix-map
-  	       ("a" . eglot-code-actions)
-  	       ("b e" . eglot-events-buffer)
-  	       ("b s" . eglot-stderr-buffer)
-  	       ("c" . eglot-signal-didChangeConfiguration)
-  	       ("f" . eglot-format)
-  	       ("h" . eglot-inlay-hints-mode)
-  	       ("l" . eglot)
-  	       ("o" . eglot-code-action-organize-imports)
-  	       ("r" . eglot-rename)
-  	       ("R" . eglot-reconnect)
-  	       ("s" . eglot-shutdown)
-  	       ("S" . eglot-shutdown-all))
+	       ("a" . eglot-code-actions)
+	       ("b e" . eglot-events-buffer)
+	       ("b s" . eglot-stderr-buffer)
+	       ("c" . eglot-signal-didChangeConfiguration)
+	       ("f" . eglot-format)
+	       ("h" . eglot-inlay-hints-mode)
+	       ("l" . eglot)
+	       ("o" . eglot-code-action-organize-imports)
+	       ("r" . eglot-rename)
+	       ("R" . eglot-reconnect)
+	       ("s" . eglot-shutdown)
+	       ("S" . eglot-shutdown-all))
     )
 #+end_src
 * Treesitter
 #+begin_src emacs-lisp
   (use-package treesit
     :defer t
-    :mode (("\\.tsx\\'" . tsx-ts-mode))
     :preface
     (defun mp-setup-install-grammars ()
       "Install Tree-sitter grammars if they are absent."
@@ -5590,7 +5589,7 @@ Linebreaks
 	;; installed. However, if you want to *update* a grammar then
 	;; this obviously prevents that from happening.
 	(unless (treesit-language-available-p (car grammar))
-  	(treesit-install-language-grammar (car grammar)))))
+	(treesit-install-language-grammar (car grammar)))))
     ;; Optional. Combobulate works in both xxxx-ts-modes and
     ;; non-ts-modes.
     ;; You can remap major modes with `major-mode-remap-alist'. Note
@@ -5614,7 +5613,7 @@ Linebreaks
 * Python
 [[https://robbmann.io/posts/emacs-eglot-pyrightconfig][Virtual Environments with Eglot, Tramp, and Pyright]]
 ** Pyright
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
 (defun my/pyrightconfig-write (virtualenv)
   (interactive "DEnv: ")
   (let* (;; file-truename and tramp-file-local-name ensure that neither `~' nor
@@ -5643,7 +5642,7 @@ Linebreaks
 Create a .dir-locals.el file in root of folder with contents like
 ((python-base-mode . ((pyvenv-workon . "pyspark"))))
 ** Pyvenv
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (use-package pyvenv
     :defer t
     :ensure t
@@ -5654,14 +5653,14 @@ Create a .dir-locals.el file in root of folder with contents like
     (pyvenv-tracking-mode 1))
 #+end_src
 ** emacs-pet
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (use-package pet
     :defer t
     :config
     (add-hook 'python-base-mode-hook 'pet-mode -10))
 #+end_src
 ** Custom Venv Handling
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (defvar-local my/env-script ".venv"
     "Relative path to a Python virtual environment directory.
   This path is resolved against `default-directory`.
@@ -5773,12 +5772,12 @@ Create a .dir-locals.el file in root of folder with contents like
      (lambda ()
        (setq-local outline-regexp
 	   (rx (or
-	        ;; Branch 1: class (no async)
-	        (group (group (* space)) bow "class" eow)
-	        ;; Branch 2: def or async def
-	        (group (group (* space)) bow (optional "async" (+ space)) "def" eow)
-	        ;; Branch 3: decorators
-	        (group (group (* space)) "@"))))))
+		;; Branch 1: class (no async)
+		(group (group (* space)) bow "class" eow)
+		;; Branch 2: def or async def
+		(group (group (* space)) bow (optional "async" (+ space)) "def" eow)
+		;; Branch 3: decorators
+		(group (group (* space)) "@"))))))
     ;; (add-hook 'python-mode-hook
     ;;	    (progn
     ;;	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
@@ -5802,7 +5801,7 @@ Create a .dir-locals.el file in root of folder with contents like
     )
 #+end_src
 * Common Lisp
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (use-package slime
     :defer t
     :ensure t
@@ -5810,11 +5809,11 @@ Create a .dir-locals.el file in root of folder with contents like
     (setq inferior-lisp-program "/bin/sbcl"))
 #+end_src
 * C
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (add-hook 'c-mode-hook 'eglot-ensure)
 #+end_src
 * Go
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (let ((goplsdir (expand-file-name "lsp/gopls" user-emacs-directory)))
     (unless (file-directory-p goplsdir)
       (make-directory goplsdir t)
@@ -5849,7 +5848,7 @@ Create a .dir-locals.el file in root of folder with contents like
   (add-hook 'go-mode-hook #'eglot-format-buffer-on-save)
 #+end_src
 * Java
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (let ((jdtlsdir (expand-file-name "lsp/jdtls" user-emacs-directory))
 	(mvndir (expand-file-name "lsp/mvn" user-emacs-directory)))
     (unless (file-directory-p jdtlsdir)
@@ -5921,7 +5920,7 @@ Create a .dir-locals.el file in root of folder with contents like
       (message (concat "mvn compile exec:java -Dexec.mainClass=" fqcn " -Dexec.args=" args))
       (compile (concat "mvn compile exec:java -Dexec.mainClass=" fqcn " -Dexec.args=" args))))
 #+end_src
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (unless (package-installed-p 'eglot-java)
     (package-refresh-contents)
     (package-install 'eglot-java))
@@ -5988,7 +5987,7 @@ Create a .dir-locals.el file in root of folder with contents like
 |-------+------------------------------------------------------------------------|
 ** Grouping
 [[https://www.emacswiki.org/emacs/IbufferMode][emacswiki]]
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (setq ibuffer-saved-filter-groups
 	'(("default"
 	   ("dired" (mode . dired-mode))
@@ -6029,73 +6028,73 @@ Create a .dir-locals.el file in root of folder with contents like
     (ibuffer-default-shrink-to-minimum-size nil) ; don't minimize window size
     (ibuffer-formats
      '((mark modified read-only locked " "
-  	   (name 40 40 :left :elide)
-  	   " "
-  	   (size 9 -1 :right)
-  	   " "
-  	   (mode 16 16 :left :elide)
-  	   " " filename-and-process)
+	   (name 40 40 :left :elide)
+	   " "
+	   (size 9 -1 :right)
+	   " "
+	   (mode 16 16 :left :elide)
+	   " " filename-and-process)
        (mark " "
-  	   (name 16 -1)
-  	   " " filename)))
+	   (name 16 -1)
+	   " " filename)))
     (ibuffer-saved-filter-groups nil)	; no defined filter by default
     (ibuffer-old-time 48)	  ; hours after which buffer is considered old
     (ibuffer-human-readable-size t)	; human readable size
     :config
     ;; Ibuffer filters
     (setq ibuffer-saved-filter-groups
-  	'(("default"
-  	   ("org"     (or
-	         (mode . org-mode)
-	         (name . "^\\*Org Src")
-	         (name . "^\\*Org Agenda\\*$")))
-  	   ("tramp"   (name . "^\\*tramp.*"))
-  	   ("emacs"   (or
-	         (name . "^\\*scratch\\*$")
-	         (name . "^\\*Messages\\*$")
-	         (name . "^\\*Warnings\\*$")
-	         (name . "^\\*Shell Command Output\\*$")
-	         (name . "^\\*Async-native-compile-log\\*$")))
-  	   ("ediff"   (name . "^\\*[Ee]diff.*"))
-  	   ("vc"      (name . "^\\*vc-.*"))
-  	   ("dired"   (mode . dired-mode))
-  	   ("terminal" (or
+	'(("default"
+	   ("org"     (or
+		 (mode . org-mode)
+		 (name . "^\\*Org Src")
+		 (name . "^\\*Org Agenda\\*$")))
+	   ("tramp"   (name . "^\\*tramp.*"))
+	   ("emacs"   (or
+		 (name . "^\\*scratch\\*$")
+		 (name . "^\\*Messages\\*$")
+		 (name . "^\\*Warnings\\*$")
+		 (name . "^\\*Shell Command Output\\*$")
+		 (name . "^\\*Async-native-compile-log\\*$")))
+	   ("ediff"   (name . "^\\*[Ee]diff.*"))
+	   ("vc"      (name . "^\\*vc-.*"))
+	   ("dired"   (mode . dired-mode))
+	   ("terminal" (or
 	      (mode . term-mode)
 	      (mode . shell-mode)
 	      (mode . eshell-mode)))
-  	   ("help"    (or
-	         (name . "^\\*Help\\*$")
-	         (name . "^\\*info\\*$")))
-  	   ("news"    (name . "^\\*Newsticker.*"))
-  	   ("gnus"    (or
-	         (mode . message-mode)
-	         (mode . gnus-group-mode)
-	         (mode . gnus-summary-mode)
-	         (mode . gnus-article-mode)
-	         (name . "^\\*Group\\*")
-	         (name . "^\\*Summary\\*")
-	         (name . "^\\*Article\\*")
-	         (name . "^\\.newsrc.*")
-	         (name . "\\*imap log\\*")
-	         (name . "^\\*BBDB\\*")))
-  	   ("chat"    (or
-	         (mode . rcirc-mode)
-	         (mode . erc-mode)
-	         (name . "^\\*rcirc.*")
-	         (name . "^\\*ERC.*"))))))
+	   ("help"    (or
+		 (name . "^\\*Help\\*$")
+		 (name . "^\\*info\\*$")))
+	   ("news"    (name . "^\\*Newsticker.*"))
+	   ("gnus"    (or
+		 (mode . message-mode)
+		 (mode . gnus-group-mode)
+		 (mode . gnus-summary-mode)
+		 (mode . gnus-article-mode)
+		 (name . "^\\*Group\\*")
+		 (name . "^\\*Summary\\*")
+		 (name . "^\\*Article\\*")
+		 (name . "^\\.newsrc.*")
+		 (name . "\\*imap log\\*")
+		 (name . "^\\*BBDB\\*")))
+	   ("chat"    (or
+		 (mode . rcirc-mode)
+		 (mode . erc-mode)
+		 (name . "^\\*rcirc.*")
+		 (name . "^\\*ERC.*"))))))
     (add-hook 'ibuffer-mode-hook
-  	    (lambda ()
-  	      (ibuffer-switch-to-saved-filter-groups "default")))
+	    (lambda ()
+	      (ibuffer-switch-to-saved-filter-groups "default")))
     :bind
     (:map ibuffer-mode-map
-  	("* f" . ibuffer-mark-by-file-name-regexp)
-  	("* g" . ibuffer-mark-by-content-regexp)
-  	("* n" . ibuffer-mark-by-name-regexp)
-  	("s n" . ibuffer-do-sort-by-alphabetic)
-  	("/ g" . ibuffer-filter-by-content)
-  	("M-o" . other-window))
+	("* f" . ibuffer-mark-by-file-name-regexp)
+	("* g" . ibuffer-mark-by-content-regexp)
+	("* n" . ibuffer-mark-by-name-regexp)
+	("s n" . ibuffer-do-sort-by-alphabetic)
+	("/ g" . ibuffer-filter-by-content)
+	("M-o" . other-window))
     (:map ctl-x-map
-  	("C-b" . ibuffer-jump)))
+	("C-b" . ibuffer-jump)))
 #+end_src
 * Which Key
 - which-key is a minor mode for Emacs that displays the key bindings
@@ -6178,11 +6177,11 @@ Create a .dir-locals.el file in root of folder with contents like
     (org-export-use-babel nil)		; don't evaluate code during export
     :bind
     (:map org-mode-map
-  	("C-c C-n" . org-next-visible-heading)
-  	("C-c C-p" . org-previous-visible-heading)
-  	("C-c C-f" . org-forward-heading-same-level)
-  	("C-c C-b" . org-backward-heading-same-level)
-  	("C-c C-u" . outline-up-heading))
+	("C-c C-n" . org-next-visible-heading)
+	("C-c C-p" . org-previous-visible-heading)
+	("C-c C-f" . org-forward-heading-same-level)
+	("C-c C-b" . org-backward-heading-same-level)
+	("C-c C-u" . outline-up-heading))
     (:repeat-map my/org-repeat-map
 		 ("C-n" . org-next-visible-heading)
 		 ("C-p" . org-previous-visible-heading)
@@ -6219,8 +6218,8 @@ Create a .dir-locals.el file in root of folder with contents like
     (proced-filter 'user) ;; We can change interactively with `f'
     :config
     (add-hook 'proced-mode-hook
-  	    (lambda ()
-  	      (proced-toggle-auto-update 1))))
+	    (lambda ()
+	      (proced-toggle-auto-update 1))))
 #+end_src
 * EPG
 ** Configuration
@@ -6235,7 +6234,7 @@ Create a .dir-locals.el file in root of folder with contents like
     (setenv "SSH_AGENT_PID" "")
     ;; Set SSH_AUTH_SOCK to the output of the gpgconf command
     (setenv "SSH_AUTH_SOCK"
-  	  (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket")))
+	  (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket")))
     (async-shell-command "gpg-connect-agent /bye >/dev/null 2>&1")
     )
 
@@ -6250,23 +6249,23 @@ Create a .dir-locals.el file in root of folder with contents like
     (setq popper-display-control nil)	; honor display buffer alist
     (setq popper-echo-dispatch-keys nil) ; no short cut for specific popup window
     :bind (("<f12>"   . popper-toggle)
-  	 ("M-<f12>"   . popper-cycle)
-  	 ("C-<f12>" . popper-toggle-type))
+	 ("M-<f12>"   . popper-cycle)
+	 ("C-<f12>" . popper-toggle-type))
     :init
     (setq popper-reference-buffers
-  	'("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
-  	  "\\*\\(.*shell\\|.*ansi-term\\|.*eshell\\|.*terminal\\|Async Shell\\).*"
-  	  "\\*\\(Messages\\|Output\\).*"
-  	  "\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
-  	  "\\*\\(log-edit-\\).*"
-  	  "\\*\\(Diff\\|vc-diff\\).*"
-  	  "\\*\\(Open Recent\\).*"
-  	  "\\*\\(Ibuffer\\).*"
-  	  "\\*\\(Proced\\).*"
-  	  "\\*\\(Embark\\).*"
-  	  "\\*\\(eldoc\\|xref\\|Flymake\\).*"
-  	  "\\*\\(Python\\|ielm\\).*"
-  	  "\\*\\(compilation\\|Occur\\|grep\\).*"
+	'("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
+	  "\\*\\(.*shell\\|.*ansi-term\\|.*eshell\\|.*terminal\\|Async Shell\\).*"
+	  "\\*\\(Messages\\|Output\\).*"
+	  "\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
+	  "\\*\\(log-edit-\\).*"
+	  "\\*\\(Diff\\|vc-diff\\).*"
+	  "\\*\\(Open Recent\\).*"
+	  "\\*\\(Ibuffer\\).*"
+	  "\\*\\(Proced\\).*"
+	  "\\*\\(Embark\\).*"
+	  "\\*\\(eldoc\\|xref\\|Flymake\\).*"
+	  "\\*\\(Python\\|ielm\\).*"
+	  "\\*\\(compilation\\|Occur\\|grep\\).*"
 	    "Output\\*$"
 	    help-mode
 	    compilation-mode))
@@ -6275,7 +6274,7 @@ Create a .dir-locals.el file in root of folder with contents like
 #+end_src
 * Buffer Env
 ** Configuration
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (use-package buffer-env
     :defer t
     :ensure t
@@ -6382,7 +6381,7 @@ Create a .dir-locals.el file in root of folder with contents like
     )
 #+end_src
 ** Minuet
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (use-package minuet
     :ensure t
     :defer t
@@ -6629,7 +6628,7 @@ Create a .dir-locals.el file in root of folder with contents like
 #+end_src
 * Unused
 ** LSP Mode
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (unless (package-installed-p 'lsp-mode)
     (package-refresh-contents)
     (package-install 'lsp-mode))
@@ -6655,14 +6654,14 @@ Create a .dir-locals.el file in root of folder with contents like
   ;; (lsp-ui-mode 1)
 #+end_src
 *** Python
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
     (unless (package-installed-p 'pyvenv)
       (package-refresh-contents)
       (package-install 'pyvenv))
     (add-hook 'python-base-mode-hook #'lsp-deferred)
 #+end_src
 *** Java
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
     (unless (package-installed-p 'lsp-java)
       (package-refresh-contents)
       (package-install 'lsp-java))
@@ -6676,7 +6675,7 @@ Create a .dir-locals.el file in root of folder with contents like
   | C-c & C-s | yas-insert-snippet (chose a snippet to expand)   |
   | C-c & C-v | yas-visit-snippet-file (chose a snippet to edit) |
   |           |                                                  |
-  #+begin_src emacs-lisp :eval never
+  #+begin_src emacs-lisp :tangle no
     (unless (package-installed-p 'yasnippet)
       (package-refresh-contents)
       (package-install 'yasnippet)
@@ -6686,7 +6685,7 @@ Create a .dir-locals.el file in root of folder with contents like
     (add-hook 'prog-mode-hook #'yas-minor-mode)
   #+end_src
 ** YAML Mode
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (unless (package-installed-p 'yaml-mode)
     (package-refresh-contents)
     (package-install 'yaml-mode))
@@ -6694,7 +6693,7 @@ Create a .dir-locals.el file in root of folder with contents like
   (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-mode))
 #+end_src
 ** Neotree
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (unless (package-installed-p 'neotree)
     (package-refresh-contents)
     (package-install 'neotree))
@@ -6709,7 +6708,7 @@ Create a .dir-locals.el file in root of folder with contents like
   (add-hook 'neo-enter-hook (lambda(&rest _) (setq-local display-line-numbers nil)))
 #+end_src
 ** Treemacs
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (unless (package-installed-p 'treemacs)
     (package-refresh-contents)
     (package-install 'treemacs))
@@ -6784,7 +6783,7 @@ Create a .dir-locals.el file in root of folder with contents like
   (add-hook 'treemacs-mode-hook (lambda(&rest _) (setq-local display-line-numbers nil)))
 #+end_src
 ** Youtube-dl
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (unless (package-installed-p 'ytdl)
     (package-refresh-contents)
     (package-install 'ytdl))
@@ -6795,7 +6794,7 @@ Create a .dir-locals.el file in root of folder with contents like
 #+end_src
 ** Useful functions
 [[http://whattheemacsd.com/][Move Lines]]
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (defun my-move-line-down ()
     (interactive)
     (let ((col (current-column)))
@@ -6816,7 +6815,7 @@ Create a .dir-locals.el file in root of folder with contents like
   ;; (global-set-key (kbd "<C-M-up>") 'my-move-line-up)
 #+end_src
 [[http://whattheemacsd.com/][Rename file and buffer]]
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (defun my-rename-current-buffer-file ()
     "Renames current buffer and file it is visiting."
     (interactive)
@@ -6835,7 +6834,7 @@ Create a .dir-locals.el file in root of folder with contents like
 		     name (file-name-nondirectory new-name)))))))
 #+end_src
 [[http://whattheemacsd.com/][Window Layout]]
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (defun my-split-below (arg)
     "Split window below from the parent or from root with ARG."
     (interactive "P")
@@ -6906,14 +6905,14 @@ Create a .dir-locals.el file in root of folder with contents like
 | 'printer-name'   | printer to use (nil means default printer)                     |
 |------------------+----------------------------------------------------------------|
 ** Keepass mode
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
     (unless (package-installed-p 'keepass-mode)
       (package-refresh-contents)
       (package-install 'keepass-mode))
     (require 'keepass-mode)
 #+end_src
 ** EWW
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (setq url-configuration-directory user-emacs-directory)
   (setq browse-url-browser-function 'eww-browse-url)
   (add-hook 'eww-mode-hook 'visual-line-mode)
@@ -6933,7 +6932,7 @@ Create a .dir-locals.el file in root of folder with contents like
   |       | <M> - motion state (useful for read only buffers only for motion) |
   |-------+-------------------------------------------------------------------|
   - Settings
-  #+begin_src emacs-lisp :eval never
+  #+begin_src emacs-lisp :tangle no
     (unless (package-installed-p 'evil)
       (package-refresh-contents)
       (package-install 'evil))
@@ -6969,7 +6968,7 @@ Create a .dir-locals.el file in root of folder with contents like
 ** Marginalia
 - Marginalia adds annotations like type of completion, short
   documentation etc to the completion candidates
-  #+begin_src emacs-lisp :eval never
+  #+begin_src emacs-lisp :tangle no
     (unless (package-installed-p 'marginalia)
       (package-refresh-contents)
       (package-install 'marginalia))
@@ -6987,7 +6986,7 @@ Create a .dir-locals.el file in root of folder with contents like
   - if it ends with =, it is treated literal
   - if it ends with ~, it is treated as flex
   - otherwise treat as regexp
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (unless (package-installed-p 'orderless)
     (package-refresh-contents)
     (package-install 'orderless))
@@ -7030,7 +7029,7 @@ Create a .dir-locals.el file in root of folder with contents like
   commands and completion tables. Vertico only provides the
   completion UI but aims to be highly flexible, extensible and
   modular.
-  #+begin_src emacs-lisp :eval never
+  #+begin_src emacs-lisp :tangle no
     (if (< emacs-major-version 29)
 	(progn
 	  (unless (package-installed-p 'vertico)
@@ -7059,7 +7058,7 @@ Create a .dir-locals.el file in root of folder with contents like
     the file, symbol, URL, s-expression or defun at point.
 - (Multiple targets can be present at the same location and you can
   cycle between them by repeating the embark-act key binding
-  #+begin_src emacs-lisp :eval never
+  #+begin_src emacs-lisp :tangle no
     (unless (package-installed-p 'embark)
       (package-refresh-contents)
       (package-install 'embark))
@@ -7067,7 +7066,7 @@ Create a .dir-locals.el file in root of folder with contents like
     (setq prefix-help-command #'embark-prefix-help-command)
   #+end_src
 ** Corfu
-#+begin_src emacs-lisp :eval never
+#+begin_src emacs-lisp :tangle no
   (unless (package-installed-p 'corfu)
     (package-refresh-contents)
     (package-install 'corfu))
@@ -7092,16 +7091,15 @@ Create a .dir-locals.el file in root of folder with contents like
 - Expand region increases the selected region by semantic
   units. Just keep pressing the key until it selects what you want.
 - Passing a negative prefix runs er/contract-region
-  #+begin_src emacs-lisp :eval never
+  #+begin_src emacs-lisp :tangle no
     (use-package expand-region
-      :ensure t
-      :defer nil
-      :bind
-      ("C-+" . er/expand-region)
-      ("C-_" . er/contract-region))
-  #+end_src
-** Paredit
-#+begin_src emacs-lisp :eval never
+							    defer nil
+								  :bind
+								  ("C-+" . er/expand-region)
+								  ("C-_" . er/contract-region))
+							      ,#+end_src
+							    ,** Paredit
+							    ,#+begin_src emacs-lisp :tangle
   (use-package paredit
     :defer t
     :ensure t

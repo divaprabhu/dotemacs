@@ -22,9 +22,9 @@
   ("C-x x c" . copy-to-buffer)
   ("C-x x f" . append-to-file)
   (:repeat-map my/emacs-prefix-map
-  	       ("j" . duplicate-dwim)
-  	       (";" . comment-line)
-  	       ("t" . transpose-lines)))
+	       ("j" . duplicate-dwim)
+	       (";" . comment-line)
+	       ("t" . transpose-lines)))
 
 (use-package emacs			; echo area
   :config
@@ -82,9 +82,9 @@
   (history-delete-duplicates t)	; remove duplicates
   (savehist-file (expand-file-name "savehist" user-emacs-directory)) ; location of minibuffer history file
   (savehist-additional-variables '(kill-ring      ; clipboard
-				   register-alist ; macros
-				   mark-ring global-mark-ring ; marks
-				   search-ring regexp-search-ring)) ; searches
+		     register-alist ; macros
+		     mark-ring global-mark-ring ; marks
+		     search-ring regexp-search-ring)) ; searches
   (isearch-resume-in-command-history t) ; add isearch-resume command to command history
   :config
   (setq
@@ -95,14 +95,14 @@
    completion-ignore-case t	   ; case insensitive completion
    ;; mini-buffer history
    savehist-minibuffer-history-variables '(minibuffer-history
-					   query-replace-history
-					   file-name-history
-					   buffer-name-history
-					   regexp-history
-					   extended-command-history
-					   shell-command-history
-					   read-expression-history
-					   command-history)
+			 query-replace-history
+			 file-name-history
+			 buffer-name-history
+			 regexp-history
+			 extended-command-history
+			 shell-command-history
+			 read-expression-history
+			 command-history)
    )
   ;; mini-buffer
   (file-name-shadow-mode 1) ; shadow ignored file path in mini-buffer
@@ -147,8 +147,8 @@
   (defun my/kill-region-or-backward-word ()
     (interactive)
     (if (region-active-p)
-  	(kill-region (region-beginning) (region-end))
-      (backward-kill-word 1)))
+	(kill-region (region-beginning) (region-end))
+	(backward-kill-word 1)))
   (substitute-key-definition 'kill-region 'my/kill-region-or-backward-word (current-global-map))
   )
 
@@ -193,11 +193,11 @@
   :defer t
   :config
   (setq	search-ring-max 1000 ; search ring size
-  	search-exit-option t ; control chars end search
-  	isearch-allow-scroll 'unlimited ; allow screen scroll when in isearch
-  	regexp-search-ring-max 1000    ; regex search ring size
-  	search-default-mode t	       ; default regex search
-  	isearch-lazy-count t)	       ; show current match and total match number
+	search-exit-option t ; control chars end search
+	isearch-allow-scroll 'unlimited ; allow screen scroll when in isearch
+	regexp-search-ring-max 1000    ; regex search ring size
+	search-default-mode t	       ; default regex search
+	isearch-lazy-count t)	       ; show current match and total match number
   )
 (use-package occur
   :defer t
@@ -232,7 +232,7 @@
   (setq	kmacro-ring-max 1000) ; macro ring size
   :config
   (if (file-exists-p (expand-file-name "macros" user-emacs-directory))
-      (load-file (expand-file-name "macros" user-emacs-directory)))
+	  (load-file (expand-file-name "macros" user-emacs-directory)))
   )
 
 (use-package emacs			; file handling
@@ -287,9 +287,9 @@
   ;; Add option "d" to whenever using C-x s or C-x C-c, allowing a quick preview
   ;; of the diff (if you choose `d') of what you're asked to save.
   (add-to-list 'save-some-buffers-action-alist
-  	       (list "d"
-  		     (lambda (buffer) (diff-buffer-with-file (buffer-file-name buffer)))
-  		     "show diff between the buffer and its file"))
+	       (list "d"
+		     (lambda (buffer) (diff-buffer-with-file (buffer-file-name buffer)))
+		     "show diff between the buffer and its file"))
   )
 (use-package icomplete
   :defer t
@@ -305,15 +305,15 @@
   (icomplete-max-delay-chars 0)
   (icomplete-scroll t)			; scroll instead of rotate
   :bind (:map icomplete-minibuffer-map
-  	      ("C-n" . icomplete-forward-completions)
-  	      ("C-p" . icomplete-backward-completions)
-  	      ("RET" . icomplete-force-complete-and-exit)
-  	      ;; to ignore icomplete and take what is entered literally
-  	      ("C-j" . exit-minibuffer))
+	      ("C-n" . icomplete-forward-completions)
+	      ("C-p" . icomplete-backward-completions)
+	      ("RET" . icomplete-force-complete-and-exit)
+	      ;; to ignore icomplete and take what is entered literally
+	      ("C-j" . exit-minibuffer))
   :hook
   (after-init-hook . (lambda ()
-  		       (fido-mode -1)
-  		       (icomplete-vertical-mode 1)))
+		       (fido-mode -1)
+		       (icomplete-vertical-mode 1)))
   :config
   (advice-add 'completion-at-point :after #'minibuffer-hide-completions) ; don't show "*completions*" buffer
   )
@@ -427,10 +427,10 @@
   (setq frame-title-format
 	'(:eval
 	  (let ((project (project-current)))
-            (if project
-		(concat " "
-			(file-name-nondirectory (directory-file-name (project-root project))))
-              (concat " " (buffer-name))))))
+	      (if project
+	  (concat " "
+	      (file-name-nondirectory (directory-file-name (project-root project))))
+		(concat " " (buffer-name))))))
   )
 
 (use-package emacs			; indentation
@@ -460,20 +460,20 @@
   :hook
   (prog-mode . outline-minor-mode)
   :bind (:repeat-map my/outline-prefix-map
-		     ("n" . outline-next-visible-heading)
-		     ("p" . outline-previous-visible-heading)
-		     ("f" . outline-forward-same-level)
-		     ("b" . outline-backward-same-level)
-		     ("o" . outline-toggle-children)
-		     ("a" . outline-show-all)
-		     ("h" . outline-hide-body)
-		     ("c" . outline-hide-entry)
-		     ("e" . outline-show-entry)
-		     ("d" . outline-hide-subtree)
-		     ("s" . outline-show-subtree)
-		     ("l" . outline-hide-leaves)
-		     ("k" . outline-show-branches)
-		     ("i" . outline-show-children))
+	       ("n" . outline-next-visible-heading)
+	       ("p" . outline-previous-visible-heading)
+	       ("f" . outline-forward-same-level)
+	       ("b" . outline-backward-same-level)
+	       ("o" . outline-toggle-children)
+	       ("a" . outline-show-all)
+	       ("h" . outline-hide-body)
+	       ("c" . outline-hide-entry)
+	       ("e" . outline-show-entry)
+	       ("d" . outline-hide-subtree)
+	       ("s" . outline-show-subtree)
+	       ("l" . outline-hide-leaves)
+	       ("k" . outline-show-branches)
+	       ("i" . outline-show-children))
   )
 
 (use-package imenu
@@ -529,9 +529,9 @@
 ;;   (hs-hide-comments-when-hiding-all t) ; hide comments also when hs-hide-all
 ;;   :bind
 ;;   (:repeat-map my/hideshow-prefix-map
-;;   	       ("h" . hs-toggle-hiding)
-;;   	       ("c" . hs-hide-all)
-;;   	       ("o" . hs-show-all))
+;;	       ("h" . hs-toggle-hiding)
+;;	       ("c" . hs-hide-all)
+;;	       ("o" . hs-show-all))
 ;;   :hook
 ;;   (prog-mode . hs-minor-mode)
 ;;   )
@@ -547,10 +547,10 @@
   (push 'org-self-insert-command completion-preview-commands)
   :bind
   (:map completion-preview-active-mode-map
-  	("M-n" . completion-preview-next-candidate)
-  	("M-p" . completion-preview-prev-candidate)
-  	("TAB" . completion-preview-complete)
-  	("M-i" . completion-preview-insert))
+	("M-n" . completion-preview-next-candidate)
+	("M-p" . completion-preview-prev-candidate)
+	("TAB" . completion-preview-complete)
+	("M-i" . completion-preview-insert))
   )
 
 (use-package compile
@@ -564,7 +564,7 @@
   (compilation-save-buffers-predicate 'ignore) ; don't save
   :config
   (add-hook 'compilation-finish-functions ; switch to compile buffer immediately
-    	    'switch-to-buffer-other-window 'compilation)
+	    'switch-to-buffer-other-window 'compilation)
   :hook
   (comilation-mode . next-error-follow-minor-mode)
   )
@@ -581,8 +581,8 @@
 (use-package flymake
   :defer t
   :bind (:map flymake-mode-map
-  	      ("M-n" . 'flymake-goto-next-error)
-  	      ("M-p" . 'flymake-goto-prev-error))
+	      ("M-n" . 'flymake-goto-next-error)
+	      ("M-p" . 'flymake-goto-prev-error))
   :custom
   (flymake-no-changes-timeout 3)	; wait 3 sec before checking
   (flymake-show-diagnostics-at-end-of-line nil) ; add diagnostic summary at end of line
@@ -639,8 +639,8 @@
   (abbrev-suggest t)
   :config
   (if
-      (file-exists-p abbrev-file-name)
-      (quietly-read-abbrev-file))
+	(file-exists-p abbrev-file-name)
+	(quietly-read-abbrev-file))
   (abbrev-mode -1)			; don't expand automatically on space or punctuation
   )
 
@@ -653,7 +653,7 @@
   (dired-dwim-target t)		       ; try to guess target directory
   (dired-create-destination-dirs 'ask) ; ask to create non existant directories when copying
   (dired-create-destination-dirs-on-trailing-dirsep t) ; trailing / treates destination as directory,
-                                                      ; so rename directory actually moves into this directory
+							; so rename directory actually moves into this directory
   (dired-copy-preserve-time t)		; preserve last modified time
   (dired-recursive-copies 'top)     ; recursive copy confirm only for top level dir
   (dired-vc-rename-file t)	    ; if under version control, use vc-rename-file
@@ -748,7 +748,7 @@
   (message-mode . flyspell-mode)
   :config
   (if (file-exists-p "~/.gnupg/authinfo.gpg")
-      (progn
+	(progn
 	(use-package auth-source-xoauth2-plugin
 	  :ensure t
 	  :config
@@ -969,20 +969,20 @@
   :config
   (defun my/org-babel-edit-prep (info)	; https://github.com/joaotavora/eglot/issues/523
     (setq buffer-file-name (or (alist-get :file (caddr info))
-                               "org-src-babel-tmp"))
+				 "org-src-babel-tmp"))
     (eglot-ensure))
   (advice-add 'org-edit-src-code
-              :before (defun my/org-edit-src-code/before (&rest args)
-			(when-let* ((element (org-element-at-point))
-                                    (type (org-element-type element))
-                                    (lang (org-element-property :language element))
-                                    (mode (org-src-get-lang-mode lang))
-                                    ((eglot--lookup-mode mode))
-                                    (edit-pre (intern
-                                               (format "org-babel-edit-prep:%s" lang))))
-                          (if (fboundp edit-pre)
-                              (advice-add edit-pre :after #'my/org-babel-edit-prep)
-                            (fset edit-pre #'my/org-babel-edit-prep)))))
+		:before (defun my/org-edit-src-code/before (&rest args)
+	      (when-let* ((element (org-element-at-point))
+				      (type (org-element-type element))
+				      (lang (org-element-property :language element))
+				      (mode (org-src-get-lang-mode lang))
+				      ((eglot--lookup-mode mode))
+				      (edit-pre (intern
+						 (format "org-babel-edit-prep:%s" lang))))
+			    (if (fboundp edit-pre)
+				(advice-add edit-pre :after #'my/org-babel-edit-prep)
+			      (fset edit-pre #'my/org-babel-edit-prep)))))
   :bind
   (:repeat-map my/lsp-prefix-map
 	       ("a" . eglot-code-actions)
@@ -1007,25 +1007,25 @@
     "Install Tree-sitter grammars if they are absent."
     (interactive)
     (dolist (grammar
-             ;; Note the version numbers. These are the versions that
-             ;; are known to work with Combobulate *and* Emacs.
-             '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
-               (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
-               (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
-               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-               (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-               (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
-               (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
-               (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
-               (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
-               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
-      (add-to-list 'treesit-language-source-alist grammar)
-      ;; Only install `grammar' if we don't already have it
-      ;; installed. However, if you want to *update* a grammar then
-      ;; this obviously prevents that from happening.
-      (unless (treesit-language-available-p (car grammar))
+	       ;; Note the version numbers. These are the versions that
+	       ;; are known to work with Combobulate *and* Emacs.
+	       '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+		 (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+		 (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+		 (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+		 (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+		 (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
+		 (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+		 (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
+		 (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
+		 (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+		 (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+		 (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
+	(add-to-list 'treesit-language-source-alist grammar)
+	;; Only install `grammar' if we don't already have it
+	;; installed. However, if you want to *update* a grammar then
+	;; this obviously prevents that from happening.
+	(unless (treesit-language-available-p (car grammar))
 	(treesit-install-language-grammar (car grammar)))))
   ;; Optional. Combobulate works in both xxxx-ts-modes and
   ;; non-ts-modes.
@@ -1033,16 +1033,16 @@
   ;; that this does *not* extend to hooks! Make sure you migrate them
   ;; also
   (dolist (mapping
-           '((python-mode . python-ts-mode)
-             (css-mode . css-ts-mode)
-             (typescript-mode . typescript-ts-mode)
-             (js2-mode . js-ts-mode)
-             (bash-mode . bash-ts-mode)
-             (conf-toml-mode . toml-ts-mode)
-             (go-mode . go-ts-mode)
-             (css-mode . css-ts-mode)
-             (json-mode . json-ts-mode)
-             (js-json-mode . json-ts-mode)))
+	     '((python-mode . python-ts-mode)
+	       (css-mode . css-ts-mode)
+	       (typescript-mode . typescript-ts-mode)
+	       (js2-mode . js-ts-mode)
+	       (bash-mode . bash-ts-mode)
+	       (conf-toml-mode . toml-ts-mode)
+	       (go-mode . go-ts-mode)
+	       (css-mode . css-ts-mode)
+	       (json-mode . json-ts-mode)
+	       (js-json-mode . json-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
   :config
   (mp-setup-install-grammars))
@@ -1057,11 +1057,11 @@
   ;;     (make-directory pylspdir t)
   ;;     (cond
   ;;      ((eq system-type 'windows-nt)
-  ;; 	(shell-command (concat "python -m venv " pylspdir))
-  ;; 	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] debugpy && deactivate")))
+  ;;	(shell-command (concat "python -m venv " pylspdir))
+  ;;	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] debugpy && deactivate")))
   ;;      (t
-  ;; 	(shell-command (concat "python3 -m venv " pylspdir))
-  ;; 	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] debugpy && deactivate"))))))
+  ;;	(shell-command (concat "python3 -m venv " pylspdir))
+  ;;	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] debugpy && deactivate"))))))
   :config
   (add-hook
    'python-base-mode-hook
@@ -1073,33 +1073,33 @@
    'python-base-mode-hook
    (lambda ()
      (setq-local outline-regexp
-		 (rx (or
-		      ;; Branch 1: class (no async)
-		      (group (group (* space)) bow "class" eow)
-		      ;; Branch 2: def or async def
-		      (group (group (* space)) bow (optional "async" (+ space)) "def" eow)
-		      ;; Branch 3: decorators
-		      (group (group (* space)) "@"))))))
+	   (rx (or
+		;; Branch 1: class (no async)
+		(group (group (* space)) bow "class" eow)
+		;; Branch 2: def or async def
+		(group (group (* space)) bow (optional "async" (+ space)) "def" eow)
+		;; Branch 3: decorators
+		(group (group (* space)) "@"))))))
   ;; (add-hook 'python-mode-hook
-  ;; 	    (progn
-  ;; 	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
+  ;;	    (progn
+  ;;	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
 
-  ;; 	      (setq exec-path (split-string (getenv "PATH") path-separator))
-  ;; 	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))
-  ;; 	      'eglot-ensure))
+  ;;	      (setq exec-path (split-string (getenv "PATH") path-separator))
+  ;;	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))
+  ;;	      'eglot-ensure))
   ;; :bind
   ;; (:map my/python-prefix-map
-  ;; 	("c"	. python-shell-send-buffer)
-  ;; 	("e"	. python-shell-send-statement)
-  ;; 	("r"	. python-shell-send-region)
-  ;; 	("p"	. run-python)
-  ;; 	("z"	. python-shell-switch-to-shell)
-  ;; 	("t c"	. python-skeleton-class)
-  ;; 	("t d"	. python-skeleton-def)
-  ;; 	("t f"	. python-skeleton-for)
-  ;; 	("t i"	. python-skeleton-if)
-  ;; 	("t t"	. python-skeleton-import)
-  ;; 	("t w"	. python-skeleton-while))
+  ;;	("c"	. python-shell-send-buffer)
+  ;;	("e"	. python-shell-send-statement)
+  ;;	("r"	. python-shell-send-region)
+  ;;	("p"	. run-python)
+  ;;	("z"	. python-shell-switch-to-shell)
+  ;;	("t c"	. python-skeleton-class)
+  ;;	("t d"	. python-skeleton-def)
+  ;;	("t f"	. python-skeleton-for)
+  ;;	("t i"	. python-skeleton-if)
+  ;;	("t t"	. python-skeleton-import)
+  ;;	("t w"	. python-skeleton-while))
   )
 
 (use-package emacs			; custom file
@@ -1137,43 +1137,43 @@
   (setq ibuffer-saved-filter-groups
 	'(("default"
 	   ("org"     (or
-		       (mode . org-mode)
-		       (name . "^\\*Org Src")
-		       (name . "^\\*Org Agenda\\*$")))
+		 (mode . org-mode)
+		 (name . "^\\*Org Src")
+		 (name . "^\\*Org Agenda\\*$")))
 	   ("tramp"   (name . "^\\*tramp.*"))
 	   ("emacs"   (or
-		       (name . "^\\*scratch\\*$")
-		       (name . "^\\*Messages\\*$")
-		       (name . "^\\*Warnings\\*$")
-		       (name . "^\\*Shell Command Output\\*$")
-		       (name . "^\\*Async-native-compile-log\\*$")))
+		 (name . "^\\*scratch\\*$")
+		 (name . "^\\*Messages\\*$")
+		 (name . "^\\*Warnings\\*$")
+		 (name . "^\\*Shell Command Output\\*$")
+		 (name . "^\\*Async-native-compile-log\\*$")))
 	   ("ediff"   (name . "^\\*[Ee]diff.*"))
 	   ("vc"      (name . "^\\*vc-.*"))
 	   ("dired"   (mode . dired-mode))
 	   ("terminal" (or
-			(mode . term-mode)
-			(mode . shell-mode)
-			(mode . eshell-mode)))
+	      (mode . term-mode)
+	      (mode . shell-mode)
+	      (mode . eshell-mode)))
 	   ("help"    (or
-		       (name . "^\\*Help\\*$")
-		       (name . "^\\*info\\*$")))
+		 (name . "^\\*Help\\*$")
+		 (name . "^\\*info\\*$")))
 	   ("news"    (name . "^\\*Newsticker.*"))
 	   ("gnus"    (or
-		       (mode . message-mode)
-		       (mode . gnus-group-mode)
-		       (mode . gnus-summary-mode)
-		       (mode . gnus-article-mode)
-		       (name . "^\\*Group\\*")
-		       (name . "^\\*Summary\\*")
-		       (name . "^\\*Article\\*")
-		       (name . "^\\.newsrc.*")
-		       (name . "\\*imap log\\*")
-		       (name . "^\\*BBDB\\*")))
+		 (mode . message-mode)
+		 (mode . gnus-group-mode)
+		 (mode . gnus-summary-mode)
+		 (mode . gnus-article-mode)
+		 (name . "^\\*Group\\*")
+		 (name . "^\\*Summary\\*")
+		 (name . "^\\*Article\\*")
+		 (name . "^\\.newsrc.*")
+		 (name . "\\*imap log\\*")
+		 (name . "^\\*BBDB\\*")))
 	   ("chat"    (or
-		       (mode . rcirc-mode)
-		       (mode . erc-mode)
-		       (name . "^\\*rcirc.*")
-		       (name . "^\\*ERC.*"))))))
+		 (mode . rcirc-mode)
+		 (mode . erc-mode)
+		 (name . "^\\*rcirc.*")
+		 (name . "^\\*ERC.*"))))))
   (add-hook 'ibuffer-mode-hook
 	    (lambda ()
 	      (ibuffer-switch-to-saved-filter-groups "default")))
@@ -1216,23 +1216,23 @@
 	("C-c C-b" . org-backward-heading-same-level)
 	("C-c C-u" . outline-up-heading))
   (:repeat-map my/org-repeat-map
-               ("C-n" . org-next-visible-heading)
-               ("C-p" . org-previous-visible-heading)
-               ("C-f" . org-forward-heading-same-level)
-               ("C-b" . org-backward-heading-same-level)
-               ("C-u" . outline-up-heading))
+		 ("C-n" . org-next-visible-heading)
+		 ("C-p" . org-previous-visible-heading)
+		 ("C-f" . org-forward-heading-same-level)
+		 ("C-b" . org-backward-heading-same-level)
+		 ("C-u" . outline-up-heading))
   :hook
   (org-mode . org-indent-mode)		; visually indent by outline structure
 :config
 (org-babel-do-load-languages 'org-babel-load-languages
-  			     '((C . t)
-  			       (java . t)
-  			       (latex . t)
-  			       (lua . t)
-  			       (js . t)
-             		       (python . t)
-  			       (shell . t)
-  			       (emacs-lisp . t)))
+			     '((C . t)
+			       (java . t)
+			       (latex . t)
+			       (lua . t)
+			       (js . t)
+			       (python . t)
+			       (shell . t)
+			       (emacs-lisp . t)))
 (setq org-confirm-babel-evaluate nil)	; don't ask when evaluating code blocks
 )
 
@@ -1259,7 +1259,7 @@
   ;; Unset SSH_AGENT_PID by setting it to an empty string
   (setenv "SSH_AGENT_PID" "")
   ;; Set SSH_AUTH_SOCK to the output of the gpgconf command
-  (setenv "SSH_AUTH_SOCK" 
+  (setenv "SSH_AUTH_SOCK"
 	  (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket")))
   (async-shell-command "gpg-connect-agent /bye >/dev/null 2>&1")
   )
@@ -1289,9 +1289,9 @@
 	  "\\*\\(eldoc\\|xref\\|Flymake\\).*"
 	  "\\*\\(Python\\|ielm\\).*"
 	  "\\*\\(compilation\\|Occur\\|grep\\).*"
-          "Output\\*$"
-          help-mode
-          compilation-mode))
+	    "Output\\*$"
+	    help-mode
+	    compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1))                ; For echo area hints
 
@@ -1307,43 +1307,43 @@
     Prompts the user for the directory path."
     (interactive)
     (let* ((llamafile-extension "llamafile")
-           (regex (concat "\\." llamafile-extension "$"))
-           ;; Prompt for a directory path specifically
-           (dir-path (read-directory-name "Enter directory for Llama File: " nil nil t))
-           (flags "--verbose --server --nobrowser")
-           ;; directory-files returns a list of matching filenames
-           (files (directory-files dir-path t regex)))
-      (if files
-          (let ((file-to-run (car files)))
-            (message "Executing: %s" file-to-run)
-            (async-shell-command
-             (concat file-to-run " " flags)
-             (concat "*Async Shell " (file-name-base file-to-run) ".out*")
-             (concat "*Async Shell " (file-name-base file-to-run) ".err*")))
-    	;; Use the defined 'llamafile-extension' for the error message
-    	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
+	     (regex (concat "\\." llamafile-extension "$"))
+	     ;; Prompt for a directory path specifically
+	     (dir-path (read-directory-name "Enter directory for Llama File: " nil nil t))
+	     (flags "--verbose --server --nobrowser")
+	     ;; directory-files returns a list of matching filenames
+	     (files (directory-files dir-path t regex)))
+	(if files
+	    (let ((file-to-run (car files)))
+	      (message "Executing: %s" file-to-run)
+	      (async-shell-command
+	       (concat file-to-run " " flags)
+	       (concat "*Async Shell " (file-name-base file-to-run) ".out*")
+	       (concat "*Async Shell " (file-name-base file-to-run) ".err*")))
+	;; Use the defined 'llamafile-extension' for the error message
+	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
   (defun my/llama-cpp ()
     (interactive)
     (async-shell-command "llama-server -hf ggml-org/Qwen3-1.7B-GGUF -ngl 0 -t 6 -b 128"))
   :bind
   (:map my/gpt-prefix-map
-        ("a" . gptel-add)
-        ("f" . gptel-add-file)
-        ("g" . gptel)
-        ("l" . my/llama-cpp)
-        ("m" . gptel-menu)
-        ("p" . gptel-org-set-properties)
-        ("r" . gptel-rewrite)
-        ("s" . gptel-send)
-        ("t" . gptel-org-set-topic))
+	  ("a" . gptel-add)
+	  ("f" . gptel-add-file)
+	  ("g" . gptel)
+	  ("l" . my/llama-cpp)
+	  ("m" . gptel-menu)
+	  ("p" . gptel-org-set-properties)
+	  ("r" . gptel-rewrite)
+	  ("s" . gptel-send)
+	  ("t" . gptel-org-set-topic))
   :config
   ;; (setq gptel-backend
   ;;       (gptel-make-openai "llamafile"
   ;;         :stream t
   ;;         :protocol "http"
   ;;         :host "localhost:8080"
-  ;; 	  :models '(Llama-3.2-3B))
-  ;; 	)
+  ;;	  :models '(Llama-3.2-3B))
+  ;;	)
 
   ;; OpenRouter offers an OpenAI compatible API
   (gptel-make-openai "OpenRouter"               ;Any name you want
@@ -1354,14 +1354,14 @@
     :models '(openrouter/free))
 
   (gptel-make-ollama "Ollama"
-    			:host "localhost:11434"
-    			:stream t
-    			:models '(gemma3:4b))
-  (setq gptel-backend (gptel-make-openai "llama-cpp"
+			:host "localhost:11434"
 			:stream t
-			:protocol "http"
-			:host "localhost:8080"
-			:models '(Qwen3)))
+			:models '(gemma3:4b))
+  (setq gptel-backend (gptel-make-openai "llama-cpp"
+	      :stream t
+	      :protocol "http"
+	      :host "localhost:8080"
+	      :models '(Qwen3)))
   )
 
 (use-package ediff
