@@ -6,8 +6,8 @@
   (keymap-set global-map "C-c" my/global-prefix-map)
   (define-prefix-command 'my/emacs-prefix-map nil)
   (keymap-set my/global-prefix-map "e" '("Emacs" . my/emacs-prefix-map))
-  (define-prefix-command 'my/gpt-prefix-map nil)
-  (keymap-set my/global-prefix-map "g" '("GPT" . my/gpt-prefix-map))
+  (define-prefix-command 'my/ai-prefix-map nil)
+  (keymap-set my/global-prefix-map "a" '("AI" . my/ai-prefix-map))
   (define-prefix-command 'my/lsp-prefix-map nil)
   (keymap-set my/global-prefix-map "l" '("LSP" . my/lsp-prefix-map))
   (define-prefix-command 'my/outline-prefix-map nil)
@@ -5989,31 +5989,31 @@ Create a .dir-locals.el file in root of folder with contents like
 [[https://www.emacswiki.org/emacs/IbufferMode][emacswiki]]
 #+begin_src emacs-lisp :tangle no
   (setq ibuffer-saved-filter-groups
-	'(("default"
-	   ("dired" (mode . dired-mode))
-	   ("perl" (mode . cperl-mode))
-	   ("c" (mode . c-mode))
-	   ("python" (mode . python-base-mode))
-	   ("org" (mode . org-mode))
-	   ("vc" (or
-		  (name . "vc-.*")
-		  (name . "^\\*log-edit-files\\*$")))
-	   ("emacs" (or
-		     (name . "^\\*scratch\\*$")
-		     (name . "^\\*Messages\\*$")))
-	   ("svg" (name . "\\.svg")) ; group by file extension
-	   ("gnus" (or
-		    (mode . message-mode)
-		    (mode . bbdb-mode)
-		    (mode . mail-mode)
-		    (mode . gnus-group-mode)
-		    (mode . gnus-summary-mode)
-		    (mode . gnus-article-mode)
-		    (name . "^\\.bbdb$")
-		    (name . "^\\.newsrc-dribble"))))))
+  	'(("default"
+  	   ("dired" (mode . dired-mode))
+  	   ("perl" (mode . cperl-mode))
+  	   ("c" (mode . c-mode))
+  	   ("python" (mode . python-base-mode))
+  	   ("org" (mode . org-mode))
+  	   ("vc" (or
+  		  (name . "vc-.*")
+  		  (name . "^\\*log-edit-files\\*$")))
+  	   ("emacs" (or
+  		     (name . "^\\*scratch\\*$")
+  		     (name . "^\\*Messages\\*$")))
+  	   ("svg" (name . "\\.svg")) ; group by file extension
+  	   ("gnus" (or
+  		    (mode . message-mode)
+  		    (mode . bbdb-mode)
+  		    (mode . mail-mode)
+  		    (mode . gnus-group-mode)
+  		    (mode . gnus-summary-mode)
+  		    (mode . gnus-article-mode)
+  		    (name . "^\\.bbdb$")
+  		    (name . "^\\.newsrc-dribble"))))))
   (add-hook 'ibuffer-mode-hook
-	    (lambda ()
-	      (ibuffer-switch-to-saved-filter-groups "default")))
+  	    (lambda ()
+  	      (ibuffer-switch-to-saved-filter-groups "default")))
 #+end_src
 ** Configuration
 #+begin_src emacs-lisp
@@ -6028,73 +6028,74 @@ Create a .dir-locals.el file in root of folder with contents like
     (ibuffer-default-shrink-to-minimum-size nil) ; don't minimize window size
     (ibuffer-formats
      '((mark modified read-only locked " "
-	   (name 40 40 :left :elide)
-	   " "
-	   (size 9 -1 :right)
-	   " "
-	   (mode 16 16 :left :elide)
-	   " " filename-and-process)
+  	   (name 40 40 :left :elide)
+  	   " "
+  	   (size 9 -1 :right)
+  	   " "
+  	   (mode 16 16 :left :elide)
+  	   " " filename-and-process)
        (mark " "
-	   (name 16 -1)
-	   " " filename)))
+  	   (name 16 -1)
+  	   " " filename)))
     (ibuffer-saved-filter-groups nil)	; no defined filter by default
     (ibuffer-old-time 48)	  ; hours after which buffer is considered old
     (ibuffer-human-readable-size t)	; human readable size
     :config
     ;; Ibuffer filters
     (setq ibuffer-saved-filter-groups
-	'(("default"
-	   ("org"     (or
-		 (mode . org-mode)
-		 (name . "^\\*Org Src")
-		 (name . "^\\*Org Agenda\\*$")))
-	   ("tramp"   (name . "^\\*tramp.*"))
-	   ("emacs"   (or
-		 (name . "^\\*scratch\\*$")
-		 (name . "^\\*Messages\\*$")
-		 (name . "^\\*Warnings\\*$")
-		 (name . "^\\*Shell Command Output\\*$")
-		 (name . "^\\*Async-native-compile-log\\*$")))
-	   ("ediff"   (name . "^\\*[Ee]diff.*"))
-	   ("vc"      (name . "^\\*vc-.*"))
-	   ("dired"   (mode . dired-mode))
-	   ("terminal" (or
-	      (mode . term-mode)
-	      (mode . shell-mode)
-	      (mode . eshell-mode)))
-	   ("help"    (or
-		 (name . "^\\*Help\\*$")
-		 (name . "^\\*info\\*$")))
-	   ("news"    (name . "^\\*Newsticker.*"))
-	   ("gnus"    (or
-		 (mode . message-mode)
-		 (mode . gnus-group-mode)
-		 (mode . gnus-summary-mode)
-		 (mode . gnus-article-mode)
-		 (name . "^\\*Group\\*")
-		 (name . "^\\*Summary\\*")
-		 (name . "^\\*Article\\*")
-		 (name . "^\\.newsrc.*")
-		 (name . "\\*imap log\\*")
-		 (name . "^\\*BBDB\\*")))
-	   ("chat"    (or
-		 (mode . rcirc-mode)
-		 (mode . erc-mode)
-		 (name . "^\\*rcirc.*")
-		 (name . "^\\*ERC.*"))))))
+  	'(("default"
+  	   ("org"     (or
+  		       (mode . org-mode)
+  		       (name . "^\\*Org Src")
+  		       (name . "^\\*Org Agenda\\*$")))
+  	   ("tramp"   (name . "^\\*tramp.*"))
+  	   ("emacs"   (or
+  		       (name . "^\\*scratch\\*$")
+  		       (name . "^\\*Messages\\*$")
+  		       (name . "^\\*Warnings\\*$")
+  		       (name . "^\\*Shell Command Output\\*$")
+  		       (name . "^\\*Async-native-compile-log\\*$")))
+  	   ("ediff"   (name . "^\\*[Ee]diff.*"))
+  	   ("vc"      (name . "^\\*vc-.*"))
+  	   ("dired"   (mode . dired-mode))
+  	   ("terminal" (or
+  			(mode . term-mode)
+  			(mode . shell-mode)
+  			(mode . eshell-mode)))
+  	   ("help"    (or
+  		       (name . "^\\*Help\\*$")
+  		       (name . "^\\*info\\*$")))
+  	   ("news"    (name . "^\\*Newsticker.*"))
+  	   ("gnus"    (or
+  		       (mode . message-mode)
+  		       (mode . gnus-group-mode)
+  		       (mode . gnus-summary-mode)
+  		       (mode . gnus-article-mode)
+  		       (name . "^\\*Group\\*")
+  		       (name . "^\\*Summary\\*")
+  		       (name . "^\\*Article\\*")
+  		       (name . "^\\.newsrc.*")
+  		       (name . "\\*imap log\\*")
+  		       (name . "^\\*BBDB\\*")))
+  	   ("eca" (name . "<eca.*>"))
+  	   ("chat"    (or
+  		       (mode . rcirc-mode)
+  		       (mode . erc-mode)
+  		       (name . "^\\*rcirc.*")
+  		       (name . "^\\*ERC.*"))))))
     (add-hook 'ibuffer-mode-hook
-	    (lambda ()
-	      (ibuffer-switch-to-saved-filter-groups "default")))
+  	    (lambda ()
+  	      (ibuffer-switch-to-saved-filter-groups "default")))
     :bind
     (:map ibuffer-mode-map
-	("* f" . ibuffer-mark-by-file-name-regexp)
-	("* g" . ibuffer-mark-by-content-regexp)
-	("* n" . ibuffer-mark-by-name-regexp)
-	("s n" . ibuffer-do-sort-by-alphabetic)
-	("/ g" . ibuffer-filter-by-content)
-	("M-o" . other-window))
+  	("* f" . ibuffer-mark-by-file-name-regexp)
+  	("* g" . ibuffer-mark-by-content-regexp)
+  	("* n" . ibuffer-mark-by-name-regexp)
+  	("s n" . ibuffer-do-sort-by-alphabetic)
+  	("/ g" . ibuffer-filter-by-content)
+  	("M-o" . other-window))
     (:map ctl-x-map
-	("C-b" . ibuffer-jump)))
+  	("C-b" . ibuffer-jump)))
 #+end_src
 * Which Key
 - which-key is a minor mode for Emacs that displays the key bindings
@@ -6310,7 +6311,7 @@ Create a .dir-locals.el file in root of folder with contents like
 #+end_src
 * GPT
 ** GPTel
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package gptel
     :ensure t
     :defer t
@@ -6323,35 +6324,35 @@ Create a .dir-locals.el file in root of folder with contents like
       Prompts the user for the directory path."
       (interactive)
       (let* ((llamafile-extension "llamafile")
-	     (regex (concat "\\." llamafile-extension "$"))
-	     ;; Prompt for a directory path specifically
-	     (dir-path (read-directory-name "Enter directory for Llama File: " nil nil t))
-	     (flags "--verbose --server --nobrowser")
-	     ;; directory-files returns a list of matching filenames
-	     (files (directory-files dir-path t regex)))
-	(if files
-	    (let ((file-to-run (car files)))
-	      (message "Executing: %s" file-to-run)
-	      (async-shell-command
-	       (concat file-to-run " " flags)
-	       (concat "*Async Shell " (file-name-base file-to-run) ".out*")
-	       (concat "*Async Shell " (file-name-base file-to-run) ".err*")))
-	;; Use the defined 'llamafile-extension' for the error message
-	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
+  	     (regex (concat "\\." llamafile-extension "$"))
+  	     ;; Prompt for a directory path specifically
+  	     (dir-path (read-directory-name "Enter directory for Llama File: " nil nil t))
+  	     (flags "--verbose --server --nobrowser")
+  	     ;; directory-files returns a list of matching filenames
+  	     (files (directory-files dir-path t regex)))
+  	(if files
+  	    (let ((file-to-run (car files)))
+  	      (message "Executing: %s" file-to-run)
+  	      (async-shell-command
+  	       (concat file-to-run " " flags)
+  	       (concat "*Async Shell " (file-name-base file-to-run) ".out*")
+  	       (concat "*Async Shell " (file-name-base file-to-run) ".err*")))
+  	;; Use the defined 'llamafile-extension' for the error message
+  	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
     (defun my/llama-cpp ()
       (interactive)
       (async-shell-command "llama-server -hf ggml-org/Qwen3-1.7B-GGUF -ngl 0 -t 6 -b 128"))
     :bind
     (:map my/gpt-prefix-map
-	  ("a" . gptel-add)
-	  ("f" . gptel-add-file)
-	  ("g" . gptel)
-	  ("l" . my/llama-cpp)
-	  ("m" . gptel-menu)
-	  ("p" . gptel-org-set-properties)
-	  ("r" . gptel-rewrite)
-	  ("s" . gptel-send)
-	  ("t" . gptel-org-set-topic))
+  	  ("a" . gptel-add)
+  	  ("f" . gptel-add-file)
+  	  ("g" . gptel)
+  	  ("l" . my/llama-cpp)
+  	  ("m" . gptel-menu)
+  	  ("p" . gptel-org-set-properties)
+  	  ("r" . gptel-rewrite)
+  	  ("s" . gptel-send)
+  	  ("t" . gptel-org-set-topic))
     :config
     ;; (setq gptel-backend
     ;;       (gptel-make-openai "llamafile"
@@ -6369,15 +6370,15 @@ Create a .dir-locals.el file in root of folder with contents like
       :key #'gptel-api-key-from-auth-source
       :models '(openrouter/free))
 
-    (gptel-make-ollama "Ollama"
-			:host "localhost:11434"
-			:stream t
-			:models '(gemma3:4b))
-    (setq gptel-backend (gptel-make-openai "llama-cpp"
-	      :stream t
-	      :protocol "http"
-	      :host "localhost:8080"
-	      :models '(Qwen3)))
+    (setq gptel-backend (gptel-make-ollama "Ollama"
+  			:host "localhost:11434"
+  			:stream t
+  			:models '(qwen3.5:4b)))
+    ;; (setq gptel-backend (gptel-make-openai "llama-cpp"
+    ;; 	      :stream t
+    ;; 	      :protocol "http"
+    ;; 	      :host "localhost:8080"
+    ;; 	      :models '(Qwen3)))
     )
 #+end_src
 ** Minuet
@@ -6410,6 +6411,23 @@ Create a .dir-locals.el file in root of folder with contents like
     (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
     (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder:3b")
     (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 56)
+    )
+#+end_src
+** ECA
+#+begin_src emacs-lisp
+  (use-package eca
+    :ensure t
+    :defer t
+    :config
+    (setenv "OPENROUTER_API_KEY" (auth-source-pick-first-password :host "openrouter.ai"))
+    :bind
+    (:map my/ai-prefix-map
+  	  ("R" . eca-restart)
+  	  ("S" . eca-stop)
+  	  ("e" . eca)
+  	  ("m" . eca-chat-select-model)
+  	  ("s" . eca-chat-stop-prompt)
+  	  ("t" . eca-chat-toggle-window))
     )
 #+end_src
 * Ediff

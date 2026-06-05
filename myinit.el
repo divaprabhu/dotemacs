@@ -2,8 +2,8 @@
 (keymap-set global-map "C-c" my/global-prefix-map)
 (define-prefix-command 'my/emacs-prefix-map nil)
 (keymap-set my/global-prefix-map "e" '("Emacs" . my/emacs-prefix-map))
-(define-prefix-command 'my/gpt-prefix-map nil)
-(keymap-set my/global-prefix-map "g" '("GPT" . my/gpt-prefix-map))
+(define-prefix-command 'my/ai-prefix-map nil)
+(keymap-set my/global-prefix-map "a" '("AI" . my/ai-prefix-map))
 (define-prefix-command 'my/lsp-prefix-map nil)
 (keymap-set my/global-prefix-map "l" '("LSP" . my/lsp-prefix-map))
 (define-prefix-command 'my/outline-prefix-map nil)
@@ -1001,7 +1001,6 @@
 
 (use-package treesit
   :defer t
-  :mode (("\\.tsx\\'" . tsx-ts-mode))
   :preface
   (defun mp-setup-install-grammars ()
     "Install Tree-sitter grammars if they are absent."
@@ -1137,43 +1136,44 @@
   (setq ibuffer-saved-filter-groups
 	'(("default"
 	   ("org"     (or
-		 (mode . org-mode)
-		 (name . "^\\*Org Src")
-		 (name . "^\\*Org Agenda\\*$")))
+		       (mode . org-mode)
+		       (name . "^\\*Org Src")
+		       (name . "^\\*Org Agenda\\*$")))
 	   ("tramp"   (name . "^\\*tramp.*"))
 	   ("emacs"   (or
-		 (name . "^\\*scratch\\*$")
-		 (name . "^\\*Messages\\*$")
-		 (name . "^\\*Warnings\\*$")
-		 (name . "^\\*Shell Command Output\\*$")
-		 (name . "^\\*Async-native-compile-log\\*$")))
+		       (name . "^\\*scratch\\*$")
+		       (name . "^\\*Messages\\*$")
+		       (name . "^\\*Warnings\\*$")
+		       (name . "^\\*Shell Command Output\\*$")
+		       (name . "^\\*Async-native-compile-log\\*$")))
 	   ("ediff"   (name . "^\\*[Ee]diff.*"))
 	   ("vc"      (name . "^\\*vc-.*"))
 	   ("dired"   (mode . dired-mode))
 	   ("terminal" (or
-	      (mode . term-mode)
-	      (mode . shell-mode)
-	      (mode . eshell-mode)))
+			(mode . term-mode)
+			(mode . shell-mode)
+			(mode . eshell-mode)))
 	   ("help"    (or
-		 (name . "^\\*Help\\*$")
-		 (name . "^\\*info\\*$")))
+		       (name . "^\\*Help\\*$")
+		       (name . "^\\*info\\*$")))
 	   ("news"    (name . "^\\*Newsticker.*"))
 	   ("gnus"    (or
-		 (mode . message-mode)
-		 (mode . gnus-group-mode)
-		 (mode . gnus-summary-mode)
-		 (mode . gnus-article-mode)
-		 (name . "^\\*Group\\*")
-		 (name . "^\\*Summary\\*")
-		 (name . "^\\*Article\\*")
-		 (name . "^\\.newsrc.*")
-		 (name . "\\*imap log\\*")
-		 (name . "^\\*BBDB\\*")))
+		       (mode . message-mode)
+		       (mode . gnus-group-mode)
+		       (mode . gnus-summary-mode)
+		       (mode . gnus-article-mode)
+		       (name . "^\\*Group\\*")
+		       (name . "^\\*Summary\\*")
+		       (name . "^\\*Article\\*")
+		       (name . "^\\.newsrc.*")
+		       (name . "\\*imap log\\*")
+		       (name . "^\\*BBDB\\*")))
+	   ("eca" (name . "<eca.*>"))
 	   ("chat"    (or
-		 (mode . rcirc-mode)
-		 (mode . erc-mode)
-		 (name . "^\\*rcirc.*")
-		 (name . "^\\*ERC.*"))))))
+		       (mode . rcirc-mode)
+		       (mode . erc-mode)
+		       (name . "^\\*rcirc.*")
+		       (name . "^\\*ERC.*"))))))
   (add-hook 'ibuffer-mode-hook
 	    (lambda ()
 	      (ibuffer-switch-to-saved-filter-groups "default")))
@@ -1295,73 +1295,19 @@
   (popper-mode +1)
   (popper-echo-mode +1))                ; For echo area hints
 
-(use-package gptel
+(use-package eca
   :ensure t
   :defer t
-  :custom
-  (gptel-default-mode 'org-mode)
-  (gptel-include-reasoning t)
-  :preface
-  (defun my/run-llamafile ()
-    "Finds a .llamafile in a user-specified directory and runs it asynchronously.
-    Prompts the user for the directory path."
-    (interactive)
-    (let* ((llamafile-extension "llamafile")
-	     (regex (concat "\\." llamafile-extension "$"))
-	     ;; Prompt for a directory path specifically
-	     (dir-path (read-directory-name "Enter directory for Llama File: " nil nil t))
-	     (flags "--verbose --server --nobrowser")
-	     ;; directory-files returns a list of matching filenames
-	     (files (directory-files dir-path t regex)))
-	(if files
-	    (let ((file-to-run (car files)))
-	      (message "Executing: %s" file-to-run)
-	      (async-shell-command
-	       (concat file-to-run " " flags)
-	       (concat "*Async Shell " (file-name-base file-to-run) ".out*")
-	       (concat "*Async Shell " (file-name-base file-to-run) ".err*")))
-	;; Use the defined 'llamafile-extension' for the error message
-	(message "No file with extension .%s found in %s" llamafile-extension dir-path))))
-  (defun my/llama-cpp ()
-    (interactive)
-    (async-shell-command "llama-server -hf ggml-org/Qwen3-1.7B-GGUF -ngl 0 -t 6 -b 128"))
-  :bind
-  (:map my/gpt-prefix-map
-	  ("a" . gptel-add)
-	  ("f" . gptel-add-file)
-	  ("g" . gptel)
-	  ("l" . my/llama-cpp)
-	  ("m" . gptel-menu)
-	  ("p" . gptel-org-set-properties)
-	  ("r" . gptel-rewrite)
-	  ("s" . gptel-send)
-	  ("t" . gptel-org-set-topic))
   :config
-  ;; (setq gptel-backend
-  ;;       (gptel-make-openai "llamafile"
-  ;;         :stream t
-  ;;         :protocol "http"
-  ;;         :host "localhost:8080"
-  ;;	  :models '(Llama-3.2-3B))
-  ;;	)
-
-  ;; OpenRouter offers an OpenAI compatible API
-  (gptel-make-openai "OpenRouter"               ;Any name you want
-    :host "openrouter.ai"
-    :endpoint "/api/v1/chat/completions"
-    :stream t
-    :key #'gptel-api-key-from-auth-source
-    :models '(openrouter/free))
-
-  (gptel-make-ollama "Ollama"
-			:host "localhost:11434"
-			:stream t
-			:models '(gemma3:4b))
-  (setq gptel-backend (gptel-make-openai "llama-cpp"
-	      :stream t
-	      :protocol "http"
-	      :host "localhost:8080"
-	      :models '(Qwen3)))
+  (setenv "OPENROUTER_API_KEY" (auth-source-pick-first-password :host "openrouter.ai"))
+  :bind
+  (:map my/ai-prefix-map
+	  ("R" . eca-restart)
+	  ("S" . eca-stop)
+	  ("e" . eca)
+	  ("m" . eca-chat-select-model)
+	  ("s" . eca-chat-stop-prompt)
+	  ("t" . eca-chat-toggle-window))
   )
 
 (use-package ediff
