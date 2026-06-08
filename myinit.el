@@ -1,13 +1,16 @@
 (define-prefix-command 'my/global-prefix-map nil)
 (keymap-set global-map "C-c" my/global-prefix-map)
-(define-prefix-command 'my/emacs-prefix-map nil)
-(keymap-set my/global-prefix-map "e" '("Emacs" . my/emacs-prefix-map))
 (define-prefix-command 'my/ai-prefix-map nil)
 (keymap-set my/global-prefix-map "a" '("AI" . my/ai-prefix-map))
+(define-prefix-command 'my/emacs-prefix-map nil)
+(keymap-set my/global-prefix-map "e" '("Emacs" . my/emacs-prefix-map))
 (define-prefix-command 'my/lsp-prefix-map nil)
 (keymap-set my/global-prefix-map "l" '("LSP" . my/lsp-prefix-map))
 (define-prefix-command 'my/outline-prefix-map nil)
 (keymap-set my/global-prefix-map "o" '("Outline" . my/outline-prefix-map))
+(define-prefix-command 'my/shell-prefix-map nil)
+(keymap-set my/global-prefix-map "s" '("Shell" . my/shell-prefix-map))
+
 (use-package emacs
   :init
   (repeat-mode 1)
@@ -21,6 +24,10 @@
   ("C-x x p" . prepend-to-buffer)
   ("C-x x c" . copy-to-buffer)
   ("C-x x f" . append-to-file)
+  (:map my/shell-prefix-map
+	  ("s" . shell)
+	  ("e" . eshell)
+	  ("t" . term))
   (:repeat-map my/emacs-prefix-map
 	       ("j" . duplicate-dwim)
 	       (";" . comment-line)
