@@ -1069,12 +1069,7 @@
   ;;	(shell-command (concat "python3 -m venv " pylspdir))
   ;;	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] debugpy && deactivate"))))))
   :config
-  (add-hook
-   'python-base-mode-hook
-   (progn
-     (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "bin" "~/.local")))
-     (setq exec-path (split-string (getenv "PATH") path-separator))
-     'eglot-ensure))
+  (add-hook 'python-base-mode-hook 'eglot-ensure)
   (add-hook
    'python-base-mode-hook
    (lambda ()
@@ -1329,4 +1324,7 @@
 
 (use-package uv-mode
     :ensure t
-    :hook (python-mode . uv-mode-auto-activate-hook))
+    :config
+    (keymap-unset uv-mode-map "C-c C-s")
+    (keymap-unset uv-mode-map "C-c C-u")
+    :hook (python-base-mode . uv-mode-auto-activate-hook))
