@@ -1057,7 +1057,13 @@
   :defer t
   :custom
   (python-indent-guess-indent-offset-verbose nil)
-  ;; :init
+  :init
+  (unless (file-exists-p (expand-file-name "bin/uv" "~/.local/"))
+    (cond
+     ((eq system-type 'windows-nt)
+      (async-shell-command "powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex""))
+     (t
+      (async-shell-command "curl -LsSf https://astral.sh/uv/install.sh | sh"))))
   ;; (let ((pylspdir (expand-file-name "lsp/pylsp" "~/.cache")))
   ;;   (unless (file-directory-p pylspdir)
   ;;     (make-directory pylspdir t)
@@ -1074,13 +1080,13 @@
    'python-base-mode-hook
    (lambda ()
      (setq-local outline-regexp
-	   (rx (or
-		;; Branch 1: class (no async)
-		(group (group (* space)) bow "class" eow)
-		;; Branch 2: def or async def
-		(group (group (* space)) bow (optional "async" (+ space)) "def" eow)
-		;; Branch 3: decorators
-		(group (group (* space)) "@"))))))
+		 (rx (or
+		      ;; Branch 1: class (no async)
+		      (group (group (* space)) bow "class" eow)
+		      ;; Branch 2: def or async def
+		      (group (group (* space)) bow (optional "async" (+ space)) "def" eow)
+		      ;; Branch 3: decorators
+		      (group (group (* space)) "@"))))))
   ;; (add-hook 'python-mode-hook
   ;;	    (progn
   ;;	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
@@ -1296,21 +1302,6 @@
 	    compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1))                ; For echo area hints
-
-(use-package eca
-  :ensure t
-  :defer t
-  :config
-  (setenv "OPENROUTER_API_KEY" (auth-source-pick-first-password :host "openrouter.ai"))
-  :bind
-  (:map my/ai-prefix-map
-	  ("R" . eca-restart)
-	  ("S" . eca-stop)
-	  ("e" . eca)
-	  ("m" . eca-chat-select-model)
-	  ("s" . eca-chat-stop-prompt)
-	  ("t" . eca-chat-toggle-window))
-  )
 
 (use-package ediff
   :defer t

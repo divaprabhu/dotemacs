@@ -5756,7 +5756,13 @@ Create a .dir-locals.el file in root of folder with contents like
     :defer t
     :custom
     (python-indent-guess-indent-offset-verbose nil)
-    ;; :init
+    :init
+    (unless (file-exists-p (expand-file-name "bin/uv" "~/.local/"))
+      (cond
+       ((eq system-type 'windows-nt)
+        (async-shell-command "powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex""))
+       (t
+        (async-shell-command "curl -LsSf https://astral.sh/uv/install.sh | sh"))))
     ;; (let ((pylspdir (expand-file-name "lsp/pylsp" "~/.cache")))
     ;;   (unless (file-directory-p pylspdir)
     ;;     (make-directory pylspdir t)
@@ -5773,13 +5779,13 @@ Create a .dir-locals.el file in root of folder with contents like
      'python-base-mode-hook
      (lambda ()
        (setq-local outline-regexp
-	   (rx (or
-		;; Branch 1: class (no async)
-		(group (group (* space)) bow "class" eow)
-		;; Branch 2: def or async def
-		(group (group (* space)) bow (optional "async" (+ space)) "def" eow)
-		;; Branch 3: decorators
-		(group (group (* space)) "@"))))))
+  		 (rx (or
+  		      ;; Branch 1: class (no async)
+  		      (group (group (* space)) bow "class" eow)
+  		      ;; Branch 2: def or async def
+  		      (group (group (* space)) bow (optional "async" (+ space)) "def" eow)
+  		      ;; Branch 3: decorators
+  		      (group (group (* space)) "@"))))))
     ;; (add-hook 'python-mode-hook
     ;;	    (progn
     ;;	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
@@ -6416,20 +6422,68 @@ Create a .dir-locals.el file in root of folder with contents like
     )
 #+end_src
 ** ECA
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no  
   (use-package eca
     :ensure t
     :defer t
+    :custom
+    (eca-extra-args '("--verbose" "--log-level" "debug"))
+    (eca-chat-auto-add-cursor nil)
+    (eca-chat-diff-tool 'ediff)
+    (eca-chat-readonly-history t)
+    (eca-chat-expand-pending-approval-tools t)
+    (eca-chat-shrink-called-tools t)
     :config
-    (setenv "OPENROUTER_API_KEY" (auth-source-pick-first-password :host "openrouter.ai"))
+    (define-prefix-command 'my/ai-agent-prefix-map nil)
+    (keymap-set my/ai-prefix-map "a" '("Agent" . my/ai-agent-prefix-map))
+    (define-prefix-command 'my/ai-chat-prefix-map nil)
+    (keymap-set my/ai-prefix-map "c" '("Chat" . my/ai-chat-prefix-map))
+    (define-prefix-command 'my/ai-model-prefix-map nil)
+    (keymap-set my/ai-prefix-map "m" '("Model" . my/ai-model-prefix-map))
+    (define-prefix-command 'my/ai-prompt-prefix-map nil)
+    (keymap-set my/ai-prefix-map "p" '("Prompt" . my/ai-prompt-prefix-map))
+    (define-prefix-command 'my/ai-tool-prefix-map nil)
+    (keymap-set my/ai-prefix-map "t" '("Tool" . my/ai-tool-prefix-map))
     :bind
     (:map my/ai-prefix-map
-  	  ("R" . eca-restart)
-  	  ("S" . eca-stop)
-  	  ("e" . eca)
-  	  ("m" . eca-chat-select-model)
-  	  ("s" . eca-chat-stop-prompt)
-  	  ("t" . eca-chat-toggle-window))
+  	("." . eca-transient-menu)
+    	("R" . eca-restart)
+    	("S" . eca-stop)
+    	("e" . eca)
+  	("r" . eca-rewrite)
+    	("s" . eca-settings)
+    	("w" . eca-chat-talk))
+    :bind
+    (:map my/ai-agent-prefix-map
+    	("a" . eca-chat-cycle-agent)
+    	("s" . eca-chat-select-agent))
+    :bind
+    (:map my/ai-chat-prefix-map
+    	("c" . eca-chat-clear)
+    	("d" . eca-chat-delete)
+  	  ("k" . eca-chat-reset)
+  	  ("n" . eca-chat-new)
+    	("p" . eca-switch-to-project-chat)
+    	("r" . eca-chat-resume)
+    	("s" . eca-switch-to-chat)
+    	("t" . eca-chat-timeline))
+    :bind
+    (:map my/ai-model-prefix-map
+    	("s" . eca-chat-select-model))
+    :bind
+    (:map my/ai-prompt-prefix-map
+    	("S" . eca-chat-stop-prompt)
+    	("c" . eca-chat-clear-prompt)
+    	("d" . eca-chat-drop-context-from-system-prompt)
+    	("f" . eca-chat-add-filepath-to-user-prompt)
+    	("s" . eca-chat-add-context-to-system-prompt)
+    	("u" . eca-chat-add-context-to-user-prompt))
+    :bind
+    (:map my/ai-tool-prefix-map
+  	  ("!" . eca-chat-tool-call-accept-all-and-remember)
+    	("A" . eca-chat-tool-call-accept-all)
+    	("a" . eca-chat-tool-call-accept-next)
+    	("r" . eca-chat-tool-call-reject-next))
     )
 #+end_src
 * Ediff
