@@ -611,9 +611,24 @@
 
 (use-package vc
   :defer t
+  :init
+  (defun my/vc-git-clone (repository-url local-dir)
+    "Run \"git clone REPOSITORY-URL\" to LOCAL-DIR.
+Executes `vc-dir' in the newly cloned directory."
+    (interactive
+     (let* ((url (read-string "Repository URL: "))
+            (default-name (file-name-base url))
+            (parent (read-directory-name "Clone into directory: " default-directory))
+            (dir (expand-file-name default-name parent)))
+       (list url dir)))
+    (vc-git-command nil 0 nil "clone" repository-url
+                    (directory-file-name local-dir))
+    (vc-dir (expand-file-name local-dir)))
+  
   :bind
   (:map vc-prefix-map
-	("e" . vc-ediff))
+    	("c" . #'my/vc-git-clone)
+    	("e" . vc-ediff))
   :custom
   (vc-revert-show-diff t)	      ; revert first shows diff buffer
   (vc-follow-symlinks t)	      ; follow symlinks

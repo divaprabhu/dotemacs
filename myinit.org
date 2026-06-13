@@ -3667,6 +3667,261 @@ preceding line.
   |                        | nil - just display warning message                |
   | 'vc-command-messages'  | display the shell command run for the VC action   |
   |------------------------+---------------------------------------------------|
+*** Basic clone, commit, pull and push flow
+**** Clone
+:PROPERTIES:
+:CUSTOM_ID: clone
+:END:
+You decide you want to hack on a repo. There's no vc equivalent to
+=git clone...=. So you drop to the command line to do it. OR you write a
+command, this one is mine:
+
+#+begin_example
+(defvar hoagie-vc-git-emails
+  '("code@sebasmonia.com"
+    "seb.monia@workdomain.com"
+    "another@email.com")
+  "List of email addresses that can be associated with a repository")
+
+(defun hoagie-vc-git-clone (repository-url local-dir)
+  "Run \"git clone REPOSITORY-URL\" to LOCAL-DIR.
+It also prompts what email to use in the directory, from the
+values in `hoagie-vc-git-emails'.
+Executes `vc-dir' in the newly cloned directory."
+  (interactive
+   (let* ((url (read-string "Repository URL: "))
+          (dir (file-name-base url)))
+     (list url (read-string "Target directory: " dir))))
+  (vc-git-command nil 0 nil "clone" repository-url local-dir)
+  (let ((default-directory (file-name-concat default-directory local-dir)))
+    (vc-git-command nil 0 nil "config" "user.email"
+                    (completing-read "Email for this repo: "
+                                     hoagie-vc-git-emails))
+    (vc-dir default-directory)))
+    
+#+end_example
+
+You can see the command does some additional setup and opens =vc-dir=,
+which is more or less equivalent to Magit's status window. It also uses
+plumbing from =vc-git=, the package to which most commands dispatch
+their work for git repositories.
+
+Commands in VC are under the prefix =C-x v=[[#fn-2][[2]]]. For Example,
+you can invoke =vc-dir= at any point using =C-x v d= (personally, I
+always use =project-vc-dir=, because I use =project.el=. The binding is
+=C-x p v=).
+
+**** vc-dir
+:PROPERTIES:
+:CUSTOM_ID: vc-dir
+:END:
+We'll focus first on this window, which gives an overview of the
+repository status. Here is how the =vc-dir= buffer for my website repo
+looks for this post:
+
+#+begin_example
+VC backend : Git
+Working dir: ~/sourcehut/site.sebasmonia/
+Branch     : main
+Tracking   : origin/main
+Remote     : git@git.sr.ht:~sebasmonia/site.sebasmonia.com
+Stash      : Hide all stashes (1)
+             {0}: On main: temp files
+
+                         ./
+                         content/
+     edited              content/index.html
+     edited              content/postslist.html
+                         content/posts/
+     unregistered        content/posts/2024-08-15-emacs-vc-mode-tutorial.html
+    
+#+end_example
+
+Things to note in the header:
+
+- "VC backend" tells us what's the underlying source control solution.
+  In this case, git.
+- You can see the local branch name, remote branch, etc.
+- Yes, there is support for stashes. In the =vc-dir= buffer, the stash
+  commands are under =z=. Use =z ?= to see all the bindings.
+
+The "unregistered" file is this post. The next logical action for a file
+happens with the key =v=, which in this case, is to add it to the repo.
+So I move point to the file and press the key:
+
+#+begin_example
+     added               content/posts/2024-08-15-emacs-vc-mode-tutorial.html
+      
+#+end_example
+
+You can also mark several files to operate on them at the same time,
+using =m=. Pressing =M= will mark all files with the same status as the
+current one, for example if I put point in any of the files I edited:
+
+#+begin_example
+                         ./
+                         content/
+  *  edited              content/index.html
+  *  edited              content/postslist.html
+                         content/posts/
+     added               content/posts/2024-08-15-emacs-vc-mode-tutorial.html
+      
+#+end_example
+
+And then with =u= or =U= you can unmark individual files or remove all
+marks, respectively.
+
+There are many commands that depend on selected files, or point
+position. For example =vc-revert= (not bound by default, I put it in
+=k=), shows a diff of the changes and asks for confirmation to revert.
+If files are selected, it will operate only on those. If there's no
+selection and point is over any file, it will instead offer to revert
+that single file. With point in the header, we can revert *all changes*
+in one go.\\
+Other bindings I use often and behave similarly are =vc-diff= and
+=vc-print-log=. Try this last one, by default bound to =l=, in the
+header and over a single file, and see the difference :) very cool.
+
+**** Commit
+:PROPERTIES:
+:CUSTOM_ID: commit
+:END:
+Let's say I am ready to commit, with my two files edited and one added.
+I press =v= with point in the header of =vc-dir= and two windows pop up:
+one where I can write the commit message, and at the bottom the list of
+files included. There are a few important bindings in this window, other
+than =C-c C-c= to commit:
+
+- =C-c C-d= will show a diff of the changes, which brings us a bit
+  closer to Magit's commit view.
+- =C-c C-k= aborts the operation. You could just kill the buffer, but
+  this command also restores the window configuration.
+- =C-c C-e= will amend the last commit, bringing back its message.
+
+**** Push and pull
+:PROPERTIES:
+:CUSTOM_ID: push-and-pull
+:END:
+I have my changes committed, and I feel ready to push them. From my
+=vc-dir= window, I press =P=. It will run =git push=. Similarly =+= will
+run =git pull=.\\
+In both cases, you can invoke the commands with prefix argument to
+modify the parameters passed to git, for example if you would like to
+pull from a different branch (by editing the default command to
+=git pull origin other-branch=).
+
+*** Branches
+:PROPERTIES:
+:CUSTOM_ID: branches
+:END:
+Speaking of branches, somewhat recently (very recently, in Emacs years)
+a new prefix =C-x v b= was added for git branches, also available in
+=vc-dir= under =b=:
+
+- =b c= creates and switches to a new branch
+- =b l= prints the log for a specific branch
+- =b s= switches to an existing branch. By default, it adds "origin/" in
+  front of the name, which gives you a detached head. So delete the
+  prefix when picking a remote branch to clone it locally.
+
+Notoriously missing is a command to simply list branches, which I added
+to =b b=:
+
+#+begin_example
+(defun hoagie-vc-git-show-branches (&optional arg)
+    "Show in a buffer the list of branches in the current repository.
+With prefix ARG show the remote branches."
+    (interactive "P")
+    ;; TODO: this is a mix of vc-git stuff and project.el stuff...
+    (let* ((default-directory (project-root (project-current t)))
+           (buffer-name (project-prefixed-buffer-name (if arg
+                                                          "git remote branches"
+                                                        "git local branches"))))
+      (vc-git-command buffer-name
+                      0
+                      nil
+                      "branch"
+                      (when arg "-r"))
+      (pop-to-buffer buffer-name)
+      (goto-char (point-min))
+      (special-mode)))
+    
+#+end_example
+
+*** "C-x v" prefix
+:PROPERTIES:
+:CUSTOM_ID: c-x-v-prefix
+:END:
+Most of the commands described above can be invoked in any file you are
+working on. For example if I am modifying index.html, I save changes and
+press =C-x v == to see the diff compared to the last commit. I can also
+commit that single file individually, revert it[[#fn-3][[3]]], see a log
+of its commits, etc.
+
+*** Conflicts, ediff, reset
+:PROPERTIES:
+:CUSTOM_ID: conflicts-ediff-reset
+:END:
+When there's a conflict, open the relevant file and invoke
+=vc-resolve-conflicts= to navigate the problem areas. Once you save the
+file, the conflict should be marked as resolved.\\
+There's a =vc-ediff= command that I bound in a bunch of places, and it
+does exactly what the name makes you think it does. I love ediff :)
+
+And finally, the last custom command of this post:
+
+#+begin_example
+(defun hoagie-vc-dir-reset (&optional arg)
+    "Runs \"git reset\" to unstage all changes.
+With prefix arg, does a hard reset (thus it asks for confirmation)."
+    (interactive "P")
+    (if arg
+        (when (y-or-n-p "Perform a hard reset? ")
+          (vc-git-command nil 0 nil "reset" "--hard")
+          (message "Completed. All pending changes are lost."))
+      (vc-git-command nil 0 nil "reset")
+      (message "All changes are unstaged."))
+    (vc-dir-refresh))
+    
+#+end_example
+
+I bound this one to =r= in my =vc-dir= configuration.
+
+*** Partial commits
+:PROPERTIES:
+:CUSTOM_ID: partial-commits
+:END:
+This was the last thing that I missed from Magit, and is also a somewhat
+recent addition.\\
+From a diff buffer (for example, one invoked in the current file via
+=C-x v ==), you can drop a hunk using =k=, or split it using =C-c C-s=.
+There are a few other bindings, check out the major mode help.
+
+Once satisfied, /in the diff buffer/, press =C-x v v= to create a commit
+with only the contents that you didn't drop.\\
+I don't use this often, but it was very convenient the few times I
+needed it.
+
+*** Closing remarks
+:PROPERTIES:
+:CUSTOM_ID: closing-remarks
+:END:
+There are many useful commands I didn't mention (to examine commit
+details, retrieve a specific version of a file, or search all the
+commits for a word, for example).\\
+But hopefully this was enough to get someone started with the basics.
+
+If any experienced =vc-mode= users find errors in the text, I will be
+happy to [[mailto:sebastian@sebasmonia.com][receive a message]] and
+update the post.
+
+I mentioned in the intro built-in-itis, =vc-mode= was my own gateway to
+start shedding third party packages for more "Emacs core". In its own
+messy way, built-ins integrate and work together better than it seems.
+Even if they are more idiosyncratic and have more surprising behaviours
+(to the modern eye) than newer packages.
+
+
 ** Projects
 - A project is a collection of files used for producing one or more
   programs. Files belonging to a project are stored in hierarchy of
@@ -3798,9 +4053,24 @@ preceding line.
 #+begin_src emacs-lisp
   (use-package vc
     :defer t
+    :init
+    (defun my/vc-git-clone (repository-url local-dir)
+      "Run \"git clone REPOSITORY-URL\" to LOCAL-DIR.
+  Executes `vc-dir' in the newly cloned directory."
+      (interactive
+       (let* ((url (read-string "Repository URL: "))
+              (default-name (file-name-base url))
+              (parent (read-directory-name "Clone into directory: " default-directory))
+              (dir (expand-file-name default-name parent)))
+         (list url dir)))
+      (vc-git-command nil 0 nil "clone" repository-url
+                      (directory-file-name local-dir))
+      (vc-dir (expand-file-name local-dir)))
+    
     :bind
     (:map vc-prefix-map
-	("e" . vc-ediff))
+      	("c" . #'my/vc-git-clone)
+      	("e" . vc-ediff))
     :custom
     (vc-revert-show-diff t)	      ; revert first shows diff buffer
     (vc-follow-symlinks t)	      ; follow symlinks
