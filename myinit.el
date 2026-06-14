@@ -625,10 +625,20 @@
 
 (use-package vc
   :defer t
-  :init
+  :bind
+  (:map vc-prefix-map
+      	("c" . my/vc-git-clone)
+      	("e" . vc-ediff))
+  :custom
+  (vc-revert-show-diff t)	      ; revert first shows diff buffer
+  (vc-follow-symlinks t)	      ; follow symlinks
+  (vc-command-messages t)	      ; log backend commands being run
+  :hook
+  (diff-mode . next-error-follow-minor-mode)	; auto enable follow mode
+  :config
   (defun my/vc-git-clone (repository-url local-dir)
     "Run \"git clone REPOSITORY-URL\" to LOCAL-DIR.
-Executes `vc-dir' in the newly cloned directory."
+  Executes `vc-dir' in the newly cloned directory."
     (interactive
      (let* ((url (read-string "Repository URL: "))
             (default-name (file-name-base url))
@@ -637,19 +647,7 @@ Executes `vc-dir' in the newly cloned directory."
        (list url dir)))
     (vc-git-command nil 0 nil "clone" repository-url
                     (directory-file-name local-dir))
-    (vc-dir (expand-file-name local-dir)))
-  
-  :bind
-  (:map vc-prefix-map
-    	("c" . #'my/vc-git-clone)
-    	("e" . vc-ediff))
-  :custom
-  (vc-revert-show-diff t)	      ; revert first shows diff buffer
-  (vc-follow-symlinks t)	      ; follow symlinks
-  (vc-command-messages t)	      ; log backend commands being run
-  :hook
-  (diff-mode . next-error-follow-minor-mode)	; auto enable follow mode
-  :config
+    (vc-dir (expand-file-name local-dir)))    
   (add-to-list 'vc-directory-exclusion-list ".venv")
   )
 (use-package project
