@@ -6781,11 +6781,17 @@ Create a .dir-locals.el file in root of folder with contents like
     )
 #+end_src
 ** Agent Shell
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no  
   (use-package agent-shell
     :ensure t
+    :ensure-system-package
+    ((claude-agent-acp . "bun add -g @agentclientprotocol/claude-agent-acp"))
     :defer t
     :init
+    (setenv "ANTHROPIC_AUTH_TOKEN" (auth-source-pick-first-password :host "ollama.com"))
+    (setenv "PATH" (concat "~/.bun/bin:~/.local/bin:" (getenv "PATH")))
+    (add-to-list 'exec-path "~/.bun/bin")
+    (add-to-list 'exec-path "~/.local/bin")
     (defun my/agent-shell-dot-subdir (subdir)
       (let ()
         (expand-file-name "agent-shell" user-emacs-directory)))
@@ -6793,9 +6799,9 @@ Create a .dir-locals.el file in root of folder with contents like
     (agent-shell-dot-subdir-function #'my/agent-shell-dot-subdir)
     (agent-shell-context-sources '(files region error))
     (agent-shell-display-action '(display-buffer-in-side-window
-  				(display-buffer-in-side-window)
-  				(side . right)
-  				(window-width . 0.5)))
+    				(display-buffer-in-side-window)
+    				(side . right)
+    				(window-width . 0.5)))
     (agent-shell-header-style 'text)
     (agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config))
     (agent-shell-session-strategy 'latest)
@@ -6803,29 +6809,27 @@ Create a .dir-locals.el file in root of folder with contents like
     (agent-shell-show-welcome-message nil)
     (agent-shell-thought-process-expand-by-default nil)
     (agent-shell-tool-use-expand-by-default nil)
-    :config
-    (setenv "ANTHROPIC_AUTH_TOKEN" (auth-source-pick-first-password :host "ollama.com"))
     :bind
     (:map my/agentshell-prefix-map
-  	("!"     . agent-shell-insert-shell-command-output)
-  	("?"     . agent-shell-help-menu)
-  	("R d"   . agent-shell-remove-pending-request)
-  	("R q"   . agent-shell-queue-request)
-  	("R r"   . agent-shell-resume-pending-requests)
-  	("a"     . agent-shell)
-  	("c"     . agent-shell-clear-buffer)
-  	("k"     . agent-shell-delete-interaction-at-point)
-  	("l r"   . agent-shell-reset-logs)
-  	("l t"   . agent-shell-toggle-logging)
-  	("l v"   . agent-shell-view-traffic)
-  	("m"     . agent-shell-cycle-session-mode)
-  	("p"     . agent-shell-prompt-compose)
-  	("s d"   . agent-shell-send-dwim)
-  	("s f"   . agent-shell-send-file)
-  	("s i"   . agent-shell-send-screenshot)
-  	("s o"   . agent-shell-send-other-file)
-  	("s r"   . agent-shell-send-region)
-  	("t"     . agent-shell-open-transcript))
+    	("!"     . agent-shell-insert-shell-command-output)
+    	("?"     . agent-shell-help-menu)
+    	("R d"   . agent-shell-remove-pending-request)
+    	("R q"   . agent-shell-queue-request)
+    	("R r"   . agent-shell-resume-pending-requests)
+    	("a"     . agent-shell)
+    	("c"     . agent-shell-clear-buffer)
+    	("k"     . agent-shell-delete-interaction-at-point)
+    	("l r"   . agent-shell-reset-logs)
+    	("l t"   . agent-shell-toggle-logging)
+    	("l v"   . agent-shell-view-traffic)
+    	("m"     . agent-shell-cycle-session-mode)
+    	("p"     . agent-shell-prompt-compose)
+    	("s d"   . agent-shell-send-dwim)
+    	("s f"   . agent-shell-send-file)
+    	("s i"   . agent-shell-send-screenshot)
+    	("s o"   . agent-shell-send-other-file)
+    	("s r"   . agent-shell-send-region)
+    	("t"     . agent-shell-open-transcript))
     )
 #+end_src
 * Ediff
