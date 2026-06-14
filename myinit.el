@@ -1,7 +1,7 @@
 (define-prefix-command 'my/global-prefix-map nil)
 (keymap-set global-map "C-c" my/global-prefix-map)
-(define-prefix-command 'my/ai-prefix-map nil)
-(keymap-set my/global-prefix-map "a" '("AI" . my/ai-prefix-map))
+(define-prefix-command 'my/agentshell-prefix-map nil)
+(keymap-set my/global-prefix-map "a" '("Agent Shell" . my/agentshell-prefix-map))
 (define-prefix-command 'my/emacs-prefix-map nil)
 (keymap-set my/global-prefix-map "e" '("Emacs" . my/emacs-prefix-map))
 (define-prefix-command 'my/lsp-prefix-map nil)
@@ -466,21 +466,35 @@
   (outline-default-state nil)		; don't fold to start with
   :hook
   (prog-mode . outline-minor-mode)
-  :bind (:repeat-map my/outline-prefix-map
-	       ("n" . outline-next-visible-heading)
-	       ("p" . outline-previous-visible-heading)
-	       ("f" . outline-forward-same-level)
-	       ("b" . outline-backward-same-level)
-	       ("o" . outline-toggle-children)
-	       ("a" . outline-show-all)
-	       ("h" . outline-hide-body)
-	       ("c" . outline-hide-entry)
-	       ("e" . outline-show-entry)
-	       ("d" . outline-hide-subtree)
-	       ("s" . outline-show-subtree)
-	       ("l" . outline-hide-leaves)
-	       ("k" . outline-show-branches)
-	       ("i" . outline-show-children))
+  :bind
+  (:repeat-map my/outline-prefix-map
+               ("n"   . outline-next-visible-heading)
+               ("p"   . outline-previous-visible-heading)
+               ("f"   . outline-forward-same-level)
+               ("b"   . outline-backward-same-level)
+               ("u"   . outline-up-heading)
+
+               ("a"   . outline-show-all) ; show All
+               ("t"   . outline-hide-body) ; hide all body Text
+               ("s"   . outline-show-subtree)
+               ("d"   . outline-hide-subtree)
+               ("e"   . outline-show-entry)
+               ("c"   . outline-hide-entry)
+
+               ("l"   . outline-hide-leaves) ; text of heading 
+               ("k"   . outline-show-branches) ; heading itself, both does same in most cases
+
+               ("q"   . outline-hide-sublevels)
+               ("o"   . outline-toggle-children)
+
+	       ("RET" . outline-insert-heading)
+               ("/ h" . outline-hide-by-heading-regexp)
+               ("/ s" . outline-show-by-heading-regexp)
+
+               ("<"   . outline-promote)
+               (">"   . outline-demote)
+               ("^"   . outline-move-subtree-up)
+               ("v"   . outline-move-subtree-down))
   )
 
 (use-package imenu
@@ -1317,6 +1331,52 @@ Executes `vc-dir' in the newly cloned directory."
 	    compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1))                ; For echo area hints
+
+(use-package agent-shell
+  :ensure t
+  :defer t
+  :init
+  (defun my/agent-shell-dot-subdir (subdir)
+    (let ()
+      (expand-file-name "agent-shell" user-emacs-directory)))
+  :custom
+  (agent-shell-dot-subdir-function #'my/agent-shell-dot-subdir)
+  (agent-shell-context-sources '(files region error))
+  (agent-shell-display-action '(display-buffer-in-side-window
+				(display-buffer-in-side-window)
+				(side . right)
+				(window-width . 0.5)))
+  (agent-shell-header-style 'text)
+  (agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config))
+  (agent-shell-session-strategy 'latest)
+  (agent-shell-show-usage-at-turn-end t)
+  (agent-shell-show-welcome-message nil)
+  (agent-shell-thought-process-expand-by-default nil)
+  (agent-shell-tool-use-expand-by-default nil)
+  :config
+  (setenv "ANTHROPIC_AUTH_TOKEN" (auth-source-pick-first-password :host "ollama.com"))
+  :bind
+  (:map my/agentshell-prefix-map
+	("!"     . agent-shell-insert-shell-command-output)
+	("?"     . agent-shell-help-menu)
+	("R d"   . agent-shell-remove-pending-request)
+	("R q"   . agent-shell-queue-request)
+	("R r"   . agent-shell-resume-pending-requests)
+	("a"     . agent-shell)
+	("c"     . agent-shell-clear-buffer)
+	("k"     . agent-shell-delete-interaction-at-point)
+	("l r"   . agent-shell-reset-logs)
+	("l t"   . agent-shell-toggle-logging)
+	("l v"   . agent-shell-view-traffic)
+	("m"     . agent-shell-cycle-session-mode)
+	("p"     . agent-shell-prompt-compose)
+	("s d"   . agent-shell-send-dwim)
+	("s f"   . agent-shell-send-file)
+	("s i"   . agent-shell-send-screenshot)
+	("s o"   . agent-shell-send-other-file)
+	("s r"   . agent-shell-send-region)
+	("t"     . agent-shell-open-transcript))
+  )
 
 (use-package ediff
   :defer t
