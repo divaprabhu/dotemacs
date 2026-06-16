@@ -18,6 +18,8 @@
   (use-package emacs
     :init
     (repeat-mode 1)
+    (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "bin" "~/.local")))
+    (setq exec-path (split-string (getenv "PATH") path-separator))
     :custom
     (repeat-exit-timeout 5) ; idle seconds after which turn of repeat mode
     :bind
@@ -33,9 +35,9 @@
   	  ("e" . eshell)
   	  ("t" . term))
     (:repeat-map my/emacs-prefix-map
-	       ("j" . duplicate-dwim)
-	       (";" . comment-line)
-	       ("t" . transpose-lines)))
+  	       ("j" . duplicate-dwim)
+  	       (";" . comment-line)
+  	       ("t" . transpose-lines)))
 #+end_src
 * Echo Area
 ** Configuration
@@ -5147,6 +5149,7 @@ Linebreaks
     (tramp-completion-use-auth-sources nil)
     :config
     (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+    (add-to-list 'tramp-remote-path (expand-file-name "bin" "~/.local"))
     )
 #+end_src
 * Use Package
@@ -6046,61 +6049,59 @@ Create a .dir-locals.el file in root of folder with contents like
 #+end_src
 ** Configuration
 #+begin_src emacs-lisp
-  (use-package python
-    :defer t
-    :custom
-    (python-indent-guess-indent-offset-verbose nil)
-    :init
-    (unless (file-exists-p (expand-file-name "bin/uv" "~/.local/"))
-      (cond
-       ((eq system-type 'windows-nt)
-        (async-shell-command "powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex""))
-       (t
-        (async-shell-command "curl -LsSf https://astral.sh/uv/install.sh | sh"))))
-    ;; (let ((pylspdir (expand-file-name "lsp/pylsp" "~/.cache")))
-    ;;   (unless (file-directory-p pylspdir)
-    ;;     (make-directory pylspdir t)
-    ;;     (cond
-    ;;      ((eq system-type 'windows-nt)
-    ;;	(shell-command (concat "python -m venv " pylspdir))
-    ;;	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] debugpy && deactivate")))
-    ;;      (t
-    ;;	(shell-command (concat "python3 -m venv " pylspdir))
-    ;;	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] debugpy && deactivate"))))))
-    :config
-    (add-hook 'python-base-mode-hook 'eglot-ensure)
-    (add-hook
-     'python-base-mode-hook
-     (lambda ()
-       (setq-local outline-regexp
-  		 (rx (or
-  		      ;; Branch 1: class (no async)
-  		      (group (group (* space)) bow "class" eow)
-  		      ;; Branch 2: def or async def
-  		      (group (group (* space)) bow (optional "async" (+ space)) "def" eow)
-  		      ;; Branch 3: decorators
-  		      (group (group (* space)) "@"))))))
-    ;; (add-hook 'python-mode-hook
-    ;;	    (progn
-    ;;	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
+    (use-package python
+      :defer t
+      :custom
+      (python-indent-guess-indent-offset-verbose nil)
+      :init
+      (unless (file-exists-p (expand-file-name "uv" "~/.local/bin"))
+        (async-shell-command "curl -LsSf https://astral.sh/uv/install.sh | sh"))
+      (unless (file-exists-p (expand-file-name "pylsp" "~/.local/bin"))
+        (async-shell-command "~/.local/bin/uv tool install python-lsp-server[all]"))
+      ;; (let ((pylspdir (expand-file-name "lsp/pylsp" "~/.cache")))
+      ;;   (unless (file-directory-p pylspdir)
+      ;;     (make-directory pylspdir t)
+      ;;     (cond
+      ;;      ((eq system-type 'windows-nt)
+      ;;	(shell-command (concat "python -m venv " pylspdir))
+      ;;	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] debugpy && deactivate")))
+      ;;      (t
+      ;;	(shell-command (concat "python3 -m venv " pylspdir))
+      ;;	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] debugpy && deactivate"))))))
+      :config
+      (add-hook 'python-base-mode-hook 'eglot-ensure)
+      (add-hook
+       'python-base-mode-hook
+       (lambda ()
+         (setq-local outline-regexp
+    		 (rx (or
+    		      ;; Branch 1: class (no async)
+    		      (group (group (* space)) bow "class" eow)
+    		      ;; Branch 2: def or async def
+    		      (group (group (* space)) bow (optional "async" (+ space)) "def" eow)
+    		      ;; Branch 3: decorators
+    		      (group (group (* space)) "@"))))))
+      ;; (add-hook 'python-mode-hook
+      ;;	    (progn
+      ;;	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
 
-    ;;	      (setq exec-path (split-string (getenv "PATH") path-separator))
-    ;;	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))
-    ;;	      'eglot-ensure))
-    ;; :bind
-    ;; (:map my/python-prefix-map
-    ;;	("c"	. python-shell-send-buffer)
-    ;;	("e"	. python-shell-send-statement)
-    ;;	("r"	. python-shell-send-region)
-    ;;	("p"	. run-python)
-    ;;	("z"	. python-shell-switch-to-shell)
-    ;;	("t c"	. python-skeleton-class)
-    ;;	("t d"	. python-skeleton-def)
-    ;;	("t f"	. python-skeleton-for)
-    ;;	("t i"	. python-skeleton-if)
-    ;;	("t t"	. python-skeleton-import)
-    ;;	("t w"	. python-skeleton-while))
-    )
+      ;;	      (setq exec-path (split-string (getenv "PATH") path-separator))
+      ;;	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))
+      ;;	      'eglot-ensure))
+      ;; :bind
+      ;; (:map my/python-prefix-map
+      ;;	("c"	. python-shell-send-buffer)
+      ;;	("e"	. python-shell-send-statement)
+      ;;	("r"	. python-shell-send-region)
+      ;;	("p"	. run-python)
+      ;;	("z"	. python-shell-switch-to-shell)
+      ;;	("t c"	. python-skeleton-class)
+      ;;	("t d"	. python-skeleton-def)
+      ;;	("t f"	. python-skeleton-for)
+      ;;	("t i"	. python-skeleton-if)
+      ;;	("t t"	. python-skeleton-import)
+      ;;	("t w"	. python-skeleton-while))
+      )
 #+end_src
 * Common Lisp
 #+begin_src emacs-lisp :tangle no
@@ -6723,6 +6724,8 @@ Create a .dir-locals.el file in root of folder with contents like
     :init
     (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
     (setenv "OLLAMA_API_KEY" (auth-source-pick-first-password :host "ollama.com"))
+    (unless (file-exists-p (expand-file-name "eca" "~/.config"))
+      (async-shell-command "ln -sf ~/etc/eca ~/.config/eca"))
     :custom
     (eca-extra-args '("--verbose" "--log-level" "debug"))
     (eca-chat-auto-add-cursor nil)

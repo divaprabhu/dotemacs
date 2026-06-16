@@ -14,6 +14,8 @@
 (use-package emacs
   :init
   (repeat-mode 1)
+  (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "bin" "~/.local")))
+  (setq exec-path (split-string (getenv "PATH") path-separator))
   :custom
   (repeat-exit-timeout 5) ; idle seconds after which turn of repeat mode
   :bind
@@ -852,6 +854,7 @@
   (tramp-completion-use-auth-sources nil)
   :config
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (add-to-list 'tramp-remote-path (expand-file-name "bin" "~/.local"))
   )
 
 (use-package modus-themes
@@ -1085,12 +1088,10 @@
   :custom
   (python-indent-guess-indent-offset-verbose nil)
   :init
-  (unless (file-exists-p (expand-file-name "bin/uv" "~/.local/"))
-    (cond
-     ((eq system-type 'windows-nt)
-      (async-shell-command "powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex""))
-     (t
-      (async-shell-command "curl -LsSf https://astral.sh/uv/install.sh | sh"))))
+  (unless (file-exists-p (expand-file-name "uv" "~/.local/bin"))
+    (async-shell-command "curl -LsSf https://astral.sh/uv/install.sh | sh"))
+  (unless (file-exists-p (expand-file-name "pylsp" "~/.local/bin"))
+    (async-shell-command "~/.local/bin/uv tool install python-lsp-server[all]"))
   ;; (let ((pylspdir (expand-file-name "lsp/pylsp" "~/.cache")))
   ;;   (unless (file-directory-p pylspdir)
   ;;     (make-directory pylspdir t)
@@ -1336,6 +1337,8 @@
   :init
   (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
   (setenv "OLLAMA_API_KEY" (auth-source-pick-first-password :host "ollama.com"))
+  (unless (file-exists-p (expand-file-name "eca" "~/.config"))
+    (async-shell-command "ln -sf ~/etc/eca ~/.config/eca"))
   :custom
   (eca-extra-args '("--verbose" "--log-level" "debug"))
   (eca-chat-auto-add-cursor nil)
