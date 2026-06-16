@@ -1,7 +1,7 @@
 (define-prefix-command 'my/global-prefix-map nil)
 (keymap-set global-map "C-c" my/global-prefix-map)
-(define-prefix-command 'my/agentshell-prefix-map nil)
-(keymap-set my/global-prefix-map "a" '("Agent Shell" . my/agentshell-prefix-map))
+(define-prefix-command 'my/ai-prefix-map nil)
+(keymap-set my/global-prefix-map "a" '("AI" . my/ai-prefix-map))
 (define-prefix-command 'my/emacs-prefix-map nil)
 (keymap-set my/global-prefix-map "e" '("Emacs" . my/emacs-prefix-map))
 (define-prefix-command 'my/lsp-prefix-map nil)
@@ -1329,6 +1329,77 @@
 	    compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1))                ; For echo area hints
+
+(use-package eca
+  :ensure t
+  :defer t
+  :init
+  (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
+  (setenv "OLLAMA_API_KEY" (auth-source-pick-first-password :host "ollama.com"))
+  :custom
+  (eca-extra-args '("--verbose" "--log-level" "debug"))
+  (eca-chat-auto-add-cursor nil)
+  (eca-chat-diff-tool 'ediff)
+  (eca-chat-readonly-history t)
+  (eca-chat-expand-pending-approval-tools t)
+  (eca-chat-shrink-called-tools t)
+  :config
+  (define-prefix-command 'my/ai-agent-prefix-map nil)
+  (keymap-set my/ai-prefix-map "a" '("Agent" . my/ai-agent-prefix-map))
+  (define-prefix-command 'my/ai-chat-prefix-map nil)
+  (keymap-set my/ai-prefix-map "c" '("Chat" . my/ai-chat-prefix-map))
+  (define-prefix-command 'my/ai-model-prefix-map nil)
+  (keymap-set my/ai-prefix-map "m" '("Model" . my/ai-model-prefix-map))
+  (define-prefix-command 'my/ai-prompt-prefix-map nil)
+  (keymap-set my/ai-prefix-map "p" '("Prompt" . my/ai-prompt-prefix-map))
+  (define-prefix-command 'my/ai-send-prefix-map nil)
+  (keymap-set my/ai-prefix-map "s" '("Send" . my/ai-send-prefix-map))
+  (define-prefix-command 'my/ai-tool-prefix-map nil)
+  (keymap-set my/ai-prefix-map "t" '("Tool" . my/ai-tool-prefix-map))
+  :bind
+  (:map my/ai-prefix-map
+  	("." . eca-transient-menu)
+  	("R" . eca-restart)
+  	("S" . eca-stop)
+  	("e" . eca)
+	  ("r" . eca-rewrite)
+  	("s" . eca-settings)
+  	("w" . eca-chat-talk))
+  :bind
+  (:map my/ai-agent-prefix-map
+  	("a" . eca-chat-cycle-agent)
+  	("s" . eca-chat-select-agent))
+  :bind
+  (:map my/ai-chat-prefix-map
+  	("c" . eca-chat-clear)
+  	("d" . eca-chat-delete)
+	  ("k" . eca-chat-reset)
+	  ("n" . eca-chat-new)
+  	("p" . eca-switch-to-project-chat)
+  	("r" . eca-chat-resume)
+  	("s" . eca-switch-to-chat)
+  	("t" . eca-chat-timeline))
+  :bind
+  (:map my/ai-model-prefix-map
+  	("s" . eca-chat-select-model))
+  :bind
+  (:map my/ai-prompt-prefix-map
+  	("s" . eca-chat-stop-prompt)
+	  ("r" . eca-chat-repeat-prompt)
+  	("c" . eca-chat-clear-prompt))
+  :bind
+  (:map my/ai-send-prefix-map
+  	("d" . eca-chat-drop-context-from-system-prompt)
+  	("f" . eca-chat-add-filepath-to-user-prompt)
+  	("s" . eca-chat-add-context-to-system-prompt)
+  	("u" . eca-chat-add-context-to-user-prompt))
+  :bind
+  (:map my/ai-tool-prefix-map
+	  ("!" . eca-chat-tool-call-accept-all-and-remember)
+  	("a" . eca-chat-tool-call-accept-all)
+  	("y" . eca-chat-tool-call-accept-next)
+  	("n" . eca-chat-tool-call-reject-next))
+  )
 
 (use-package ediff
   :defer t

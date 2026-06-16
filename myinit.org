@@ -4,8 +4,8 @@
 #+begin_src emacs-lisp
   (define-prefix-command 'my/global-prefix-map nil)
   (keymap-set global-map "C-c" my/global-prefix-map)
-  (define-prefix-command 'my/agentshell-prefix-map nil)
-  (keymap-set my/global-prefix-map "a" '("Agent Shell" . my/agentshell-prefix-map))
+  (define-prefix-command 'my/ai-prefix-map nil)
+  (keymap-set my/global-prefix-map "a" '("AI" . my/ai-prefix-map))
   (define-prefix-command 'my/emacs-prefix-map nil)
   (keymap-set my/global-prefix-map "e" '("Emacs" . my/emacs-prefix-map))
   (define-prefix-command 'my/lsp-prefix-map nil)
@@ -6716,10 +6716,13 @@ Create a .dir-locals.el file in root of folder with contents like
     )
 #+end_src
 ** ECA
-#+begin_src emacs-lisp :tangle no  
+#+begin_src emacs-lisp
   (use-package eca
     :ensure t
     :defer t
+    :init
+    (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
+    (setenv "OLLAMA_API_KEY" (auth-source-pick-first-password :host "ollama.com"))
     :custom
     (eca-extra-args '("--verbose" "--log-level" "debug"))
     (eca-chat-auto-add-cursor nil)
@@ -6736,6 +6739,8 @@ Create a .dir-locals.el file in root of folder with contents like
     (keymap-set my/ai-prefix-map "m" '("Model" . my/ai-model-prefix-map))
     (define-prefix-command 'my/ai-prompt-prefix-map nil)
     (keymap-set my/ai-prefix-map "p" '("Prompt" . my/ai-prompt-prefix-map))
+    (define-prefix-command 'my/ai-send-prefix-map nil)
+    (keymap-set my/ai-prefix-map "s" '("Send" . my/ai-send-prefix-map))
     (define-prefix-command 'my/ai-tool-prefix-map nil)
     (keymap-set my/ai-prefix-map "t" '("Tool" . my/ai-tool-prefix-map))
     :bind
@@ -6766,8 +6771,11 @@ Create a .dir-locals.el file in root of folder with contents like
     	("s" . eca-chat-select-model))
     :bind
     (:map my/ai-prompt-prefix-map
-    	("S" . eca-chat-stop-prompt)
-    	("c" . eca-chat-clear-prompt)
+    	("s" . eca-chat-stop-prompt)
+  	  ("r" . eca-chat-repeat-prompt)
+    	("c" . eca-chat-clear-prompt))
+    :bind
+    (:map my/ai-send-prefix-map
     	("d" . eca-chat-drop-context-from-system-prompt)
     	("f" . eca-chat-add-filepath-to-user-prompt)
     	("s" . eca-chat-add-context-to-system-prompt)
@@ -6775,9 +6783,9 @@ Create a .dir-locals.el file in root of folder with contents like
     :bind
     (:map my/ai-tool-prefix-map
   	  ("!" . eca-chat-tool-call-accept-all-and-remember)
-    	("A" . eca-chat-tool-call-accept-all)
-    	("a" . eca-chat-tool-call-accept-next)
-    	("r" . eca-chat-tool-call-reject-next))
+    	("a" . eca-chat-tool-call-accept-all)
+    	("y" . eca-chat-tool-call-accept-next)
+    	("n" . eca-chat-tool-call-reject-next))
     )
 #+end_src
 ** Agent Shell
