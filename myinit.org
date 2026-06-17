@@ -6529,6 +6529,7 @@ Create a .dir-locals.el file in root of folder with contents like
 ** Configuration
 #+begin_src emacs-lisp
   (use-package epg
+    :ensure t
     :defer t
     :custom
     (auth-sources '("~/.gnupg/authinfo.gpg" "~/.gnupg/authinfo" "~/.gnupg/netrc"))
@@ -6538,8 +6539,7 @@ Create a .dir-locals.el file in root of folder with contents like
     (setenv "SSH_AGENT_PID" "")
     ;; Set SSH_AUTH_SOCK to the output of the gpgconf command
     (setenv "SSH_AUTH_SOCK"
-	  (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket")))
-    (async-shell-command "gpg-connect-agent /bye >/dev/null 2>&1")
+  	  (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket")))
     )
 
 #+end_src

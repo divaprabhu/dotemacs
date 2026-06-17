@@ -1287,6 +1287,7 @@
 	      (proced-toggle-auto-update 1))))
 
 (use-package epg
+  :ensure t
   :defer t
   :custom
   (auth-sources '("~/.gnupg/authinfo.gpg" "~/.gnupg/authinfo" "~/.gnupg/netrc"))
@@ -1297,7 +1298,6 @@
   ;; Set SSH_AUTH_SOCK to the output of the gpgconf command
   (setenv "SSH_AUTH_SOCK"
 	  (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket")))
-  (async-shell-command "gpg-connect-agent /bye >/dev/null 2>&1")
   )
 
 (use-package popper
