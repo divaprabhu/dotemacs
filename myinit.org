@@ -4,8 +4,8 @@
 #+begin_src emacs-lisp
   (define-prefix-command 'my/global-prefix-map nil)
   (keymap-set global-map "C-c" my/global-prefix-map)
-  (define-prefix-command 'my/agentshell-prefix-map nil)
-  (keymap-set my/global-prefix-map "a" '("Agent Shell" . my/agentshell-prefix-map))
+  (define-prefix-command 'my/ai-prefix-map nil)
+  (keymap-set my/global-prefix-map "a" '("AI" . my/ai-prefix-map))
   (define-prefix-command 'my/emacs-prefix-map nil)
   (keymap-set my/global-prefix-map "e" '("Emacs" . my/emacs-prefix-map))
   (define-prefix-command 'my/lsp-prefix-map nil)
@@ -4569,7 +4569,8 @@ When a group is entered, a summary buffer showing all article is entered
 ** Configuration
 #+begin_src emacs-lisp
   (use-package gnus
-    :demand t
+    :ensure t
+    :defer t
     :preface
     (defun my/gnus-group-mail ()
       (interactive)
@@ -4631,18 +4632,18 @@ When a group is entered, a summary buffer showing all article is entered
     :bind
     ("C-c m" . gnus)
     (:map gnus-group-mode-map
-	("m" . #'my/gnus-group-mail))
+  	("m" . #'my/gnus-group-mail))
     :hook
     (gnus-group-mode . gnus-topic-mode)
     (message-mode . flyspell-mode)
     :config
     (if (file-exists-p "~/.gnupg/authinfo.gpg")
-	(progn
-	(use-package auth-source-xoauth2-plugin
-	  :ensure t
-	  :config
-	  (auth-source-xoauth2-plugin-mode 1))
-	(load-file "~/etc/gnus_mail.el")))
+  	(progn
+  	(use-package auth-source-xoauth2-plugin
+  	  :ensure t
+  	  :config
+  	  (auth-source-xoauth2-plugin-mode 1))
+  	(load-file "~/etc/gnus_mail.el")))
     )
 #+end_src
 ** Legacy Setup
@@ -6714,14 +6715,14 @@ Create a .dir-locals.el file in root of folder with contents like
     (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 56)
     )
 #+end_src
+
 ** ECA
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package eca
     :ensure t
     :defer t
     :init
-    (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
-    (setenv "OLLAMA_API_KEY" (auth-source-pick-first-password :host "ollama.com"))
+    (setenv "OPENCODE_ECA_KEY" (auth-source-pick-first-password :host "opencode.eca"))
     (unless (file-exists-p (expand-file-name "eca" "~/.config"))
       (shell-command "mkdir -p ~/.config/eca")
       (shell-command "ln -sf ~/etc/eca.json ~/.config/eca/config.json"))
@@ -6732,62 +6733,31 @@ Create a .dir-locals.el file in root of folder with contents like
     (eca-chat-readonly-history t)
     (eca-chat-expand-pending-approval-tools t)
     (eca-chat-shrink-called-tools t)
-    :config
-    (define-prefix-command 'my/ai-agent-prefix-map nil)
-    (keymap-set my/ai-prefix-map "a" '("Agent" . my/ai-agent-prefix-map))
-    (define-prefix-command 'my/ai-chat-prefix-map nil)
-    (keymap-set my/ai-prefix-map "c" '("Chat" . my/ai-chat-prefix-map))
-    (define-prefix-command 'my/ai-model-prefix-map nil)
-    (keymap-set my/ai-prefix-map "m" '("Model" . my/ai-model-prefix-map))
-    (define-prefix-command 'my/ai-prompt-prefix-map nil)
-    (keymap-set my/ai-prefix-map "p" '("Prompt" . my/ai-prompt-prefix-map))
-    (define-prefix-command 'my/ai-send-prefix-map nil)
-    (keymap-set my/ai-prefix-map "s" '("Send" . my/ai-send-prefix-map))
-    (define-prefix-command 'my/ai-tool-prefix-map nil)
-    (keymap-set my/ai-prefix-map "t" '("Tool" . my/ai-tool-prefix-map))
+    (eca-buttons-allow-mouse t)
     :bind
     (:map my/ai-prefix-map
-    	("." . eca-transient-menu)
-    	("R" . eca-restart)
-    	("S" . eca-stop)
-    	("e" . eca)
-  	  ("r" . eca-rewrite)
-    	("s" . eca-settings)
-    	("w" . eca-chat-talk))
-    :bind
-    (:map my/ai-agent-prefix-map
-    	("a" . eca-chat-cycle-agent)
-    	("s" . eca-chat-select-agent))
-    :bind
-    (:map my/ai-chat-prefix-map
-    	("c" . eca-chat-clear)
-    	("d" . eca-chat-delete)
-  	  ("k" . eca-chat-reset)
-  	  ("n" . eca-chat-new)
-    	("p" . eca-switch-to-project-chat)
-    	("r" . eca-chat-resume)
-    	("s" . eca-switch-to-chat)
-    	("t" . eca-chat-timeline))
-    :bind
-    (:map my/ai-model-prefix-map
-    	("s" . eca-chat-select-model))
-    :bind
-    (:map my/ai-prompt-prefix-map
-    	("s" . eca-chat-stop-prompt)
-  	  ("r" . eca-chat-repeat-prompt)
-    	("c" . eca-chat-clear-prompt))
-    :bind
-    (:map my/ai-send-prefix-map
-    	("d" . eca-chat-drop-context-from-system-prompt)
-    	("f" . eca-chat-add-filepath-to-user-prompt)
-    	("s" . eca-chat-add-context-to-system-prompt)
-    	("u" . eca-chat-add-context-to-user-prompt))
-    :bind
-    (:map my/ai-tool-prefix-map
-  	  ("!" . eca-chat-tool-call-accept-all-and-remember)
-    	("a" . eca-chat-tool-call-accept-all)
-    	("y" . eca-chat-tool-call-accept-next)
-    	("n" . eca-chat-tool-call-reject-next))
+  	("!"   . eca-chat-tool-call-accept-all-and-remember)
+  	("?"   . eca-transient-menu)
+  	("C"   . eca-chat-clear)
+  	("D"   . eca-chat-delete)
+  	("E"   . eca-show-stderr)
+  	("O"   . (lambda () (interactive) (async-shell-command "OLLAMA_DEBUG=1 OLLAMA_DEBUG_LOG_REQEUSTS=1 OLLAMA_CONTEXT_LENGTH=32768 ollama serve")))
+  	("R"   . eca-restart)
+  	("S"   . eca-stop)
+  	("a"   . eca-chat-cycle-agent)
+  	("c"   . eca-chat-show-context)
+  	("e"   . eca)
+  	("m"   . eca-chat-select-model)
+  	("n"   . eca-chat-tool-call-accept-next)
+  	("p"   . eca-switch-to-project-chat)
+  	("s"   . eca-settings)
+  	("t"   . eca-chat-toggle-trust)
+  	("u"   . eca-chat-add-context-to-user-prompt)
+  	("v"   . eca-chat-select-variant)
+  	("x"   . eca-chat-drop-context-from-system-prompt)
+  	("y"   . eca-chat-tool-call-reject-next)
+  	(">"   . eca-chat-expand-all-blocks)
+  	("<"   . eca-chat-collapse-all-blocks))
     )
 #+end_src
 ** Agent Shell

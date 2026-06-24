@@ -1,7 +1,7 @@
 (define-prefix-command 'my/global-prefix-map nil)
 (keymap-set global-map "C-c" my/global-prefix-map)
-(define-prefix-command 'my/agentshell-prefix-map nil)
-(keymap-set my/global-prefix-map "a" '("Agent Shell" . my/agentshell-prefix-map))
+(define-prefix-command 'my/ai-prefix-map nil)
+(keymap-set my/global-prefix-map "a" '("AI" . my/ai-prefix-map))
 (define-prefix-command 'my/emacs-prefix-map nil)
 (keymap-set my/global-prefix-map "e" '("Emacs" . my/emacs-prefix-map))
 (define-prefix-command 'my/lsp-prefix-map nil)
@@ -714,7 +714,8 @@
   )
 
 (use-package gnus
-  :demand t
+  :ensure t
+  :defer t
   :preface
   (defun my/gnus-group-mail ()
     (interactive)
@@ -1328,6 +1329,48 @@
 	    compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1))                ; For echo area hints
+
+(use-package eca
+  :ensure t
+  :defer t
+  :init
+  (setenv "OPENCODE_ECA_KEY" (auth-source-pick-first-password :host "opencode.eca"))
+  (unless (file-exists-p (expand-file-name "eca" "~/.config"))
+    (shell-command "mkdir -p ~/.config/eca")
+    (shell-command "ln -sf ~/etc/eca.json ~/.config/eca/config.json"))
+  :custom
+  (eca-extra-args '("--verbose" "--log-level" "debug"))
+  (eca-chat-auto-add-cursor nil)
+  (eca-chat-diff-tool 'ediff)
+  (eca-chat-readonly-history t)
+  (eca-chat-expand-pending-approval-tools t)
+  (eca-chat-shrink-called-tools t)
+  (eca-buttons-allow-mouse t)
+  :bind
+  (:map my/ai-prefix-map
+	("!"   . eca-chat-tool-call-accept-all-and-remember)
+	("?"   . eca-transient-menu)
+	("C"   . eca-chat-clear)
+	("D"   . eca-chat-delete)
+	("E"   . eca-show-stderr)
+	("O"   . (lambda () (interactive) (async-shell-command "OLLAMA_DEBUG=1 OLLAMA_DEBUG_LOG_REQEUSTS=1 OLLAMA_CONTEXT_LENGTH=32768 ollama serve")))
+	("R"   . eca-restart)
+	("S"   . eca-stop)
+	("a"   . eca-chat-cycle-agent)
+	("c"   . eca-chat-show-context)
+	("e"   . eca)
+	("m"   . eca-chat-select-model)
+	("n"   . eca-chat-tool-call-accept-next)
+	("p"   . eca-switch-to-project-chat)
+	("s"   . eca-settings)
+	("t"   . eca-chat-toggle-trust)
+	("u"   . eca-chat-add-context-to-user-prompt)
+	("v"   . eca-chat-select-variant)
+	("x"   . eca-chat-drop-context-from-system-prompt)
+	("y"   . eca-chat-tool-call-reject-next)
+	(">"   . eca-chat-expand-all-blocks)
+	("<"   . eca-chat-collapse-all-blocks))
+  )
 
 (use-package ediff
   :defer t
