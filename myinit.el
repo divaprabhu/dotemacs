@@ -365,7 +365,7 @@
 	   (display-buffer-reuse-window display-buffer-in-side-window)
 	   (body-function . select-window)
 	   (side . bottom)
-	   (window-height . 0.6)
+	   (window-height . 0.3)
 	   (slot . 0))
 	  ("\\*\\(log-edit-\\|vc-git\\).*"
   	   (display-buffer-in-atom-window)
@@ -1328,6 +1328,8 @@
   :bind
   (:map my/ai-prefix-map
 	("!"   . eca-chat-tool-call-accept-all-and-remember)
+	("<"   . eca-chat-collapse-all-blocks)
+	(">"   . eca-chat-expand-all-blocks)
 	("?"   . eca-transient-menu)
 	("C"   . eca-chat-clear)
 	("D"   . eca-chat-delete)
@@ -1335,20 +1337,19 @@
 	("O"   . (lambda () (interactive) (async-shell-command "OLLAMA_DEBUG=1 OLLAMA_DEBUG_LOG_REQEUSTS=1 OLLAMA_CONTEXT_LENGTH=32768 ollama serve")))
 	("R"   . eca-restart)
 	("S"   . eca-stop)
+	("T"   . eca-chat-toggle-trust)
 	("a"   . eca-chat-cycle-agent)
 	("c"   . eca-chat-show-context)
 	("e"   . eca)
 	("m"   . eca-chat-select-model)
-	("n"   . eca-chat-tool-call-accept-next)
+	("n"   . eca-chat-tool-call-reject-next)
 	("p"   . eca-switch-to-project-chat)
 	("s"   . eca-settings)
-	("t"   . eca-chat-toggle-trust)
+	("t"   . eca-chat-toggle-window)
 	("u"   . eca-chat-add-context-to-user-prompt)
 	("v"   . eca-chat-select-variant)
 	("x"   . eca-chat-drop-context-from-system-prompt)
-	("y"   . eca-chat-tool-call-reject-next)
-	(">"   . eca-chat-expand-all-blocks)
-	("<"   . eca-chat-collapse-all-blocks))
+	("y"   . eca-chat-tool-call-accept-next))
   )
 
 (use-package ediff

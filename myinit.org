@@ -2012,7 +2012,7 @@
   	   (display-buffer-reuse-window display-buffer-in-side-window)
   	   (body-function . select-window)
   	   (side . bottom)
-  	   (window-height . 0.6)
+  	   (window-height . 0.3)
   	   (slot . 0))
   	  ("\\*\\(log-edit-\\|vc-git\\).*"
     	   (display-buffer-in-atom-window)
@@ -6696,48 +6696,49 @@ Create a .dir-locals.el file in root of folder with contents like
 
 ** ECA
 #+begin_src emacs-lisp
-  (use-package eca
-    :ensure t
-    :defer t
-    :init
-    (setenv "OPENCODE_ECA_KEY" (auth-source-pick-first-password :host "opencode.eca"))
-    (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
-    (unless (file-exists-p (expand-file-name "eca" "~/.config"))
-      (shell-command "mkdir -p ~/.config/eca")
-      (shell-command "ln -sf ~/etc/eca.json ~/.config/eca/config.json"))
-    :custom
-    (eca-extra-args '("--verbose" "--log-level" "debug"))
-    (eca-chat-auto-add-cursor nil)
-    (eca-chat-diff-tool 'ediff)
-    (eca-chat-readonly-history t)
-    (eca-chat-expand-pending-approval-tools t)
-    (eca-chat-shrink-called-tools t)
-    (eca-buttons-allow-mouse t)
-    :bind
-    (:map my/ai-prefix-map
-  	("!"   . eca-chat-tool-call-accept-all-and-remember)
-  	("?"   . eca-transient-menu)
-  	("C"   . eca-chat-clear)
-  	("D"   . eca-chat-delete)
-  	("E"   . eca-show-stderr)
-  	("O"   . (lambda () (interactive) (async-shell-command "OLLAMA_DEBUG=1 OLLAMA_DEBUG_LOG_REQEUSTS=1 OLLAMA_CONTEXT_LENGTH=32768 ollama serve")))
-  	("R"   . eca-restart)
-  	("S"   . eca-stop)
-  	("a"   . eca-chat-cycle-agent)
-  	("c"   . eca-chat-show-context)
-  	("e"   . eca)
-  	("m"   . eca-chat-select-model)
-  	("n"   . eca-chat-tool-call-accept-next)
-  	("p"   . eca-switch-to-project-chat)
-  	("s"   . eca-settings)
-  	("t"   . eca-chat-toggle-trust)
-  	("u"   . eca-chat-add-context-to-user-prompt)
-  	("v"   . eca-chat-select-variant)
-  	("x"   . eca-chat-drop-context-from-system-prompt)
-  	("y"   . eca-chat-tool-call-reject-next)
-  	(">"   . eca-chat-expand-all-blocks)
-  	("<"   . eca-chat-collapse-all-blocks))
-    )
+    (use-package eca
+      :ensure t
+      :defer t
+      :init
+      (setenv "OPENCODE_ECA_KEY" (auth-source-pick-first-password :host "opencode.eca"))
+      (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
+      (unless (file-exists-p (expand-file-name "eca" "~/.config"))
+        (shell-command "mkdir -p ~/.config/eca")
+        (shell-command "ln -sf ~/etc/eca.json ~/.config/eca/config.json"))
+      :custom
+      (eca-extra-args '("--verbose" "--log-level" "debug"))
+      (eca-chat-auto-add-cursor nil)
+      (eca-chat-diff-tool 'ediff)
+      (eca-chat-readonly-history t)
+      (eca-chat-expand-pending-approval-tools t)
+      (eca-chat-shrink-called-tools t)
+      (eca-buttons-allow-mouse t)
+      :bind
+      (:map my/ai-prefix-map
+    	("!"   . eca-chat-tool-call-accept-all-and-remember)
+    	("<"   . eca-chat-collapse-all-blocks)
+    	(">"   . eca-chat-expand-all-blocks)
+    	("?"   . eca-transient-menu)
+    	("C"   . eca-chat-clear)
+    	("D"   . eca-chat-delete)
+    	("E"   . eca-show-stderr)
+    	("O"   . (lambda () (interactive) (async-shell-command "OLLAMA_DEBUG=1 OLLAMA_DEBUG_LOG_REQEUSTS=1 OLLAMA_CONTEXT_LENGTH=32768 ollama serve")))
+    	("R"   . eca-restart)
+    	("S"   . eca-stop)
+    	("T"   . eca-chat-toggle-trust)
+    	("a"   . eca-chat-cycle-agent)
+    	("c"   . eca-chat-show-context)
+    	("e"   . eca)
+    	("m"   . eca-chat-select-model)
+    	("n"   . eca-chat-tool-call-reject-next)
+    	("p"   . eca-switch-to-project-chat)
+    	("s"   . eca-settings)
+    	("t"   . eca-chat-toggle-window)
+    	("u"   . eca-chat-add-context-to-user-prompt)
+    	("v"   . eca-chat-select-variant)
+    	("x"   . eca-chat-drop-context-from-system-prompt)
+    	("y"   . eca-chat-tool-call-accept-next))
+      )
 #+end_src
 ** Agent Shell
 #+begin_src emacs-lisp :tangle no  
