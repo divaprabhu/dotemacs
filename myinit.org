@@ -1978,79 +1978,56 @@
     (switch-to-buffer-obey-display-actions t) ; C-x C-b respects display buffer rules
     :config
     (setq display-buffer-alist
-	'(("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
-	   (display-buffer-reuse-window display-buffer-in-side-window)
-	   (side . right)
-	   (window-width . 0.5)
-	   (slot . 1))
-	  ("\\*\\(.*shell\\|.*ansi-term\\|.*eshell\\|.*terminal\\|Async Shell\\).*"
-	   (display-buffer-in-side-window)
-	   (side . bottom)
-	   (window-height . 0.5)
-	   (slot . 0))
-	  ("\\*\\(Messages\\|Output\\).*"
-	   (display-buffer-in-side-window)
-	   (side . bottom)
-	   (window-width . 0.4)
-	   (slot . 0))
-	  ("\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
-	   (display-buffer-reuse-window display-buffer-in-side-window)
-	   (side . bottom)
-	   (window-height . 0.6)
-	   (slot . 0))
-	  ("\\*\\(log-edit-\\|vc-git\\).*"
-	   (display-buffer-in-atom-window)
-	   (side . right)
-	   (window-width . 0.3)
-	   (slot . 0))
-	  ("\\*\\(Diff\\|vc-diff\\).*"
-	   (display-buffer-in-side-window)
-	   (side . right)
-	   (window-width . 0.5)
-	   (slot . 1))
-	  ("\\*\\(Open Recent\\).*"
-	   (display-buffer-in-side-window)
-	   (side . bottom)
-	   (window-height . 0.4)
-	   (slot . 0))
-	  ("\\*\\(Ibuffer\\).*"
-	   (display-buffer-in-side-window)
-	   (side . right)
-	   (window-width . 0.5)
-	   (slot . 1))
-	  ("\\*\\(Proced\\).*"
-	   (display-buffer-in-side-window)
-	   (side . right)
-	   (window-width . 0.5)
-	   (slot . 1))
-	  ("\\*\\(Embark\\).*"
-	   (display-buffer-in-side-window)
-	   (side . bottom)
-	   (window-height . 0.4)
-	   (slot . 0))
-	  ("\\*\\(eldoc\\|Flymake\\).*"
-	   (display-buffer-in-side-window)
-	   (side . right)
-	   (window-width . 100)
-	   (slot . 1))
-	  ("\\*\\(xref\\).*"
-	   (display-buffer-in-side-window)
-	   (side . bottom)
-	   (window-height . 0.4)
-	   (slot . 0))
-	  ("\\*\\(Python\\|ielm\\).*"
-	   (display-buffer-in-side-window)
-	   (side . bottom)
-	   (window-height . 0.4)
-	   (slot . 0))
-	  ("\\*\\(Org Src\\).*"
-	   (display-buffer-same-window))
-	  ("\\*\\(compilation\\|Occur\\|grep\\).*"
-	   (display-buffer-in-side-window)
-	   (side . bottom)
-	   (window-height . 0.4)
-	   (slot . 0))))
-
+  	'(
+  	  ((or . ((derived-mode . help-mode)
+  		  (derived-mode . Info-mode)
+  		  (derived-mode . apropos-mode)
+  		  (derived-mode . diff-mode)
+  		  (derived-mode . proced-mode)
+  		  (derived-mode . ibuffer-mode)))
+    	   (display-buffer-reuse-window display-buffer-in-side-window)
+    	   (body-function . select-window)
+    	   (side . right)
+    	   (window-width . 0.5)
+    	   (slot . 1))
+  	  ((or . ((derived-mode . term-mode)
+  		  (derived-mode . shell-command-mode)
+  		  (derived-mode . inferior-python-mode)
+  		  (derived-mode . inferior-emacs-lisp-mode)
+  		  (derived-mode . occur-mode)
+  		  (derived-mode . grep-mode)
+  		  (derived-mode . xref--xref-buffer-mode)))
+    	   (display-buffer-in-side-window)
+    	   (body-function . select-window)
+    	   (side . bottom)
+    	   (window-height . 0.4)
+    	   (slot . 0))
+  	  ("\\*\\(.*shell\\|.*eshell\\).*"
+  	   (display-buffer-in-side-window)
+  	   (body-function . select-window)
+  	   (side . bottom)
+  	   (window-height . 0.5)
+  	   (slot . 0))
+  	  ("\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
+  	   (display-buffer-reuse-window display-buffer-in-side-window)
+  	   (body-function . select-window)
+  	   (side . bottom)
+  	   (window-height . 0.6)
+  	   (slot . 0))
+  	  ("\\*\\(log-edit-\\|vc-git\\).*"
+    	   (display-buffer-in-atom-window)
+    	   (body-function . select-window)
+    	   (side . right)
+    	   (window-width . 0.3)
+    	   (slot . 0))
+  	  ("\\*\\(eldoc\\|Flymake\\).*"
+    	   (display-buffer-in-side-window)
+    	   (body-function . select-window)
+    	   (side . right)
+    	   (window-width . 100)
+    	   (slot . 1))
+  	  ("\\*\\(Org Src\\).*"
+    	   (display-buffer-same-window))))
     (winner-mode 1)
     (windmove-mode 1)
     :bind
@@ -4638,9 +4615,10 @@ When a group is entered, a summary buffer showing all article is entered
     (message-mode . flyspell-mode)
     :config
     (if (file-exists-p "~/.gnupg/authinfo.gpg")
-  	(progn
+        (progn
   	(use-package auth-source-xoauth2-plugin
   	  :ensure t
+  	  :defer t
   	  :config
   	  (auth-source-xoauth2-plugin-mode 1))
   	(load-file "~/etc/gnus_mail.el")))
@@ -6723,6 +6701,7 @@ Create a .dir-locals.el file in root of folder with contents like
     :defer t
     :init
     (setenv "OPENCODE_ECA_KEY" (auth-source-pick-first-password :host "opencode.eca"))
+    (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
     (unless (file-exists-p (expand-file-name "eca" "~/.config"))
       (shell-command "mkdir -p ~/.config/eca")
       (shell-command "ln -sf ~/etc/eca.json ~/.config/eca/config.json"))
