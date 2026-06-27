@@ -349,6 +349,7 @@
 		  (derived-mode . inferior-emacs-lisp-mode)
 		  (derived-mode . occur-mode)
 		  (derived-mode . grep-mode)
+		  (derived-mode . messages-buffer-mode)
 		  (derived-mode . xref--xref-buffer-mode)))
   	   (display-buffer-in-side-window)
   	   (body-function . select-window)
@@ -362,11 +363,11 @@
 	   (window-height . 0.5)
 	   (slot . 0))
 	  ("\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
-	   (display-buffer-reuse-window display-buffer-in-side-window)
-	   (body-function . select-window)
-	   (side . bottom)
-	   (window-height . 0.3)
-	   (slot . 0))
+	    (display-buffer-reuse-window display-buffer-in-side-window)
+	    (body-function . select-window)
+	    (side . bottom)
+	    (window-height . 0.3)
+	    (slot . 0))
 	  ("\\*\\(log-edit-\\|vc-git\\).*"
   	   (display-buffer-in-atom-window)
   	   (body-function . select-window)
@@ -763,7 +764,6 @@
       (progn
 	(use-package auth-source-xoauth2-plugin
 	  :ensure t
-	  :defer t
 	  :config
 	  (auth-source-xoauth2-plugin-mode 1))
 	(load-file "~/etc/gnus_mail.el")))
@@ -1314,9 +1314,9 @@
   :init
   (setenv "OPENCODE_ECA_KEY" (auth-source-pick-first-password :host "opencode.eca"))
   (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
-  (unless (file-exists-p (expand-file-name "eca" "~/.config"))
-    (shell-command "mkdir -p ~/.config/eca")
-    (shell-command "ln -sf ~/etc/eca.json ~/.config/eca/config.json"))
+  (unless (file-exists-p (expand-file-name "config.json" "~/.config/eca"))
+    (shell-command "rm -rf ~/.config/eca")
+    (shell-command "ln -sf ~/etc/eca ~/.config/eca"))
   :custom
   (eca-extra-args '("--verbose" "--log-level" "debug"))
   (eca-chat-auto-add-cursor nil)
