@@ -10,6 +10,7 @@
 (keymap-set my/global-prefix-map "o" '("Outline" . my/outline-prefix-map))
 (define-prefix-command 'my/shell-prefix-map nil)
 (keymap-set my/global-prefix-map "s" '("Shell" . my/shell-prefix-map))
+(keymap-set my/global-prefix-map "O" '("Ollama" . (lambda () (interactive) (async-shell-command "OLLAMA_DEBUG=1 OLLAMA_DEBUG_LOG_REQEUSTS=1 OLLAMA_CONTEXT_LENGTH=32768 ollama serve"))))
 
 (use-package emacs
   :init
@@ -25,9 +26,9 @@
   ("C-x x c" . copy-to-buffer)
   ("C-x x f" . append-to-file)
   (:map my/shell-prefix-map
-	  ("s" . shell)
-	  ("e" . eshell)
-	  ("t" . term))
+	("s" . shell)
+	("e" . eshell)
+	("t" . term))
   (:repeat-map my/emacs-prefix-map
 	       ("j" . duplicate-dwim)
 	       (";" . comment-line)
@@ -1289,22 +1290,19 @@
 	 ("C-<f12>" . popper-toggle-type))
   :init
   (setq popper-reference-buffers
-	'("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
-	  "\\*\\(.*shell\\|.*ansi-term\\|.*eshell\\|.*terminal\\|Async Shell\\).*"
-	  "\\*\\(Messages\\|Output\\).*"
+	'("^\\*eshell.*\\*$"      eshell-mode
+	  "^\\*shell.*\\*$"       shell-mode
+	  "^\\*.*term.*\\*$"      term-mode
+	  "^\\*Async Shell.*\\*$" shell-command-mode
+	  inferion-python-mode
+	  inferior-emacs-lisp-mode
+	  compilation-mode
+	  occur-mode
+	  grep-mode
+	  messages-buffer-mode
+	  xref--xref-buffer-mode
 	  "\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
-	  "\\*\\(log-edit-\\).*"
-	  "\\*\\(Diff\\|vc-diff\\).*"
-	  "\\*\\(Open Recent\\).*"
-	  "\\*\\(Ibuffer\\).*"
-	  "\\*\\(Proced\\).*"
-	  "\\*\\(Embark\\).*"
-	  "\\*\\(eldoc\\|xref\\|Flymake\\).*"
-	  "\\*\\(Python\\|ielm\\).*"
-	  "\\*\\(compilation\\|Occur\\|grep\\).*"
-	    "Output\\*$"
-	    help-mode
-	    compilation-mode))
+	  "\\*\\(log-edit-\\).*"))
   (popper-mode +1)
   (popper-echo-mode +1))                ; For echo area hints
 
@@ -1312,7 +1310,6 @@
   :ensure t
   :defer t
   :init
-  (setenv "OPENCODE_ECA_KEY" (auth-source-pick-first-password :host "opencode.eca"))
   (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
   (unless (file-exists-p (expand-file-name "config.json" "~/.config/eca"))
     (shell-command "rm -rf ~/.config/eca")
@@ -1334,10 +1331,10 @@
 	("C"   . eca-chat-clear)
 	("D"   . eca-chat-delete)
 	("E"   . eca-show-stderr)
-	("O"   . (lambda () (interactive) (async-shell-command "OLLAMA_DEBUG=1 OLLAMA_DEBUG_LOG_REQEUSTS=1 OLLAMA_CONTEXT_LENGTH=32768 ollama serve")))
 	("R"   . eca-restart)
 	("S"   . eca-stop)
 	("T"   . eca-chat-toggle-trust)
+	("TAB" . eca-completion-mode)
 	("a"   . eca-chat-cycle-agent)
 	("c"   . eca-chat-show-context)
 	("e"   . eca)
@@ -1360,11 +1357,13 @@
   (ediff-keep-variants t))
 
 (use-package markdown-mode
-:ensure t)
+  :ensure t)
 
 (use-package uv-mode
     :ensure t
+    :defer t
     :config
     (keymap-unset uv-mode-map "C-c C-s")
     (keymap-unset uv-mode-map "C-c C-u")
-    :hook (python-base-mode . uv-mode-auto-activate-hook))
+    :hook
+    (python-base-mode . uv-mode-auto-activate-hook))

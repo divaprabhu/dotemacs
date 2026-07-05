@@ -14,6 +14,7 @@
   (keymap-set my/global-prefix-map "o" '("Outline" . my/outline-prefix-map))
   (define-prefix-command 'my/shell-prefix-map nil)
   (keymap-set my/global-prefix-map "s" '("Shell" . my/shell-prefix-map))
+  (keymap-set my/global-prefix-map "O" '("Ollama" . (lambda () (interactive) (async-shell-command "OLLAMA_DEBUG=1 OLLAMA_DEBUG_LOG_REQEUSTS=1 OLLAMA_CONTEXT_LENGTH=32768 ollama serve"))))
 
   (use-package emacs
     :init
@@ -29,9 +30,9 @@
     ("C-x x c" . copy-to-buffer)
     ("C-x x f" . append-to-file)
     (:map my/shell-prefix-map
-  	  ("s" . shell)
-  	  ("e" . eshell)
-  	  ("t" . term))
+  	("s" . shell)
+  	("e" . eshell)
+  	("t" . term))
     (:repeat-map my/emacs-prefix-map
   	       ("j" . duplicate-dwim)
   	       (";" . comment-line)
@@ -6530,26 +6531,23 @@ Create a .dir-locals.el file in root of folder with contents like
     (setq popper-display-control nil)	; honor display buffer alist
     (setq popper-echo-dispatch-keys nil) ; no short cut for specific popup window
     :bind (("<f12>"   . popper-toggle)
-	 ("M-<f12>"   . popper-cycle)
-	 ("C-<f12>" . popper-toggle-type))
+  	 ("M-<f12>"   . popper-cycle)
+  	 ("C-<f12>" . popper-toggle-type))
     :init
     (setq popper-reference-buffers
-	'("\\*\\(Metahelp\\|info\\|Help\\|Apropos\\).*"
-	  "\\*\\(.*shell\\|.*ansi-term\\|.*eshell\\|.*terminal\\|Async Shell\\).*"
-	  "\\*\\(Messages\\|Output\\).*"
-	  "\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
-	  "\\*\\(log-edit-\\).*"
-	  "\\*\\(Diff\\|vc-diff\\).*"
-	  "\\*\\(Open Recent\\).*"
-	  "\\*\\(Ibuffer\\).*"
-	  "\\*\\(Proced\\).*"
-	  "\\*\\(Embark\\).*"
-	  "\\*\\(eldoc\\|xref\\|Flymake\\).*"
-	  "\\*\\(Python\\|ielm\\).*"
-	  "\\*\\(compilation\\|Occur\\|grep\\).*"
-	    "Output\\*$"
-	    help-mode
-	    compilation-mode))
+  	'("^\\*eshell.*\\*$"      eshell-mode
+  	  "^\\*shell.*\\*$"       shell-mode
+  	  "^\\*.*term.*\\*$"      term-mode
+  	  "^\\*Async Shell.*\\*$" shell-command-mode
+  	  inferion-python-mode
+  	  inferior-emacs-lisp-mode
+  	  compilation-mode
+  	  occur-mode
+  	  grep-mode
+  	  messages-buffer-mode
+  	  xref--xref-buffer-mode
+  	  "\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
+  	  "\\*\\(log-edit-\\).*"))
     (popper-mode +1)
     (popper-echo-mode +1))                ; For echo area hints
 #+end_src
@@ -6700,7 +6698,6 @@ Create a .dir-locals.el file in root of folder with contents like
     :ensure t
     :defer t
     :init
-    (setenv "OPENCODE_ECA_KEY" (auth-source-pick-first-password :host "opencode.eca"))
     (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
     (unless (file-exists-p (expand-file-name "config.json" "~/.config/eca"))
       (shell-command "rm -rf ~/.config/eca")
@@ -6722,10 +6719,10 @@ Create a .dir-locals.el file in root of folder with contents like
   	("C"   . eca-chat-clear)
   	("D"   . eca-chat-delete)
   	("E"   . eca-show-stderr)
-  	("O"   . (lambda () (interactive) (async-shell-command "OLLAMA_DEBUG=1 OLLAMA_DEBUG_LOG_REQEUSTS=1 OLLAMA_CONTEXT_LENGTH=32768 ollama serve")))
   	("R"   . eca-restart)
   	("S"   . eca-stop)
   	("T"   . eca-chat-toggle-trust)
+  	("TAB" . eca-completion-mode)
   	("a"   . eca-chat-cycle-agent)
   	("c"   . eca-chat-show-context)
   	("e"   . eca)
@@ -6741,51 +6738,58 @@ Create a .dir-locals.el file in root of folder with contents like
     )
 #+end_src
 ** Agent Shell
-#+begin_src emacs-lisp :tangle no  
+#+begin_src emacs-lisp :tangle no
   (use-package agent-shell
     :ensure t
     :defer t
     :init
+    (setq default-process-coding-system '(utf-8 . utf-8))
+    (prefer-coding-system 'utf-8)
+    (set-language-environment "UTF-8")
     (setenv "OPENROUTER_OPENCODE_KEY" (auth-source-pick-first-password :host "openrouter.opencode"))
-    (setenv "OLLAMA_OPENCODE_KEY" (auth-source-pick-first-password :host "ollama.opencode"))
     (defun my/agent-shell-dot-subdir (subdir)
       (let ()
         (expand-file-name "agent-shell" user-emacs-directory)))
     :custom
-    (agent-shell-dot-subdir-function #'my/agent-shell-dot-subdir)
+    (agent-shell-busy-indicator-frames 'dots-round)
     (agent-shell-context-sources '(files region error))
     (agent-shell-display-action '(display-buffer-in-side-window
-    				(display-buffer-in-side-window)
-    				(side . right)
-    				(window-width . 0.5)))
+  			    (display-buffer-in-side-window)
+  			    (body-function . select-window)
+  			    (side . right)
+  			    (window-width . 0.5)))
+    (agent-shell-embed-file-size-limit 102400)
+    (agent-shell-file-completion-enabled t)
     (agent-shell-header-style 'text)
+    (agent-shell-highlight-blocks t)
     (agent-shell-preferred-agent-config 'opencode)
     (agent-shell-session-strategy 'latest)
     (agent-shell-show-usage-at-turn-end t)
     (agent-shell-show-welcome-message nil)
     (agent-shell-thought-process-expand-by-default nil)
     (agent-shell-tool-use-expand-by-default nil)
+    (agent-shell-dot-subdir-function #'my/agent-shell-dot-subdir)
     :bind
-    (:map my/agentshell-prefix-map
-    	("!"     . agent-shell-insert-shell-command-output)
-    	("?"     . agent-shell-help-menu)
-    	("R d"   . agent-shell-remove-pending-request)
-    	("R q"   . agent-shell-queue-request)
-    	("R r"   . agent-shell-resume-pending-requests)
-    	("a"     . agent-shell)
-    	("c"     . agent-shell-clear-buffer)
-    	("k"     . agent-shell-delete-interaction-at-point)
-    	("l r"   . agent-shell-reset-logs)
-    	("l t"   . agent-shell-toggle-logging)
-    	("l v"   . agent-shell-view-traffic)
-    	("m"     . agent-shell-cycle-session-mode)
-    	("p"     . agent-shell-prompt-compose)
-    	("s d"   . agent-shell-send-dwim)
-    	("s f"   . agent-shell-send-file)
-    	("s i"   . agent-shell-send-screenshot)
-    	("s o"   . agent-shell-send-other-file)
-    	("s r"   . agent-shell-send-region)
-    	("t"     . agent-shell-open-transcript))
+    (:map my/ai-prefix-map
+    	("!" . agent-shell-insert-shell-command-output)
+    	(""  . agent-shell-reset-logs)
+    	("?" . agent-shell-help-menu)
+    	("C" . agent-shell-clear-buffer)
+    	("K" . agent-shell-remove-pending-request)
+    	("L" . agent-shell-toggle-logging)
+    	("Q" . agent-shell-queue-request)
+    	("R" . agent-shell-resume-pending-requests)
+    	("V" . agent-shell-view-traffic)
+    	("a" . agent-shell)
+    	("d" . agent-shell-send-dwim)
+    	("f" . agent-shell-send-file)
+    	("k" . agent-shell-delete-interaction-at-point)
+    	("m" . agent-shell-cycle-session-mode)
+    	("o" . agent-shell-send-other-file)
+    	("p" . agent-shell-prompt-compose)
+    	("r" . agent-shell-send-region)
+    	("s" . agent-shell-send-screenshot)
+    	("t" . agent-shell-open-transcript))
     )
 #+end_src
 * Ediff
@@ -6994,16 +6998,18 @@ Create a .dir-locals.el file in root of folder with contents like
 ** Configuration
 #+begin_src emacs-lisp
   (use-package markdown-mode
-  :ensure t)
+    :ensure t)
 #+end_src
 * UV Mode
 #+begin_src emacs-lisp
-  (use-package uv-mode
-      :ensure t
-      :config
-      (keymap-unset uv-mode-map "C-c C-s")
-      (keymap-unset uv-mode-map "C-c C-u")
-      :hook (python-base-mode . uv-mode-auto-activate-hook))
+   (use-package uv-mode
+       :ensure t
+       :defer t
+       :config
+       (keymap-unset uv-mode-map "C-c C-s")
+       (keymap-unset uv-mode-map "C-c C-u")
+       :hook
+       (python-base-mode . uv-mode-auto-activate-hook))
 #+end_src
 * Unused
 ** LSP Mode
