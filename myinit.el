@@ -1294,7 +1294,7 @@
 	  "^\\*shell.*\\*$"       shell-mode
 	  "^\\*.*term.*\\*$"      term-mode
 	  "^\\*Async Shell.*\\*$" shell-command-mode
-	  inferion-python-mode
+	  inferior-python-mode
 	  inferior-emacs-lisp-mode
 	  compilation-mode
 	  occur-mode
