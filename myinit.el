@@ -968,7 +968,7 @@
   :preface
   (defun my/eglot-eldoc ()
     (setq eldoc-documentation-strategy
-	  'eldoc-documentation-compose-eagerly))
+  	  'eldoc-documentation-compose-eagerly))
   :custom
   (eglot-autoreconnect t "Automatically reconnect to LSP server")
   (eglot-connect-timeout 60 "Time out connection attempt after specified seconds")
@@ -980,38 +980,46 @@
   (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
   (eglot-report-progress nil "Don't spam echo area")
   :hook
+  (prog-mode . eglot-ensure)
   ((eglot-managed-mode . my/eglot-eldoc))
   :config
-  (defun my/org-babel-edit-prep (info)	; https://github.com/joaotavora/eglot/issues/523
-    (setq buffer-file-name (or (alist-get :file (caddr info))
-				 "org-src-babel-tmp"))
+  (defun my/org-babel-edit-prep (info) ; https://github.com/joaotavora/eglot/issues/523
+    (let ((file (alist-get :file (caddr info))))
+      (setq buffer-file-name
+            (if file
+		file
+              (if (file-remote-p default-directory)
+                  (concat (file-remote-p default-directory) "org-src-babel-tmp")
+		"org-src-babel-tmp"))))
+    (setq-local shell-file-name "/bin/sh")
     (eglot-ensure))
+
   (advice-add 'org-edit-src-code
-		:before (defun my/org-edit-src-code/before (&rest args)
-	      (when-let* ((element (org-element-at-point))
-				      (type (org-element-type element))
-				      (lang (org-element-property :language element))
-				      (mode (org-src-get-lang-mode lang))
-				      ((eglot--lookup-mode mode))
-				      (edit-pre (intern
-						 (format "org-babel-edit-prep:%s" lang))))
-			    (if (fboundp edit-pre)
-				(advice-add edit-pre :after #'my/org-babel-edit-prep)
-			      (fset edit-pre #'my/org-babel-edit-prep)))))
+  	      :before (defun my/org-edit-src-code/before (&rest args)
+  			(when-let* ((element (org-element-at-point))
+  				    (type (org-element-type element))
+  				    (lang (org-element-property :language element))
+  				    (mode (org-src-get-lang-mode lang))
+  				    ((eglot--lookup-mode mode))
+  				    (edit-pre (intern
+  					       (format "org-babel-edit-prep:%s" lang))))
+  			  (if (fboundp edit-pre)
+  			      (advice-add edit-pre :after #'my/org-babel-edit-prep)
+  			    (fset edit-pre #'my/org-babel-edit-prep)))))
   :bind
   (:repeat-map my/lsp-prefix-map
-	       ("a" . eglot-code-actions)
-	       ("b e" . eglot-events-buffer)
-	       ("b s" . eglot-stderr-buffer)
-	       ("c" . eglot-signal-didChangeConfiguration)
-	       ("f" . eglot-format)
-	       ("h" . eglot-inlay-hints-mode)
-	       ("l" . eglot)
-	       ("o" . eglot-code-action-organize-imports)
-	       ("r" . eglot-rename)
-	       ("R" . eglot-reconnect)
-	       ("s" . eglot-shutdown)
-	       ("S" . eglot-shutdown-all))
+  	       ("a" . eglot-code-actions)
+  	       ("b e" . eglot-events-buffer)
+  	       ("b s" . eglot-stderr-buffer)
+  	       ("c" . eglot-signal-didChangeConfiguration)
+  	       ("f" . eglot-format)
+  	       ("h" . eglot-inlay-hints-mode)
+  	       ("l" . eglot)
+  	       ("o" . eglot-code-action-organize-imports)
+  	       ("r" . eglot-rename)
+  	       ("R" . eglot-reconnect)
+  	       ("s" . eglot-shutdown)
+  	       ("S" . eglot-shutdown-all))
   )
 
 (use-package treesit
@@ -1066,53 +1074,47 @@
   :custom
   (python-indent-guess-indent-offset-verbose nil)
   :init
-  (unless (file-exists-p (expand-file-name "uv" "~/.local/bin"))
-    (async-shell-command "curl -LsSf https://astral.sh/uv/install.sh | sh"))
+  (if (string-equal system-type 'gnu/linux)
+      (unless (file-exists-p (expand-file-name "uv" "~/.local/bin"))
+        (async-shell-command "curl -LsSf https://astral.sh/uv/install.sh | sh")))
   (unless (file-exists-p (expand-file-name "pylsp" "~/.local/bin"))
-    (async-shell-command "~/.local/bin/uv tool install python-lsp-server[all]"))
-  ;; (let ((pylspdir (expand-file-name "lsp/pylsp" "~/.cache")))
-  ;;   (unless (file-directory-p pylspdir)
-  ;;     (make-directory pylspdir t)
-  ;;     (cond
-  ;;      ((eq system-type 'windows-nt)
-  ;;	(shell-command (concat "python -m venv " pylspdir))
-  ;;	(async-shell-command (concat pylspdir "/Scripts/activate.bat && pip install -U pip python-lsp-server[all] debugpy && deactivate")))
-  ;;      (t
-  ;;	(shell-command (concat "python3 -m venv " pylspdir))
-  ;;	(async-shell-command (concat ". " pylspdir "/bin/activate && pip install -U pip python-lsp-server[all] debugpy && deactivate"))))))
-  :config
-  (add-hook 'python-base-mode-hook 'eglot-ensure)
-  (add-hook
-   'python-base-mode-hook
-   (lambda ()
-     (setq-local outline-regexp
-		 (rx (or
-		      ;; Branch 1: class (no async)
-		      (group (group (* space)) bow "class" eow)
-		      ;; Branch 2: def or async def
-		      (group (group (* space)) bow (optional "async" (+ space)) "def" eow)
-		      ;; Branch 3: decorators
-		      (group (group (* space)) "@"))))))
-  ;; (add-hook 'python-mode-hook
-  ;;	    (progn
-  ;;	      (setenv "PATH" (concat (getenv "PATH") ":" (expand-file-name "lsp/pylsp/bin" "~/.cache")))
+    (async-shell-command "uv tool install python-lsp-server[all]"))
 
-  ;;	      (setq exec-path (split-string (getenv "PATH") path-separator))
-  ;;	      (add-to-list 'tramp-remote-path (expand-file-name "lsp/pylsp/bin" "~/.cache"))
-  ;;	      'eglot-ensure))
-  ;; :bind
-  ;; (:map my/python-prefix-map
-  ;;	("c"	. python-shell-send-buffer)
-  ;;	("e"	. python-shell-send-statement)
-  ;;	("r"	. python-shell-send-region)
-  ;;	("p"	. run-python)
-  ;;	("z"	. python-shell-switch-to-shell)
-  ;;	("t c"	. python-skeleton-class)
-  ;;	("t d"	. python-skeleton-def)
-  ;;	("t f"	. python-skeleton-for)
-  ;;	("t i"	. python-skeleton-if)
-  ;;	("t t"	. python-skeleton-import)
-  ;;	("t w"	. python-skeleton-while))
+  (defun my/uv-venv-python-local ()
+    "Local (non-TRAMP) path to venv python, for passing to remote processes."
+    (let ((venv-bin (car (seq-filter
+                          (lambda (dir)
+                            (and dir (string-match-p "\\.venv/bin/?\\'" dir)))
+                          exec-path))))
+      (when venv-bin
+      	(let ((full (expand-file-name "python" venv-bin)))
+          (if (file-remote-p full)
+              (tramp-file-name-localname (tramp-dissect-file-name full))
+            full)))))
+  (defun my/sync-python-shell-interpreter ()
+    (when-let ((python (my/uv-venv-python-local)))
+      (setq-local python-shell-interpreter python)))
+
+  (defun my/uv-venv-python-org ()
+    (when-let* ((proj (project-current))
+		(root (project-root proj)))
+      (let ((default-directory root))
+	(let ((result (string-trim
+                       (shell-command-to-string "uv run python -c 'import sys; print(sys.executable)'"))))
+	  (unless (string-match-p "\\`/" result) (setq result nil))
+	  result))))
+  (defun my/sync-org-babel-python ()
+    (when-let ((python (my/uv-venv-python-org)))
+      (setq-local org-babel-python-command python)))
+
+  :hook
+  (python-base-mode . my/sync-python-shell-interpreter)
+  (org-mode . my/sync-org-babel-python)
+  :config
+  (setq-default eglot-workspace-configuration
+      		(lambda (_server)
+                  (when-let ((python (my/uv-venv-python-local)))
+                    `(:pylsp (:plugins (:jedi (:environment ,python)))))))
   )
 
 (use-package emacs			; custom file
@@ -1360,10 +1362,10 @@
   :ensure t)
 
 (use-package uv-mode
-    :ensure t
-    :defer t
-    :config
-    (keymap-unset uv-mode-map "C-c C-s")
-    (keymap-unset uv-mode-map "C-c C-u")
-    :hook
-    (python-base-mode . uv-mode-auto-activate-hook))
+  :ensure t
+  :defer t      
+  :config
+  (keymap-unset uv-mode-map "C-c C-s")
+  (keymap-unset uv-mode-map "C-c C-u")
+  :hook
+  (python-base-mode . uv-mode-auto-activate-hook))
