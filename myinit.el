@@ -833,6 +833,9 @@
   :config
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (add-to-list 'tramp-remote-path (expand-file-name "bin" "~/.local"))
+  (add-to-list 'tramp-remote-process-environment
+            (format "SSH_AUTH_SOCK=%s"
+                    (expand-file-name "~/.gnupg/S.gpg-agent.ssh")))
   )
 
 (use-package modus-themes
