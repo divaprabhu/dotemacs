@@ -828,14 +828,17 @@
   (tramp-use-scp-direct-remote-copying t)
   (enable-remote-dir-locals t)
   (tramp-verbose 2)
-  ; don't use auth-sources-search for completion. This conflicts with file name completion
+ 	; don't use auth-sources-search for completion. This conflicts with file name completion
   (tramp-completion-use-auth-sources nil)
   :config
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (add-to-list 'tramp-remote-path (expand-file-name "bin" "~/.local"))
   (add-to-list 'tramp-remote-process-environment
-            (format "SSH_AUTH_SOCK=%s"
-                    (expand-file-name "~/.gnupg/S.gpg-agent.ssh")))
+               (format "SSH_AUTH_SOCK=%s"
+                       (expand-file-name "~/.gnupg/S.gpg-agent.ssh")))
+  (add-to-list 'tramp-remote-process-environment
+	       (format "OPENROUTER_ECA_KEY=%s"
+		       (auth-source-pick-first-password :host "openrouter.eca")))
   )
 
 (use-package modus-themes
@@ -1273,7 +1276,6 @@
   :ensure t
   :defer t
   :custom
-  (auth-sources '("~/.gnupg/authinfo.gpg" "~/.gnupg/authinfo" "~/.gnupg/netrc"))
   (epg-pinentry-mode 'loopback)
   :config
   ;; Unset SSH_AGENT_PID by setting it to an empty string
@@ -1320,7 +1322,7 @@
     (shell-command "rm -rf ~/.config/eca")
     (shell-command "ln -sf ~/etc/eca ~/.config/eca"))
   :custom
-  (eca-extra-args '("--verbose" "--log-level" "debug"))
+  ;; (eca-extra-args '("--verbose" "--log-level" "debug"))
   (eca-chat-auto-add-cursor nil)
   (eca-chat-diff-tool 'ediff)
   (eca-chat-readonly-history t)
