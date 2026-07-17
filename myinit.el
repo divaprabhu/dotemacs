@@ -62,12 +62,12 @@
   )
 
 (use-package minibuffer
+  :defer t
   :custom
   (minibuffer-follows-selected-frame nil) ; minibuffer stays in same frame
   (insert-default-directory t) ; start with default directory in minibuffer
   (max-mini-window-height 0.25)	  ; default value, 25% of frame height
   (resize-mini-windows t)     ; resize mini-buffer based on text in it
-  (minibuffer-depth-indicate-mode t) ; show depth in case of recursion
   (minibuffer-completion-auto-choose t) ; insert current completion candidate in mini-buffer
   (confirm-nonexistent-file-or-buffer nil) ; don't ask confirmation
   (use-short-answers t)		     ; use y or n instead of yes or no
@@ -90,11 +90,12 @@
   (history-delete-duplicates t)	; remove duplicates
   (savehist-file (expand-file-name "savehist" user-emacs-directory)) ; location of minibuffer history file
   (savehist-additional-variables '(kill-ring      ; clipboard
-		     register-alist ; macros
-		     mark-ring global-mark-ring ; marks
-		     search-ring regexp-search-ring)) ; searches
+				   register-alist ; macros
+				   mark-ring global-mark-ring ; marks
+				   search-ring regexp-search-ring)) ; searches
   (isearch-resume-in-command-history t) ; add isearch-resume command to command history
   :config
+  (minibuffer-depth-indicate-mode t) ; show depth in case of recursion
   (setq
    enable-recursive-minibuffer t ; allow to use mini-buffer recursively
    minibuffer-electric-default-mode t
@@ -103,14 +104,14 @@
    completion-ignore-case t	   ; case insensitive completion
    ;; mini-buffer history
    savehist-minibuffer-history-variables '(minibuffer-history
-			 query-replace-history
-			 file-name-history
-			 buffer-name-history
-			 regexp-history
-			 extended-command-history
-			 shell-command-history
-			 read-expression-history
-			 command-history)
+					   query-replace-history
+					   file-name-history
+					   buffer-name-history
+					   regexp-history
+					   extended-command-history
+					   shell-command-history
+					   read-expression-history
+					   command-history)
    )
   ;; mini-buffer
   (file-name-shadow-mode 1) ; shadow ignored file path in mini-buffer
@@ -695,70 +696,59 @@
 (use-package gnus
   :ensure t
   :defer t
-  :preface
-  (defun my/gnus-group-mail ()
-    (interactive)
-    (gnus-group-mail 2))
-  :custom
-  (mail-user-agent 'gnus-user-agent)	; prefer gnus to compose email
-  (read-mail-command #'gnus)		; prefer gnus for reading email
-  (gnus-home-directory (expand-file-name "gnus/" user-emacs-directory)) ; directory to keep all gnus files
-  (gnus-save-newsrc-file nil)		; just use eld, dont' bother with compatibility with other tools
-  (gnus-read-newsrc-file nil)
-  (gnus-interactive-exit t)		; prompt before exiting, reconnecting nntp and imap is takes time
-  (gnus-select-method '(nnnil nil))
-  ;; (gnus-select-method '(nntp "gmane"
-  ;; (nntp-address "news.gmane.io"))) ; default nntp server
-  ;; (gnus-newgroup-maximum-articles 50)	       ; max articles to pull for a newsgroup
-  ;; (nntp-maximum-request 10)		       ; dont' send too many head requests
-  (nnimap-record-commands t)		       ; log commands to imap log buffer
-  (message-confirm-send t)		       ; prompt before sending email
-  (message-forward-as-mime t)		       ; forward mail as inline mime section
-  (gnus-use-dribble-file t)		       ; use dribble so gnus can recover from crash
-  (gnus-always-read-dribble-file t)	       ; silently load dribble file if exists
-  (gnus-fetch-old-headers t)		       ; build threads by pulling old headers even if that is expired
-  (gnus-large-newsgroup nil)		       ; don't prompt number of articles
-  (gnus-message-archive-group nil)	       ; dont' store sent mail by default. Customize account wise in gnus-parameters
-  (gnus-gcc-externalize-attachments nil)       ; store attachments as mime parts
-  (gnus-gcc-mark-as-read t)		       ; automatically mark sent mail as read
-  (gnus-asynchronous t)			       ; enable asynchronous article fetching
-  (gnus-use-article-prefetch 5)		       ; prefetch only 5 articles
-  (gnus-use-cache t)			       ; cache articles aggressively
-  (gnus-use-header-prefetch t)		       ; prefetch headers to next group
-  (gnus-user-date-format-alist	       ; date format in summary buffer
-   '(((gnus-seconds-today) . "Today at %R")
-     ((+ (* 60 60 24) (gnus-seconds-today)) . "Yesterday, %R")
-     (t . "%Y-%m-%d %R")))
-  (gnus-summary-line-format "%U%R%3i %(%-18,18&user-date;  %-20,20f  %B%s%)\n") ; content display format in summary buffer
-  (gnus-sum-thread-tree-false-root "")
-  (gnus-sum-thread-tree-indent " ")
-  (gnus-sum-thread-tree-single-indent "")
-  (gnus-sum-thread-tree-leaf-with-other "├► ")
-  (gnus-sum-thread-tree-root "")
-  (gnus-sum-thread-tree-single-leaf "╰► ")
-  (gnus-sum-thread-tree-vertical "│")
-  (gnus-summary-mode-line-format "[%U] %g") ; modeline shows unread and compact group name
-  (gnus-show-threads t)			    ; display mails as threads
-  (gnus-thread-indent-level 2)		    ; indent by 2 spaces
-  (gnus-summary-make-false-root 'adopt)	; make one of the children as parent for loose threads
-  (gnus-summary-gather-subject-limit 'fuzzy) ; use fuzzy match to group loose threads
-  (gnus-summary-thread-gathering-function #'gnus-gather-threads-by-references) ; build loose threads by reference instead of subject
-  (gnus-thread-ignore-subject t)	; ignore subject and look at In-Reply-To and References headers
-  (gnus-thread-sort-functions '(gnus-thread-sort-by-most-recent-date)) ; sort summary buffer by recent first
-  (gnus-message-replysign t)		; auto sign reply to signed messages
-  (gnus-message-replyencrypt t)		; auto encrypt replies to encrypted messages
-  (gnus-message-replysign-encrypted t)	; auto sign encrypted messages
-  (mm-verify-option 'known)		; verify sign for known protocols
-  (mm-decrypt-option 'known)		; auto decrypt know protocols
-  (mm-sign-option nil)			; use default key to sign
-  (mm-encrypt-option 'guided)		; ask user to select receipient key
-  (gnus-unbuttonized-mime-types nil)	; buttonize all mime types
+  :init
+  (setq mail-user-agent 'gnus-user-agent
+	read-mail-command #'gnus
+	gnus-home-directory (expand-file-name "gnus/" user-emacs-directory)
+	gnus-save-newsrc-file nil
+	gnus-read-newsrc-file nil
+	gnus-interactive-exit t
+	gnus-select-method '(nnnil nil)
+	nnimap-record-commands t
+	message-confirm-send t
+	message-forward-as-mime t
+	gnus-use-dribble-file t
+	gnus-always-read-dribble-file t
+	gnus-fetch-old-headers t
+	gnus-large-newsgroup nil
+	gnus-message-archive-group nil
+	gnus-gcc-externalize-attachments nil
+	gnus-gcc-mark-as-read t
+	gnus-asynchronous t
+	gnus-use-article-prefetch 5
+	gnus-use-cache t
+	gnus-use-header-prefetch t
+	gnus-user-date-format-alist
+	'(((gnus-seconds-today) . "Today at %R")
+          ((+ (* 60 60 24) (gnus-seconds-today)) . "Yesterday, %R")
+          (t . "%Y-%m-%d %R"))
+	gnus-summary-line-format "%U%R%3i %(%-18,18&user-date;  %-20,20f  %B%s%)\n"
+	gnus-sum-thread-tree-false-root ""
+	gnus-sum-thread-tree-indent " "
+	gnus-sum-thread-tree-single-indent ""
+	gnus-sum-thread-tree-leaf-with-other "├► "
+	gnus-sum-thread-tree-root ""
+	gnus-sum-thread-tree-single-leaf "╰► "
+	gnus-sum-thread-tree-vertical "│"
+	gnus-summary-mode-line-format "[%U] %g"
+	gnus-show-threads t
+	gnus-thread-indent-level 2
+	gnus-summary-make-false-root 'adopt
+	gnus-summary-gather-subject-limit 'fuzzy
+	gnus-summary-thread-gathering-function #'gnus-gather-threads-by-references
+	gnus-thread-ignore-subject t
+	gnus-thread-sort-functions '(gnus-thread-sort-by-most-recent-date)
+	gnus-message-replysign t
+	gnus-message-replyencrypt t
+	gnus-message-replysign-encrypted t
+	mm-verify-option 'known
+	mm-decrypt-option 'known
+	mm-sign-option nil
+	mm-encrypt-option 'guided
+	gnus-unbuttonized-mime-types nil)
   :bind
   ("C-c m" . gnus)
-  (:map gnus-group-mode-map
-	("m" . #'my/gnus-group-mail))
   :hook
-  (gnus-group-mode . gnus-topic-mode)
   (message-mode . flyspell-mode)
   :config
   (if (file-exists-p "~/.gnupg/authinfo.gpg")
@@ -767,7 +757,13 @@
 	  :ensure t
 	  :config
 	  (auth-source-xoauth2-plugin-mode 1))
-	(load-file "~/etc/gnus_mail.el")))
+	(load-file "~/etc/gnus_mail.el"))))
+
+(use-package gnus-topic
+  :after (gnus)
+  :defer t
+  :hook
+  (gnus-group-mode . gnus-topic-mode)
   )
 
 (use-package doc-view
@@ -788,27 +784,14 @@
   )
 
 (use-package server
-  :config
-  (when (not (server-running-p))
-    (server-start)))
-
-(use-package desktop
-  :demand t
   :custom
-  (desktop-restore-eager 2) ; number of buffers to restore eagerly
-  (desktop-lazy-idle-delay 5) ; idle delay for creating other buffers lazily
-  (desktop-load-locked-desktop t) ; notify if another emacs instance is locking session
-  (desktop-restore-frames t) ; save and restore frames and window config
-  (desktop-save t)	     ; always save desktop when quitting emacs
-  (desktop-auto-save-timeout 10) ; idle time seconds before autosaving
-  (desktop-base-file-name "emacs.desktop") ; desktop file name
-  (desktop-globals-to-save		; global variables to be saved
-   '(desktop-missing-file-warning tags-file-name tags-table-list search-ring regexp-search-ring register-alist file-name-history))
-  (desktop-locals-to-save		; local variables to be saved
-   '(buffer-undo-list eww-history-position desktop-locals-to-save truncate-lines case-fold-search case-replace fill-column overwrite-mode change-log-default-name line-number-mode column-number-mode size-indication-mode buffer-file-coding-system buffer-display-time indent-tabs-mode tab-width indicate-buffer-boundaries indicate-empty-lines show-trailing-whitespace))
-  :config
-  (desktop-save-mode t)		; enable desktop save mode
+  (server-stop-automatically nil)
+  (server-use-tcp nil)
+  (server-host nil)
+  (server-port 9999)
+  (server-kill-new-buffers t)
   )
+
 (use-package saveplace
   :demand t
   :custom
@@ -936,7 +919,8 @@
      (warning "#ffcb6b")))
   :config
   (modus-themes-with-colors
-    (custom-set-faces
+    (custom-theme-set-faces
+     'modus-vivendi-tinted
      `(change-log-acknowledgment ((,c :foreground "#a1bfff")))
      `(change-log-date ((,c :foreground "#c3e88d")))
      `(change-log-name ((,c :foreground "#f78c6c")))
@@ -953,7 +937,7 @@
      `(gnus-header-subject ((,c :foreground "#82aaff")))
      `(log-view-message ((,c :foreground "#a1bfff")))
      `(match ((,c :background "#3C435E" :foreground "#EEFFFF")))
-     `(modus-themes-search-current ((,c :background "#ff5370" :foreground "#292D3E" )))
+     `(modus-themes-search-current ((,c :background "#ff5370" :foreground "#292D3E")))
      `(modus-themes-search-lazy ((,c :background "#3C435E" :foreground "#EEFFFF")))
      `(newsticker-extra-face ((,c :foreground "#8d92af" :height 0.8 :slant italic)))
      `(newsticker-feed-face ((,c :foreground "#ff5370" :height 1.2 :weight bold)))
@@ -967,7 +951,8 @@
      `(vc-dir-file ((,c :foreground "#82aaff")))
      `(vc-dir-header-value ((,c :foreground "#a1bfff")))))
   :init
-  (load-theme 'modus-vivendi-tinted t))
+  (load-theme 'modus-vivendi-tinted t)
+  )
 
 (use-package eglot
   :defer t
@@ -1238,25 +1223,25 @@
 	("C-c C-b" . org-backward-heading-same-level)
 	("C-c C-u" . outline-up-heading))
   (:repeat-map my/org-repeat-map
-		 ("C-n" . org-next-visible-heading)
-		 ("C-p" . org-previous-visible-heading)
-		 ("C-f" . org-forward-heading-same-level)
-		 ("C-b" . org-backward-heading-same-level)
-		 ("C-u" . outline-up-heading))
+	       ("C-n" . org-next-visible-heading)
+	       ("C-p" . org-previous-visible-heading)
+	       ("C-f" . org-forward-heading-same-level)
+	       ("C-b" . org-backward-heading-same-level)
+	       ("C-u" . outline-up-heading))
   :hook
   (org-mode . org-indent-mode)		; visually indent by outline structure
-:config
-(org-babel-do-load-languages 'org-babel-load-languages
-			     '((C . t)
-			       (java . t)
-			       (latex . t)
-			       (lua . t)
-			       (js . t)
-			       (python . t)
-			       (shell . t)
-			       (emacs-lisp . t)))
-(setq org-confirm-babel-evaluate nil)	; don't ask when evaluating code blocks
-)
+  :config
+  (org-babel-do-load-languages 'org-babel-load-languages
+			       '((C . t)
+				 (java . t)
+				 (latex . t)
+				 (lua . t)
+				 (js . t)
+				 (python . t)
+				 (shell . t)
+				 (emacs-lisp . t)))
+  (setq org-confirm-babel-evaluate nil)	; don't ask when evaluating code blocks
+  )
 
 (use-package proced
   :defer t
@@ -1288,13 +1273,6 @@
 (use-package popper
   :defer t
   :ensure t ; or :straight t
-  :config
-  (setq popper-group-function #'popper-group-by-project) ; project.el projects
-  (setq popper-display-control nil)	; honor display buffer alist
-  (setq popper-echo-dispatch-keys nil) ; no short cut for specific popup window
-  :bind (("<f12>"   . popper-toggle)
-	 ("M-<f12>"   . popper-cycle)
-	 ("C-<f12>" . popper-toggle-type))
   :init
   (setq popper-reference-buffers
 	'("^\\*eshell.*\\*$"      eshell-mode
@@ -1310,14 +1288,21 @@
 	  xref--xref-buffer-mode
 	  "\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
 	  "\\*\\(log-edit-\\).*"))
+  :config
   (popper-mode +1)
-  (popper-echo-mode +1))                ; For echo area hints
+  (setq popper-group-function #'popper-group-by-project) ; project.el projects
+  (setq popper-display-control nil)	; honor display buffer alist
+  (setq popper-echo-dispatch-keys nil) ; no short cut for specific popup window
+  :bind (("<f12>"   . popper-toggle)
+	 ("M-<f12>"   . popper-cycle)
+	 ("C-<f12>" . popper-toggle-type))
+  :hook
+  (popper-mode . popper-echo-mode))	; For echo area hints
 
 (use-package eca
   :ensure t
   :defer t
   :init
-  (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
   (unless (file-exists-p (expand-file-name "config.json" "~/.config/eca"))
     (shell-command "rm -rf ~/.config/eca")
     (shell-command "ln -sf ~/etc/eca ~/.config/eca"))
@@ -1329,6 +1314,8 @@
   (eca-chat-expand-pending-approval-tools t)
   (eca-chat-shrink-called-tools t)
   (eca-buttons-allow-mouse t)
+  :config
+  (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
   :bind
   (:map my/ai-prefix-map
 	("!"   . eca-chat-tool-call-accept-all-and-remember)
@@ -1364,7 +1351,8 @@
   (ediff-keep-variants t))
 
 (use-package markdown-mode
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package uv-mode
   :ensure t

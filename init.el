@@ -17,7 +17,14 @@
 (require 'auth-source)
 (setq auth-sources '("~/.gnupg/authinfo.gpg" "~/.gnupg/authinfo" "~/.gnupg/netrc"))
 
-(org-babel-load-file "~/.config/emacs/myinit.org")
+;;   (org-babel-load-file "~/.config/emacs/myinit.org")
+
+(let* ((org-file (expand-file-name "myinit.org" "~/.config/emacs/"))
+       (el-file  (concat (file-name-sans-extension org-file) ".el")))
+  (unless (file-exists-p el-file)
+    (require 'ob-tangle)
+    (org-babel-tangle-file org-file el-file))
+  (load el-file nil 'nomessage))
 
 (provide 'init)
 ;;; init.el ends here
