@@ -15,6 +15,8 @@
 (use-package emacs
   :init
   (repeat-mode 1)
+  (add-to-list 'exec-path (expand-file-name "bin" "~/.bun"))
+  (add-to-list 'exec-path (expand-file-name "bin" "~/.local"))    
   :custom
   (repeat-exit-timeout 5) ; idle seconds after which turn of repeat mode
   :bind
@@ -278,6 +280,7 @@
   (recentf-max-saved-items 300) ; default is 20
   (recentf-max-menu-items 300)
   ;; (recentf-exclude (list "^/\\(?:ssh\\|su\\|sudo\\)?:"))
+  (recentf-exclude (list #'file-remote-p))
   (recentf-save-file (expand-file-name "recentf" user-emacs-directory))
   :config
   (recentf-mode 1)
@@ -607,8 +610,8 @@
   :defer t
   :bind
   (:map vc-prefix-map
-      	("c" . my/vc-git-clone)
-      	("e" . vc-ediff))
+        ("c" . my/vc-git-clone)
+        ("e" . vc-ediff))
   :custom
   (vc-revert-show-diff t)	      ; revert first shows diff buffer
   (vc-follow-symlinks t)	      ; follow symlinks
@@ -618,7 +621,7 @@
   :config
   (defun my/vc-git-clone (repository-url local-dir)
     "Run \"git clone REPOSITORY-URL\" to LOCAL-DIR.
-  Executes `vc-dir' in the newly cloned directory."
+    Executes `vc-dir' in the newly cloned directory."
     (interactive
      (let* ((url (read-string "Repository URL: "))
             (default-name (file-name-base url))
@@ -634,7 +637,7 @@
   :defer t
   :custom
   (project-mode-line t)
-  (project-list-file (expand-file-name "projects" user-emacs-directory)) ; file to save knows projects
+  (project-list-file (expand-file-name "projects" user-emacs-directory))
   )
 (use-package xref
   :defer t
@@ -796,11 +799,14 @@
   :demand t
   :custom
   (save-place-limit 600)
-  (save-place-file (expand-file-name "saveplace" user-emacs-directory)) ; file where place is stored
-  (save-place-forget-unreadable-files t) ; set to nil if emacs is slow to exit
+  (save-place-file (expand-file-name "saveplace" user-emacs-directory))
+  (save-place-forget-unreadable-files t)
   :config
-  (save-place-mode 1)			; enable saveplace mode
-  )
+  (save-place-mode 1)
+  (defun my/save-place-ignore-remote (orig-fun &rest args)
+    (unless (file-remote-p (or buffer-file-name default-directory))
+      (apply orig-fun args)))
+  (advice-add 'save-place-to-alist :around #'my/save-place-ignore-remote))
 
 (ffap-bindings)
 
@@ -811,17 +817,14 @@
   (tramp-use-scp-direct-remote-copying t)
   (enable-remote-dir-locals t)
   (tramp-verbose 2)
- 	; don't use auth-sources-search for completion. This conflicts with file name completion
+ 	;; don't use auth-sources-search for completion. This conflicts with file name completion
   (tramp-completion-use-auth-sources nil)
   :config
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (add-to-list 'tramp-remote-path (expand-file-name "bin" "~/.bun"))
   (add-to-list 'tramp-remote-path (expand-file-name "bin" "~/.local"))
   (add-to-list 'tramp-remote-process-environment
-               (format "SSH_AUTH_SOCK=%s"
-                       (expand-file-name "~/.gnupg/S.gpg-agent.ssh")))
-  (add-to-list 'tramp-remote-process-environment
-	       (format "OPENROUTER_ECA_KEY=%s"
-		       (auth-source-pick-first-password :host "openrouter.eca")))
+		 (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket")))
   )
 
 (use-package modus-themes
@@ -1298,50 +1301,6 @@
 	 ("C-<f12>" . popper-toggle-type))
   :hook
   (popper-mode . popper-echo-mode))	; For echo area hints
-
-(use-package eca
-  :ensure t
-  :defer t
-  :init
-  (unless (file-exists-p (expand-file-name "config.json" "~/.config/eca"))
-    (shell-command "rm -rf ~/.config/eca")
-    (shell-command "ln -sf ~/etc/eca ~/.config/eca"))
-  :custom
-  ;; (eca-extra-args '("--verbose" "--log-level" "debug"))
-  (eca-chat-auto-add-cursor nil)
-  (eca-chat-diff-tool 'ediff)
-  (eca-chat-readonly-history t)
-  (eca-chat-expand-pending-approval-tools t)
-  (eca-chat-shrink-called-tools t)
-  (eca-buttons-allow-mouse t)
-  :config
-  (setenv "OPENROUTER_ECA_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
-  :bind
-  (:map my/ai-prefix-map
-	("!"   . eca-chat-tool-call-accept-all-and-remember)
-	("<"   . eca-chat-collapse-all-blocks)
-	(">"   . eca-chat-expand-all-blocks)
-	("?"   . eca-transient-menu)
-	("C"   . eca-chat-clear)
-	("D"   . eca-chat-delete)
-	("E"   . eca-show-stderr)
-	("R"   . eca-restart)
-	("S"   . eca-stop)
-	("T"   . eca-chat-toggle-trust)
-	("TAB" . eca-completion-mode)
-	("a"   . eca-chat-cycle-agent)
-	("c"   . eca-chat-show-context)
-	("e"   . eca)
-	("m"   . eca-chat-select-model)
-	("n"   . eca-chat-tool-call-reject-next)
-	("p"   . eca-switch-to-project-chat)
-	("s"   . eca-settings)
-	("t"   . eca-chat-toggle-window)
-	("u"   . eca-chat-add-context-to-user-prompt)
-	("v"   . eca-chat-select-variant)
-	("x"   . eca-chat-drop-context-from-system-prompt)
-	("y"   . eca-chat-tool-call-accept-next))
-  )
 
 (use-package ediff
   :defer t

@@ -19,6 +19,8 @@
   (use-package emacs
     :init
     (repeat-mode 1)
+    (add-to-list 'exec-path (expand-file-name "bin" "~/.bun"))
+    (add-to-list 'exec-path (expand-file-name "bin" "~/.local"))    
     :custom
     (repeat-exit-timeout 5) ; idle seconds after which turn of repeat mode
     :bind
@@ -1731,6 +1733,7 @@
     (recentf-max-saved-items 300) ; default is 20
     (recentf-max-menu-items 300)
     ;; (recentf-exclude (list "^/\\(?:ssh\\|su\\|sudo\\)?:"))
+    (recentf-exclude (list #'file-remote-p))
     (recentf-save-file (expand-file-name "recentf" user-emacs-directory))
     :config
     (recentf-mode 1)
@@ -4061,8 +4064,8 @@ Even if they are more idiosyncratic and have more surprising behaviours
     :defer t
     :bind
     (:map vc-prefix-map
-        	("c" . my/vc-git-clone)
-        	("e" . vc-ediff))
+          ("c" . my/vc-git-clone)
+          ("e" . vc-ediff))
     :custom
     (vc-revert-show-diff t)	      ; revert first shows diff buffer
     (vc-follow-symlinks t)	      ; follow symlinks
@@ -4072,7 +4075,7 @@ Even if they are more idiosyncratic and have more surprising behaviours
     :config
     (defun my/vc-git-clone (repository-url local-dir)
       "Run \"git clone REPOSITORY-URL\" to LOCAL-DIR.
-    Executes `vc-dir' in the newly cloned directory."
+      Executes `vc-dir' in the newly cloned directory."
       (interactive
        (let* ((url (read-string "Repository URL: "))
               (default-name (file-name-base url))
@@ -4088,7 +4091,7 @@ Even if they are more idiosyncratic and have more surprising behaviours
     :defer t
     :custom
     (project-mode-line t)
-    (project-list-file (expand-file-name "projects" user-emacs-directory)) ; file to save knows projects
+    (project-list-file (expand-file-name "projects" user-emacs-directory))
     )
   (use-package xref
     :defer t
@@ -5015,11 +5018,14 @@ Linebreaks
     :demand t
     :custom
     (save-place-limit 600)
-    (save-place-file (expand-file-name "saveplace" user-emacs-directory)) ; file where place is stored
-    (save-place-forget-unreadable-files t) ; set to nil if emacs is slow to exit
+    (save-place-file (expand-file-name "saveplace" user-emacs-directory))
+    (save-place-forget-unreadable-files t)
     :config
-    (save-place-mode 1)			; enable saveplace mode
-    )
+    (save-place-mode 1)
+    (defun my/save-place-ignore-remote (orig-fun &rest args)
+      (unless (file-remote-p (or buffer-file-name default-directory))
+        (apply orig-fun args)))
+    (advice-add 'save-place-to-alist :around #'my/save-place-ignore-remote))
 #+end_src
 * Picture Mode
 * Recursive Editing
@@ -5118,25 +5124,22 @@ Linebreaks
 * Tramp
 ** Configuration
 #+begin_src emacs-lisp
-  (use-package tramp
-    :defer t
-    :custom
-    (tramp-copy-size-limit (* 2 1024 1024)) ;; 2MB
-    (tramp-use-scp-direct-remote-copying t)
-    (enable-remote-dir-locals t)
-    (tramp-verbose 2)
-   	; don't use auth-sources-search for completion. This conflicts with file name completion
-    (tramp-completion-use-auth-sources nil)
-    :config
-    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-    (add-to-list 'tramp-remote-path (expand-file-name "bin" "~/.local"))
-    (add-to-list 'tramp-remote-process-environment
-                 (format "SSH_AUTH_SOCK=%s"
-                         (expand-file-name "~/.gnupg/S.gpg-agent.ssh")))
-    (add-to-list 'tramp-remote-process-environment
-  	       (format "OPENROUTER_ECA_KEY=%s"
-  		       (auth-source-pick-first-password :host "openrouter.eca")))
-    )
+    (use-package tramp
+      :defer t
+      :custom
+      (tramp-copy-size-limit (* 2 1024 1024)) ;; 2MB
+      (tramp-use-scp-direct-remote-copying t)
+      (enable-remote-dir-locals t)
+      (tramp-verbose 2)
+     	;; don't use auth-sources-search for completion. This conflicts with file name completion
+      (tramp-completion-use-auth-sources nil)
+      :config
+      (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+      (add-to-list 'tramp-remote-path (expand-file-name "bin" "~/.bun"))
+      (add-to-list 'tramp-remote-path (expand-file-name "bin" "~/.local"))
+      (add-to-list 'tramp-remote-process-environment
+  		 (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket")))
+      )
 #+end_src
 * Use Package
 - declarative way to setup package
@@ -6705,7 +6708,7 @@ Create a .dir-locals.el file in root of folder with contents like
 #+end_src
 
 ** ECA
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package eca
     :ensure t
     :defer t
@@ -6759,7 +6762,6 @@ Create a .dir-locals.el file in root of folder with contents like
     (setq default-process-coding-system '(utf-8 . utf-8))
     (prefer-coding-system 'utf-8)
     (set-language-environment "UTF-8")
-    (setenv "OPENROUTER_OPENCODE_KEY" (auth-source-pick-first-password :host "openrouter.opencode"))
     (defun my/agent-shell-dot-subdir (subdir)
       (let ()
         (expand-file-name "agent-shell" user-emacs-directory)))
@@ -6767,10 +6769,10 @@ Create a .dir-locals.el file in root of folder with contents like
     (agent-shell-busy-indicator-frames 'dots-round)
     (agent-shell-context-sources '(files region error))
     (agent-shell-display-action '(display-buffer-in-side-window
-  			    (display-buffer-in-side-window)
-  			    (body-function . select-window)
-  			    (side . right)
-  			    (window-width . 0.5)))
+    				(display-buffer-in-side-window)
+    				(body-function . select-window)
+    				(side . right)
+    				(window-width . 0.5)))
     (agent-shell-embed-file-size-limit 102400)
     (agent-shell-file-completion-enabled t)
     (agent-shell-header-style 'text)
@@ -6782,28 +6784,31 @@ Create a .dir-locals.el file in root of folder with contents like
     (agent-shell-thought-process-expand-by-default nil)
     (agent-shell-tool-use-expand-by-default nil)
     (agent-shell-dot-subdir-function #'my/agent-shell-dot-subdir)
+    :config
+    (setenv "OPENROUTER_OPENCODE_KEY" (auth-source-pick-first-password :host "openrouter.eca"))
     :bind
     (:map my/ai-prefix-map
-    	("!" . agent-shell-insert-shell-command-output)
-    	(""  . agent-shell-reset-logs)
-    	("?" . agent-shell-help-menu)
-    	("C" . agent-shell-clear-buffer)
-    	("K" . agent-shell-remove-pending-request)
-    	("L" . agent-shell-toggle-logging)
-    	("Q" . agent-shell-queue-request)
-    	("R" . agent-shell-resume-pending-requests)
-    	("V" . agent-shell-view-traffic)
-    	("a" . agent-shell)
-    	("d" . agent-shell-send-dwim)
-    	("f" . agent-shell-send-file)
-    	("k" . agent-shell-delete-interaction-at-point)
-    	("m" . agent-shell-cycle-session-mode)
-    	("o" . agent-shell-send-other-file)
-    	("p" . agent-shell-prompt-compose)
-    	("r" . agent-shell-send-region)
-    	("s" . agent-shell-send-screenshot)
-    	("t" . agent-shell-open-transcript))
+      	("!" . agent-shell-insert-shell-command-output)
+      	(""  . agent-shell-reset-logs)
+      	("?" . agent-shell-help-menu)
+      	("C" . agent-shell-clear-buffer)
+      	("K" . agent-shell-remove-pending-request)
+      	("L" . agent-shell-toggle-logging)
+      	("Q" . agent-shell-queue-request)
+      	("R" . agent-shell-resume-pending-requests)
+      	("V" . agent-shell-view-traffic)
+      	("a" . agent-shell)
+      	("d" . agent-shell-send-dwim)
+      	("f" . agent-shell-send-file)
+      	("k" . agent-shell-delete-interaction-at-point)
+      	("m" . agent-shell-cycle-session-mode)
+      	("o" . agent-shell-send-other-file)
+      	("p" . agent-shell-prompt-compose)
+      	("r" . agent-shell-send-region)
+      	("s" . agent-shell-send-screenshot)
+      	("t" . agent-shell-open-transcript))
     )
+
 #+end_src
 * Ediff
 [[https://www.youtube.com/watch?v=9S2pMZ6U5Tc][Youtube]]
