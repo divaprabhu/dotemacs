@@ -1,18 +1,22 @@
 (define-prefix-command 'my/global-prefix-map nil)
 (keymap-set global-map "C-c" my/global-prefix-map)
-(define-prefix-command 'my/ai-prefix-map nil)
-(keymap-set my/global-prefix-map "a" '("AI" . my/ai-prefix-map))
+
 (define-prefix-command 'my/emacs-prefix-map nil)
-(keymap-set my/global-prefix-map "e" '("Emacs" . my/emacs-prefix-map))
+(keymap-set my/global-prefix-map "c" '("Core Emacs" . my/emacs-prefix-map))
+
 (define-prefix-command 'my/lsp-prefix-map nil)
 (keymap-set my/global-prefix-map "l" '("LSP" . my/lsp-prefix-map))
+
 (define-prefix-command 'my/outline-prefix-map nil)
 (keymap-set my/global-prefix-map "o" '("Outline" . my/outline-prefix-map))
+
 (define-prefix-command 'my/shell-prefix-map nil)
 (keymap-set my/global-prefix-map "s" '("Shell" . my/shell-prefix-map))
+
 (keymap-set my/global-prefix-map "O" '("Ollama" . (lambda () (interactive) (async-shell-command "OLLAMA_DEBUG=1 OLLAMA_DEBUG_LOG_REQEUSTS=1 OLLAMA_CONTEXT_LENGTH=32768 ollama serve"))))
 
 (use-package emacs
+  :ensure nil
   :init
   (repeat-mode 1)
   (add-to-list 'exec-path (expand-file-name "bin" "~/.bun"))
@@ -27,25 +31,24 @@
   ("C-x x p" . prepend-to-buffer)
   ("C-x x c" . copy-to-buffer)
   ("C-x x f" . append-to-file)
-  (:map my/shell-prefix-map
-	("s" . shell)
-	("e" . eshell)
-	("t" . term))
   (:repeat-map my/emacs-prefix-map
-	       ("j" . duplicate-dwim)
-	       (";" . comment-line)
-	       ("t" . transpose-lines)))
+    	       ("j" . duplicate-dwim)
+    	       (";" . comment-line)
+    	       ("t" . transpose-lines)))
 
 (use-package emacs			; echo area
+  :ensure nil
   :config
   (setq message-log-max 100000))
 
 (use-package emacs			; exiting emacs
+  :ensure nil
   :config
   (setq inhibit-startup-screen t)
   (setq inhibit-startup-message t))
 
 (use-package emacs			; editing
+  :ensure nil
   :config
   (line-number-mode 1)
   (column-number-mode 1)
@@ -64,6 +67,7 @@
   )
 
 (use-package minibuffer
+  :ensure nil
   :defer t
   :custom
   (minibuffer-follows-selected-frame nil) ; minibuffer stays in same frame
@@ -124,17 +128,20 @@
   )
 
 (use-package simple
+  :ensure nil
   :custom
   (suggest-key-bindings 5)
   (extended-command-suggest-shorter t))
 
 (use-package emacs			; help and info
+  :ensure nil
   :custom
   (help-window-select t) ; switch to help window when created
   (help-window-keep-selected t) ; reuse same Help buffer
   )
 
 (use-package emacs			; mark and region
+  :ensure nil
   :custom
   (highlight-nonselected-windows nil) ; each window highlights its own region
   (use-empty-active-region nil) ; region aware commands treat empty region as inactive
@@ -148,6 +155,7 @@
   )
 
 (use-package emacs			; killing and moving text
+  :ensure nil
   :custom
   (kill-do-not-save-duplicates t) ; don't save duplicates in kill ring
   (kill-whole-line t)	; kill-line at line start deletes newline also
@@ -159,23 +167,26 @@
     (interactive)
     (if (region-active-p)
 	(kill-region (region-beginning) (region-end))
-	(backward-kill-word 1)))
+      (backward-kill-word 1)))
   (substitute-key-definition 'kill-region 'my/kill-region-or-backward-word (current-global-map))
   )
 
 (use-package register
+  :ensure nil
   :defer t
   :custom
   (register-use-preview t)
   (register-preview-delay 1) ; seconds before displaying preview of register list
   )
 (use-package bookmark
+  :ensure nil
   :defer t
   :custom
   (bookmark-save-flag 1)     ; save bookmark to file automatically
   )
 
 (use-package emacs			; display
+  :ensure nil
   :custom
   (next-screen-context-lines 3) ; number lines that overlap during scroll command
   (scroll-conservatively 1000)	; never recenter point on redisplay
@@ -201,6 +212,7 @@
   )
 
 (use-package isearch
+  :ensure nil
   :defer t
   :config
   (setq	search-ring-max 1000 ; search ring size
@@ -211,6 +223,7 @@
 	isearch-lazy-count t)	       ; show current match and total match number
   )
 (use-package occur
+  :ensure nil
   :defer t
   :hook
   (occur-mode . next-error-follow-minor-mode)	; auto enable follow mode
@@ -218,6 +231,7 @@
   )
 
 (use-package emacs			; letter case
+  :ensure nil
   :bind
   ;; change case commands map to dwim variant which apply to region if selected
   ("M-l" . 'downcase-dwim)
@@ -228,6 +242,7 @@
   (put 'upcase-region 'disabled nil)
   )
 (use-package flyspell
+  :ensure nil
   :defer t
   :config
   (setq ispell-personal-dictionary (expand-file-name "dictionary" user-emacs-directory) ; location of personal
@@ -238,6 +253,7 @@
   )
 
 (use-package kmacro
+  :ensure nil
   :defer t
   :config
   (setq	kmacro-ring-max 1000) ; macro ring size
@@ -247,6 +263,7 @@
   )
 
 (use-package emacs			; file handling
+  :ensure nil
   :init
   (make-directory (expand-file-name "autosave/" user-emacs-directory) t)
   :custom
@@ -275,6 +292,7 @@
   (global-auto-revert-mode 1)	 ; auto update buffers if file changes
   )
 (use-package recentf
+  :ensure nil
   :defer t
   :custom
   (recentf-max-saved-items 300) ; default is 20
@@ -289,6 +307,7 @@
   )
 
 (use-package emacs			; buffers
+  :ensure nil
   :custom
   (uniquify-buffer-name-style 'forward)
   (clean-buffer-list-delay-general 1)	; number of days after which buffer is autokilled
@@ -304,6 +323,7 @@
 		     "show diff between the buffer and its file"))
   )
 (use-package icomplete
+  :ensure nil
   :defer t
   :custom
   (icomplete-delay-completions-threshold 0) ; pending completion number to apply icomplete-compute-delay
@@ -331,6 +351,8 @@
   )
 
 (use-package window
+  :ensure nil
+  :defer t
   :custom
   (switch-to-buffer-in-dedicated-window 'pop) ; in strongly dedicate windows behave like pop-to-buffer
   (switch-to-buffer-obey-display-actions t) ; C-x C-b respects display buffer rules
@@ -400,6 +422,7 @@
   )
 
 (use-package emacs			; frames
+  :ensure nil
   :custom
   (tty-menu-open-use-tmm -1)
   (tab-bar-show t)
@@ -424,6 +447,7 @@
   )
 
 (use-package emacs			; indentation
+  :ensure nil
   :custom
   (tab-always-indent 'complete)
   ;; distance between tab stops in columns. control width of tab
@@ -436,12 +460,15 @@
   )
 
 (use-package emacs			; text
+  :ensure nil
   :custom
   (sentence-end-double-space nil)
   :hook
   (text-mode . turn-on-auto-fill)   ; automatic line breaking on space
   )
 (use-package outline
+  :ensure nil
+  :defer t
   :custom
   (outline-blank-line t)
   (outline-minor-mode-use-buttons 'in-margins) ; show button in margin. pressing RET or click toggles fold
@@ -481,6 +508,7 @@
   )
 
 (use-package imenu
+  :ensure nil
   :defer t
   :custom
   (imenu-auto-rescan t)			; rescan buffer automatically
@@ -491,6 +519,7 @@
   (org-imenu-depth 10)
   )
 (use-package emacs			; programs
+  :ensure nil
   :custom
   (blink-matching-paren 'jump)	 ; briefly move to matching open paren
   (blink-matching-delay 1)	 ; not used in show paren mode
@@ -515,6 +544,7 @@
   (c-mode . cwarn-mode)
   )
 (use-package eldoc
+  :ensure nil
   :defer t
   :custom
   (eldoc-help-at-pt t) ;; EMACS-31
@@ -527,6 +557,7 @@
   (global-eldoc-mode 1)			; enable eldoc mode
   )
 ;; (use-package hideshow
+;;   :ensure nil
 ;;   :defer t
 ;;   :custom
 ;;   (hs-isearch-open t) ; unhide code and comment if match is in hidden block during isearch
@@ -540,6 +571,7 @@
 ;;   (prog-mode . hs-minor-mode)
 ;;   )
 (use-package completion-preview
+  :ensure nil
   :defer t
   :hook
   (prog-mode . 'completion-preview)
@@ -558,6 +590,7 @@
   )
 
 (use-package compile
+  :ensure nil
   :defer t
   :custom
   (compilation-scroll-output 'first-error) ; scroll automatically
@@ -573,6 +606,7 @@
   (comilation-mode . next-error-follow-minor-mode)
   )
 (use-package grep
+  :ensure nil
   :defer t
   :custom
   (grep-find-ignored-directories
@@ -583,6 +617,7 @@
   (grep-mode . next-error-follow-minor-mode)
   )
 (use-package flymake
+  :ensure nil
   :defer t
   :bind (:map flymake-mode-map
 	      ("M-n" . 'flymake-goto-next-error)
@@ -600,6 +635,7 @@
   (prog-mode . flymake-mode)
   )
 (use-package gud
+  :ensure nil
   :defer t
   :custom
   (gud-tooltip-echo-area t)	       ; display tool tip in echo area
@@ -607,6 +643,7 @@
   )
 
 (use-package vc
+  :ensure nil
   :defer t
   :bind
   (:map vc-prefix-map
@@ -634,12 +671,14 @@
   (add-to-list 'vc-directory-exclusion-list ".venv")
   )
 (use-package project
+  :ensure nil
   :defer t
   :custom
   (project-mode-line t)
   (project-list-file (expand-file-name "projects" user-emacs-directory))
   )
 (use-package xref
+  :ensure nil
   :defer t
   :custom
   (xref-auto-jump-to-first-definition 'show)
@@ -647,6 +686,7 @@
   )
 
 (use-package abbrev
+  :ensure nil
   :defer t
   :bind
   ("M-/" . 'hippie-expand)
@@ -662,6 +702,7 @@
   )
 
 (use-package dired
+  :ensure nil
   :defer t
   :custom
   (dired-listing-switches "-alh")	       ; long human readable including dot files
@@ -683,6 +724,7 @@
   (dired-mode . dired-omit-mode)	; hide . and ..
   )
 (use-package wdired
+  :ensure nil
   :defer t
   :commands (wdired-change-to-wdired-mode)
   :custom
@@ -690,6 +732,7 @@
   (wdired-create-parent-directories t)
   )
 (use-package image-dired
+  :ensure nil
   :defer t
   :custom
   (image-dired-thumbnail-storage 'standard)
@@ -697,7 +740,7 @@
   )
 
 (use-package gnus
-  :ensure t
+  :ensure nil
   :defer t
   :init
   (setq mail-user-agent 'gnus-user-agent
@@ -758,11 +801,13 @@
       (progn
 	(use-package auth-source-xoauth2-plugin
 	  :ensure t
+	  :defer t
 	  :config
 	  (auth-source-xoauth2-plugin-mode 1))
 	(load-file "~/etc/gnus_mail.el"))))
 
 (use-package gnus-topic
+  :ensure nil
   :after (gnus)
   :defer t
   :hook
@@ -770,6 +815,7 @@
   )
 
 (use-package doc-view
+  :ensure nil
   :defer t
   :custom
   (doc-view-resolution 200)
@@ -779,14 +825,22 @@
   )
 
 (use-package shell
+  :ensure nil
   :defer t
   :custom
   (async-shell-command-display-buffer nil) ; display command buffer after command completion
   (async-shell-command-buffer 'new-buffer) ; create new buffer if there is already a buffer from another command
   (shell-command-prompt-show-cwd t)       ; show current dir in shell-command and async-shell-command
+  :bind
+  (:map my/shell-prefix-map
+	("s" . shell)
+	("e" . eshell)
+	("t" . term))
   )
 
 (use-package server
+  :ensure nil
+  :defer t
   :custom
   (server-stop-automatically nil)
   (server-use-tcp nil)
@@ -796,7 +850,8 @@
   )
 
 (use-package saveplace
-  :demand t
+  :ensure nil
+  :defer t
   :custom
   (save-place-limit 600)
   (save-place-file (expand-file-name "saveplace" user-emacs-directory))
@@ -811,6 +866,7 @@
 (ffap-bindings)
 
 (use-package tramp
+  :ensure nil
   :defer t
   :custom
   (tramp-copy-size-limit (* 2 1024 1024)) ;; 2MB
@@ -958,6 +1014,7 @@
   )
 
 (use-package eglot
+  :ensure nil
   :defer t
   :preface
   (defun my/eglot-eldoc ()
@@ -1017,6 +1074,7 @@
   )
 
 (use-package treesit
+  :ensure nil
   :defer t
   :preface
   (defun mp-setup-install-grammars ()
@@ -1032,9 +1090,6 @@
 		 (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
 		 (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
 		 (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
-		 (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
-		 (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
-		 (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
 		 (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
 		 (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
 	(add-to-list 'treesit-language-source-alist grammar)
@@ -1064,6 +1119,7 @@
   (mp-setup-install-grammars))
 
 (use-package python
+  :ensure nil
   :defer t
   :custom
   (python-indent-guess-indent-offset-verbose nil)
@@ -1074,44 +1130,58 @@
   (unless (file-exists-p (expand-file-name "pylsp" "~/.local/bin"))
     (async-shell-command "uv tool install python-lsp-server[all]"))
 
-  (defun my/uv-venv-python-local ()
-    "Local (non-TRAMP) path to venv python, for passing to remote processes."
-    (let ((venv-bin (car (seq-filter
-                          (lambda (dir)
-                            (and dir (string-match-p "\\.venv/bin/?\\'" dir)))
-                          exec-path))))
-      (when venv-bin
-      	(let ((full (expand-file-name "python" venv-bin)))
-          (if (file-remote-p full)
-              (tramp-file-name-localname (tramp-dissect-file-name full))
-            full)))))
-  (defun my/sync-python-shell-interpreter ()
-    (when-let ((python (my/uv-venv-python-local)))
-      (setq-local python-shell-interpreter python)))
+  (defun my/python-venv-setup ()
+    "Set up a project-local .venv for exec-path, python-shell-interpreter,
+      org-babel-python-command, and eglot/lsp-mode's pylsp jedi environment,
+      buffer-locally.
 
-  (defun my/uv-venv-python-org ()
-    (when-let* ((proj (project-current))
-		(root (project-root proj)))
-      (let ((default-directory root))
-	(let ((result (string-trim
-                       (shell-command-to-string "uv run python -c 'import sys; print(sys.executable)'"))))
-	  (unless (string-match-p "\\`/" result) (setq result nil))
-	  result))))
-  (defun my/sync-org-babel-python ()
-    (when-let ((python (my/uv-venv-python-org)))
-      (setq-local org-babel-python-command python)))
+      Works for both local and TRAMP-remote projects. `exec-path' gets the
+      full (possibly remote-prefixed) path to .venv/bin, added without
+      duplicates. `python-shell-interpreter', `org-babel-python-command',
+      and the pylsp jedi environment get the *local* (non-TRAMP-prefixed)
+      path, since those are consumed by processes that TRAMP itself spawns
+      and runs remotely -- they must not contain the /ssh:host: prefix."
+    (let* ((root (or (when (fboundp 'project-current)
+                       (when-let ((proj (project-current)))
+                         (if (fboundp 'project-root)
+                             (project-root proj)
+                           (car (project-roots proj)))))
+                     default-directory))
+           (venv-bin (expand-file-name ".venv/bin/" root)))
+      (when (file-directory-p venv-bin)
+      	;; --- exec-path: buffer-local, full (possibly remote) path, no dups ---
+      	(make-local-variable 'exec-path)
+      	(unless (member venv-bin exec-path)
+          (push venv-bin exec-path))
+
+      	;; --- interpreter / lsp paths: strip any TRAMP prefix ---
+      	(let* ((local-venv-bin (file-local-name venv-bin))
+               (interpreter (expand-file-name "python" local-venv-bin)))
+          (when (file-executable-p (expand-file-name "python" venv-bin))
+            (set (make-local-variable 'python-shell-interpreter) interpreter)
+            (set (make-local-variable 'org-babel-python-command) interpreter)
+
+	    ;; Eglot evaluates workspace config via this function globally so TRAMP/temp buffers work.
+	    (setq-default eglot-workspace-configuration
+			  (lambda (server)
+			    (when-let* ((buffer (eglot--buffer server))
+					(dir (with-current-buffer buffer default-directory))
+					(local-dir (file-local-name dir))
+					(venv-py (expand-file-name ".venv/bin/python" local-dir))
+					(full-venv-py (expand-file-name ".venv/bin/python" dir)))
+			      (when (file-executable-p full-venv-py)
+				`(:pylsp (:plugins (:jedi (:environment ,venv-py))))))))
+    	    )))))
+
 
   :hook
-  (python-base-mode . my/sync-python-shell-interpreter)
-  (org-mode . my/sync-org-babel-python)
-  :config
-  (setq-default eglot-workspace-configuration
-      		(lambda (_server)
-                  (when-let ((python (my/uv-venv-python-local)))
-                    `(:pylsp (:plugins (:jedi (:environment ,python)))))))
+  (python-base-mode . my/python-venv-setup)
+  (org-mode . my/python-venv-setup)
   )
 
 (use-package emacs			; custom file
+  :ensure nil
+  :defer t
   :custom
   (custom-file (concat user-emacs-directory "custom.el"))
   :config
@@ -1119,6 +1189,7 @@
     (load custom-file 'noerror 'nomessage)))
 
 (use-package ibuffer
+  :ensure nil
   :defer t
   :custom
   (ibuffer-expert t)	      ; don't confirm for dangerous operations
@@ -1199,8 +1270,8 @@
 	("C-b" . ibuffer-jump)))
 
 (use-package which-key
-  :ensure t
-  :demand t
+  :ensure nil
+  :defer nil
   :custom
   (which-key-idle-delay 1)
   (which-key-side-window-max-height 0.5)
@@ -1211,6 +1282,7 @@
   )
 
 (use-package org
+  :ensure nil
   :defer t
   :custom
   (org-hide-emphasis-markers t)			; hide bold, italic etc markers
@@ -1247,6 +1319,7 @@
   )
 
 (use-package proced
+  :ensure nil
   :defer t
   :custom
   (proced-enable-color-flag t)
@@ -1261,7 +1334,7 @@
 	      (proced-toggle-auto-update 1))))
 
 (use-package epg
-  :ensure t
+  :ensure nil
   :defer t
   :custom
   (epg-pinentry-mode 'loopback)
@@ -1274,8 +1347,8 @@
   )
 
 (use-package popper
-  :defer t
   :ensure t ; or :straight t
+  :defer t
   :init
   (setq popper-reference-buffers
 	'("^\\*eshell.*\\*$"      eshell-mode
@@ -1303,6 +1376,7 @@
   (popper-mode . popper-echo-mode))	; For echo area hints
 
 (use-package ediff
+  :ensure nil
   :defer t
   :custom
   (ediff-window-setup-function 'ediff-setup-windows-plain)
@@ -1310,14 +1384,5 @@
   (ediff-keep-variants t))
 
 (use-package markdown-mode
-  :ensure t
+  :ensure nil
   :defer t)
-
-(use-package uv-mode
-  :ensure t
-  :defer t      
-  :config
-  (keymap-unset uv-mode-map "C-c C-s")
-  (keymap-unset uv-mode-map "C-c C-u")
-  :hook
-  (python-base-mode . uv-mode-auto-activate-hook))
