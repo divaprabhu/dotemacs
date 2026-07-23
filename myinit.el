@@ -744,67 +744,68 @@
   :defer t
   :init
   (setq mail-user-agent 'gnus-user-agent
-	read-mail-command #'gnus
-	gnus-home-directory (expand-file-name "gnus/" user-emacs-directory)
-	gnus-save-newsrc-file nil
-	gnus-read-newsrc-file nil
-	gnus-interactive-exit t
-	gnus-select-method '(nnnil nil)
-	nnimap-record-commands t
-	message-confirm-send t
-	message-forward-as-mime t
-	gnus-use-dribble-file t
-	gnus-always-read-dribble-file t
-	gnus-fetch-old-headers t
-	gnus-large-newsgroup nil
-	gnus-message-archive-group nil
-	gnus-gcc-externalize-attachments nil
-	gnus-gcc-mark-as-read t
-	gnus-asynchronous t
-	gnus-use-article-prefetch 5
-	gnus-use-cache t
-	gnus-use-header-prefetch t
-	gnus-user-date-format-alist
-	'(((gnus-seconds-today) . "Today at %R")
+  	read-mail-command #'gnus
+  	gnus-home-directory (expand-file-name "gnus/" user-emacs-directory)
+  	gnus-save-newsrc-file nil
+  	gnus-read-newsrc-file nil
+  	gnus-interactive-exit t
+  	gnus-select-method '(nnnil nil)
+  	nnimap-record-commands t
+  	message-confirm-send t
+  	message-forward-as-mime t
+  	gnus-use-dribble-file t
+  	gnus-always-read-dribble-file t
+  	gnus-fetch-old-headers t
+  	gnus-large-newsgroup nil
+  	gnus-message-archive-group nil
+  	gnus-gcc-externalize-attachments nil
+  	gnus-gcc-mark-as-read t
+  	gnus-asynchronous t
+  	gnus-use-article-prefetch 5
+  	gnus-use-cache t
+  	gnus-use-header-prefetch t
+  	gnus-user-date-format-alist
+  	'(((gnus-seconds-today) . "Today at %R")
           ((+ (* 60 60 24) (gnus-seconds-today)) . "Yesterday, %R")
           (t . "%Y-%m-%d %R"))
-	gnus-summary-line-format "%U%R%3i %(%-18,18&user-date;  %-20,20f  %B%s%)\n"
-	gnus-sum-thread-tree-false-root ""
-	gnus-sum-thread-tree-indent " "
-	gnus-sum-thread-tree-single-indent ""
-	gnus-sum-thread-tree-leaf-with-other "├► "
-	gnus-sum-thread-tree-root ""
-	gnus-sum-thread-tree-single-leaf "╰► "
-	gnus-sum-thread-tree-vertical "│"
-	gnus-summary-mode-line-format "[%U] %g"
-	gnus-show-threads t
-	gnus-thread-indent-level 2
-	gnus-summary-make-false-root 'adopt
-	gnus-summary-gather-subject-limit 'fuzzy
-	gnus-summary-thread-gathering-function #'gnus-gather-threads-by-references
-	gnus-thread-ignore-subject t
-	gnus-thread-sort-functions '(gnus-thread-sort-by-most-recent-date)
-	gnus-message-replysign t
-	gnus-message-replyencrypt t
-	gnus-message-replysign-encrypted t
-	mm-verify-option 'known
-	mm-decrypt-option 'known
-	mm-sign-option nil
-	mm-encrypt-option 'guided
-	gnus-unbuttonized-mime-types nil)
+  	gnus-summary-line-format "%U%R%3i %(%-18,18&user-date;  %-20,20f  %B%s%)\n"
+  	gnus-sum-thread-tree-false-root ""
+  	gnus-sum-thread-tree-indent " "
+  	gnus-sum-thread-tree-single-indent ""
+  	gnus-sum-thread-tree-leaf-with-other "├► "
+  	gnus-sum-thread-tree-root ""
+  	gnus-sum-thread-tree-single-leaf "╰► "
+  	gnus-sum-thread-tree-vertical "│"
+  	gnus-summary-mode-line-format "[%U] %g"
+  	gnus-show-threads t
+  	gnus-thread-indent-level 2
+  	gnus-summary-make-false-root 'adopt
+  	gnus-summary-gather-subject-limit 'fuzzy
+  	gnus-summary-thread-gathering-function #'gnus-gather-threads-by-references
+  	gnus-thread-ignore-subject t
+  	gnus-thread-sort-functions '(gnus-thread-sort-by-most-recent-date)
+  	gnus-message-replysign t
+  	gnus-message-replyencrypt t
+  	gnus-message-replysign-encrypted t
+  	mm-verify-option 'known
+  	mm-decrypt-option 'known
+  	mm-sign-option nil
+  	mm-encrypt-option 'guided
+  	gnus-unbuttonized-mime-types nil)
   :bind
   ("C-c m" . gnus)
   :hook
   (message-mode . flyspell-mode)
   :config
   (if (file-exists-p "~/.gnupg/authinfo.gpg")
-      (progn
-	(use-package auth-source-xoauth2-plugin
-	  :ensure t
-	  :defer t
-	  :config
-	  (auth-source-xoauth2-plugin-mode 1))
-	(load-file "~/etc/gnus_mail.el"))))
+      (load-file "~/etc/gnus_mail.el")))
+
+(use-package auth-source-xoauth2-plugin
+  :ensure t
+  :defer
+  :hook
+  (gnus-before-startup . auth-source-xoauth2-plugin-mode)
+  )
 
 (use-package gnus-topic
   :ensure nil
@@ -851,7 +852,6 @@
 
 (use-package saveplace
   :ensure nil
-  :defer t
   :custom
   (save-place-limit 600)
   (save-place-file (expand-file-name "saveplace" user-emacs-directory))
