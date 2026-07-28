@@ -1,6 +1,7 @@
 ;;-*-coding: utf-8;-*-
 (define-abbrev-table 'global-abbrev-table
   '(
-    ("opyh" "#+property: header-args:python :session local :results output replace :async" nil :count 0)
+    ("ellb" ";;; -*- lexical-binding: t -*-" nil :count 3)
+    ("opyh" "#+property: header-args:python :session local :results output replace :async" nil :count 3)
    ))
 

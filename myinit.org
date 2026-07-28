@@ -2006,60 +2006,96 @@
     (switch-to-buffer-in-dedicated-window 'pop) ; in strongly dedicate windows behave like pop-to-buffer
     (switch-to-buffer-obey-display-actions t) ; C-x C-b respects display buffer rules
     :config
-    (setq display-buffer-alist
-  	'(
-  	  ((or . ((derived-mode . help-mode)
-  		  (derived-mode . Info-mode)
-  		  (derived-mode . apropos-mode)
-  		  (derived-mode . diff-mode)
-  		  (derived-mode . proced-mode)
-  		  (derived-mode . ibuffer-mode)))
-    	   (display-buffer-reuse-window display-buffer-in-side-window)
-    	   (body-function . select-window)
-    	   (side . right)
-    	   (window-width . 0.5)
-    	   (slot . 1))
-  	  ((or . ((derived-mode . term-mode)
-  		  (derived-mode . shell-command-mode)
-  		  (derived-mode . inferior-python-mode)
-  		  (derived-mode . inferior-emacs-lisp-mode)
-  		  (derived-mode . occur-mode)
-  		  (derived-mode . grep-mode)
-  		  (derived-mode . messages-buffer-mode)
-  		  (derived-mode . xref--xref-buffer-mode)))
-    	   (display-buffer-in-side-window)
-    	   (body-function . select-window)
-    	   (side . bottom)
-    	   (window-height . 0.4)
-    	   (slot . 0))
-  	  ("\\*\\(.*shell\\|.*eshell\\).*"
-  	   (display-buffer-in-side-window)
-  	   (body-function . select-window)
-  	   (side . bottom)
-  	   (window-height . 0.5)
-  	   (slot . 0))
-  	  ("\\*\\(vc-dir\\|vc-log\\|Annotate\\).*"
-  	    (display-buffer-reuse-window display-buffer-in-side-window)
-  	    (body-function . select-window)
-  	    (side . bottom)
-  	    (window-height . 0.3)
-  	    (slot . 0))
-  	  ("\\*\\(log-edit-\\|vc-git\\).*"
-    	   (display-buffer-in-atom-window)
-    	   (body-function . select-window)
-    	   (side . right)
-    	   (window-width . 0.3)
-    	   (slot . 0))
-  	  ("\\*\\(eldoc\\|Flymake\\).*"
-    	   (display-buffer-in-side-window)
-    	   (body-function . select-window)
-    	   (side . right)
-    	   (window-width . 100)
-    	   (slot . 1))
-  	  ("\\*\\(Org Src\\).*"
-    	   (display-buffer-same-window))))
+    (add-to-list
+     'display-buffer-alist
+     '((or . ((derived-mode . help-mode)
+       	    (derived-mode . Info-mode)
+       	    (derived-mode . apropos-mode)))
+       (display-buffer-reuse-window display-buffer-in-side-window)
+       (body-function . select-window)
+       (inhibit-same-window . nil)
+       (side . right)
+       (window-width . 80)
+       (slot . 0)))
+    (add-to-list
+     'display-buffer-alist
+     '((or . ((derived-mode . diff-mode)
+       	    (derived-mode . ibuffer-mode)
+       	    (derived-mode . proced-mode)))
+       (display-buffer-reuse-window display-buffer-in-side-window)
+       (body-function . select-window)
+       (inhibit-same-window . nil)
+       (side . right)
+       (window-width . 0.5)
+       (slot . 0)))
+    (add-to-list
+     'display-buffer-alist
+     '((or . ((derived-mode . shell-command-mode)
+       	    (derived-mode . inferior-python-mode)
+       	    (derived-mode . inferior-emacs-lisp-mode)
+       	    (derived-mode . occur-mode)
+       	    (derived-mode . grep-mode)
+       	    (derived-mode . messages-buffer-mode)
+       	    (derived-mode . xref--xref-buffer-mode)))
+       (display-buffer-in-side-window)
+       (body-function . select-window)
+       (side . bottom)
+       (window-height . 0.4)
+       (slot . 0)))
+    (add-to-list
+     'display-buffer-alist
+     `(,(rx bos
+     	  (or "*shell"	      ; shell mode is set after display buffer
+     	      "*eshell"
+     	      "*term"))
+       (display-buffer-reuse-window display-buffer-in-side-window)
+       (body-function . select-window)
+       (inhibit-same-window . nil)
+       (side . bottom)
+       (window-height . 0.5)
+       (slot . 0)))
+    (add-to-list
+     'display-buffer-alist
+     `(,(rx bos
+     	  (or "*vc-dir"			; vc-dir
+     	      "*vc-log"			; commit message buffer
+     	      "*Annotate"))		; vc-annotate
+       (display-buffer-reuse-window display-buffer-in-side-window)
+       (body-function . select-window)
+       (side . bottom)
+       (window-height . 0.4)
+       (slot . 0)))
+    (add-to-list
+     'display-buffer-alist
+     `(,(rx "*log-edit")			; display files staged for commit
+       (display-buffer-in-side-window)
+       (body-function . select-window)
+       (side . bottom)
+       (window-height . 0.4)
+       (window-width . 0.3)
+       (slot . 1)))
+    (add-to-list
+     'display-buffer-alist
+     `(,(rx bos
+     	  "*eldoc")		 ; eldoc does not have a separate mode
+       (display-buffer-in-side-window)
+       (body-function . select-window)
+       (side . bottom)
+       (window-height . 0.4)
+       (slot . 0)))
+    (add-to-list
+     'display-buffer-alist
+     '("\\*\\(Org Src\\).*"		; mode depends on source being edited
+       (display-buffer-same-window)))
+    (add-to-list
+     'display-buffer-alist
+     `(,(rx bos
+  	    "*Group")			; gnus email
+       (display-buffer-in-tab)
+       (ignore-current-tab . t)
+       (tab-name . "Gnus")
+       (tab-group . "Gnus")))
     (winner-mode 1)
-    (windmove-mode 1)
     :bind
     ("M-o" . other-window)
     ("C-x w =" . balance-windows)
@@ -2832,6 +2868,7 @@ preceding line.
     (outline-minor-mode-use-buttons 'in-margins) ; show button in margin. pressing RET or click toggles fold
     (outline-minor-mode-cycle t)		; tab and s-tab on heading cycles fold
     (outline-default-state nil)		; don't fold to start with
+    (outline-minor-mode-cycle-filter 'bolp) ; only cycle when point is at bol; elsewhere TAB acts as normal (indent-for-tab-command / completion-preview)
     :hook
     (prog-mode . outline-minor-mode)
     :bind
@@ -4596,81 +4633,119 @@ When a group is entered, a summary buffer showing all article is entered
 |--------------------+-------------------------------------------------------------------------------|
 ** Configuration
 #+begin_src emacs-lisp
-    (use-package gnus
-      :ensure nil
-      :defer t
-      :init
-      (setq mail-user-agent 'gnus-user-agent
-      	read-mail-command #'gnus
-      	gnus-home-directory (expand-file-name "gnus/" user-emacs-directory)
-      	gnus-save-newsrc-file nil
-      	gnus-read-newsrc-file nil
-      	gnus-interactive-exit t
-      	gnus-select-method '(nnnil nil)
-      	nnimap-record-commands t
-      	message-confirm-send t
-      	message-forward-as-mime t
-      	gnus-use-dribble-file t
-      	gnus-always-read-dribble-file t
-      	gnus-fetch-old-headers t
-      	gnus-large-newsgroup nil
-      	gnus-message-archive-group nil
-      	gnus-gcc-externalize-attachments nil
-      	gnus-gcc-mark-as-read t
-      	gnus-asynchronous t
-      	gnus-use-article-prefetch 5
-      	gnus-use-cache t
-      	gnus-use-header-prefetch t
-      	gnus-user-date-format-alist
-      	'(((gnus-seconds-today) . "Today at %R")
-              ((+ (* 60 60 24) (gnus-seconds-today)) . "Yesterday, %R")
-              (t . "%Y-%m-%d %R"))
-      	gnus-summary-line-format "%U%R%3i %(%-18,18&user-date;  %-20,20f  %B%s%)\n"
-      	gnus-sum-thread-tree-false-root ""
-      	gnus-sum-thread-tree-indent " "
-      	gnus-sum-thread-tree-single-indent ""
-      	gnus-sum-thread-tree-leaf-with-other "├► "
-      	gnus-sum-thread-tree-root ""
-      	gnus-sum-thread-tree-single-leaf "╰► "
-      	gnus-sum-thread-tree-vertical "│"
-      	gnus-summary-mode-line-format "[%U] %g"
-      	gnus-show-threads t
-      	gnus-thread-indent-level 2
-      	gnus-summary-make-false-root 'adopt
-      	gnus-summary-gather-subject-limit 'fuzzy
-      	gnus-summary-thread-gathering-function #'gnus-gather-threads-by-references
-      	gnus-thread-ignore-subject t
-      	gnus-thread-sort-functions '(gnus-thread-sort-by-most-recent-date)
-      	gnus-message-replysign t
-      	gnus-message-replyencrypt t
-      	gnus-message-replysign-encrypted t
-      	mm-verify-option 'known
-      	mm-decrypt-option 'known
-      	mm-sign-option nil
-      	mm-encrypt-option 'guided
-      	gnus-unbuttonized-mime-types nil)
-      :bind
-      ("C-c m" . gnus)
-      :hook
-      (message-mode . flyspell-mode)
-      :config
-      (if (file-exists-p "~/.gnupg/authinfo.gpg")
-          (load-file "~/etc/gnus_mail.el")))
+  (use-package gnus
+    :ensure nil
+    :defer t
+    :init
+    (setq mail-user-agent 'gnus-user-agent
+          read-mail-command #'gnus
+          gnus-home-directory (expand-file-name "gnus/" user-emacs-directory)
+          gnus-save-newsrc-file nil
+          gnus-read-newsrc-file nil
+          gnus-interactive-exit t
+          gnus-select-method '(nnnil nil)
+          nnimap-record-commands t
+          message-confirm-send t
+          message-forward-as-mime t
+          gnus-use-dribble-file t
+          gnus-always-read-dribble-file t
+          gnus-fetch-old-headers t
+          gnus-large-newsgroup nil
+          gnus-message-archive-group nil
+          gnus-gcc-externalize-attachments nil
+          gnus-gcc-mark-as-read t
+          gnus-asynchronous t
+          gnus-use-article-prefetch 5
+          gnus-use-cache t
+          gnus-use-header-prefetch t
+          gnus-user-date-format-alist
+          '(((gnus-seconds-today) . "Today at %R")
+            ((+ (* 60 60 24) (gnus-seconds-today)) . "Yesterday, %R")
+            (t . "%Y-%m-%d %R"))
+          gnus-summary-line-format "%U%R%3i %(%-18,18&user-date;  %-20,20f  %B%s%)\n"
+          gnus-sum-thread-tree-false-root ""
+          gnus-sum-thread-tree-indent " "
+          gnus-sum-thread-tree-single-indent ""
+          gnus-sum-thread-tree-leaf-with-other "├► "
+          gnus-sum-thread-tree-root ""
+          gnus-sum-thread-tree-single-leaf "╰► "
+          gnus-sum-thread-tree-vertical "│"
+          gnus-summary-mode-line-format "[%U] %g"
+          gnus-show-threads t
+          gnus-thread-indent-level 2
+          gnus-summary-make-false-root 'adopt
+          gnus-summary-gather-subject-limit 'fuzzy
+          gnus-summary-thread-gathering-function #'gnus-gather-threads-by-references
+          gnus-thread-ignore-subject t
+          gnus-thread-sort-functions '(gnus-thread-sort-by-most-recent-date)
+          gnus-message-replysign t
+          gnus-message-replyencrypt t
+          gnus-message-replysign-encrypted t
+          mm-verify-option 'known
+          mm-decrypt-option 'known
+          mm-sign-option nil
+          mm-encrypt-option 'guided
+          gnus-unbuttonized-mime-types nil)
+    
+    (defun my/gnus-close-tab ()
+      (when (equal (alist-get 'name (tab-bar--current-tab)) "Gnus")
+        (message "Closing tab %s" (alist-get 'name (tab-bar--current-tab)))
+        (tab-bar-close-tab)))
+  :bind
+  ("C-c m" . gnus)
+  :hook
+  (message-mode . flyspell-mode)
+  (gnus-exit-gnus . my/gnus-close-tab)
+  :config
+  (if (file-exists-p "~/.gnupg/authinfo.gpg")
+      (load-file "~/etc/gnus_mail.el")))
 
-    (use-package auth-source-xoauth2-plugin
-      :ensure t
-      :defer
-      :hook
-      (gnus-before-startup . auth-source-xoauth2-plugin-mode)
-      )
+  (use-package message
+    :ensure nil
+    :defer t
+    :after gnus
+    :bind (:map message-mode-map
+                ("C-c C-m a" . my/message-attach-pgp-key))
+    :init
+    (require 'epg)
 
-    (use-package gnus-topic
-      :ensure nil
-      :after (gnus)
-      :defer t
-      :hook
-      (gnus-group-mode . gnus-topic-mode)
-      )
+    (defvar my/pgp-key-file (expand-file-name "~/.gnupg/share.asc")
+      "Path to your armored public key, used for attaching to outgoing mail.")
+
+    (defun my/pgp-generate-key-file (key-id)
+      "Generate an armored public key export for KEY-ID at `my/pgp-key-file' using EPG."
+      (let* ((context (epg-make-context 'OpenPGP))
+             (keys (epg-list-keys context key-id)))
+        (unless keys
+          (error "No key found matching: %s" key-id))
+        (setf (epg-context-armor context) t)
+        (with-temp-file my/pgp-key-file
+          (insert (epg-export-keys-to-string context keys)))
+        (message "Exported PGP key to %s" my/pgp-key-file)))
+
+    (defun my/message-attach-pgp-key ()
+      "Attach my PGP public key as a MIME part to the current message.
+      If the key file doesn't exist yet, prompt for a key ID/email and generate it via EPG."
+      (interactive)
+      (unless (file-exists-p my/pgp-key-file)
+        (my/pgp-generate-key-file
+         (read-string "Key file not found. GPG key ID or email to export: ")))
+      (mml-attach-file my/pgp-key-file "application/pgp-keys" "My PGP public key" "attachment")))
+
+  (use-package auth-source-xoauth2-plugin
+    :ensure t
+    :defer
+    :hook
+    (gnus-before-startup . auth-source-xoauth2-plugin-mode)
+    )
+
+  (use-package gnus-topic
+    :ensure nil
+    :after (gnus)
+    :defer t
+    :hook
+    (gnus-group-mode . gnus-topic-mode)
+    )
 #+end_src
 ** Legacy Setup
 *** Basic Settings
@@ -6117,7 +6192,8 @@ Create a .dir-locals.el file in root of folder with contents like
         (unless (file-exists-p (expand-file-name "uv" "~/.local/bin"))
           (async-shell-command "curl -LsSf https://astral.sh/uv/install.sh | sh")))
     (unless (file-exists-p (expand-file-name "pylsp" "~/.local/bin"))
-      (async-shell-command "uv tool install python-lsp-server[all]"))
+      (async-shell-command "uv tool install python-lsp-server")
+      (async-shell-command "uv tool install pyflakes"))
 
     (defun my/python-venv-setup ()
       "Set up a project-local .venv for exec-path, python-shell-interpreter,
@@ -6153,8 +6229,8 @@ Create a .dir-locals.el file in root of folder with contents like
   	    ;; Eglot evaluates workspace config via this function globally so TRAMP/temp buffers work.
   	    (setq-default eglot-workspace-configuration
   			  (lambda (server)
-  			    (when-let* ((buffer (eglot--buffer server))
-  					(dir (with-current-buffer buffer default-directory))
+  			    (when-let* ((proj (project-current))
+  					(dir (project-root proj))
   					(local-dir (file-local-name dir))
   					(venv-py (expand-file-name ".venv/bin/python" local-dir))
   					(full-venv-py (expand-file-name ".venv/bin/python" dir)))
@@ -7228,6 +7304,18 @@ Create a .dir-locals.el file in root of folder with contents like
     :hook
     (python-base-mode . uv-mode-auto-activate-hook))
 #+end_src
+* EWW
+#+begin_src emacs-lisp
+  (use-package eww
+    :ensure nil
+    :defer t
+    :custom
+    (url-configuration-directory user-emacs-directory)
+    (browse-url-browser-function 'eww-browse-url)
+    :hook
+    (eww-mode . visual-line-mode))
+#+end_src
+
 * Unused
 ** LSP Mode
 #+begin_src emacs-lisp :tangle no
@@ -7512,12 +7600,6 @@ Create a .dir-locals.el file in root of folder with contents like
       (package-refresh-contents)
       (package-install 'keepass-mode))
     (require 'keepass-mode)
-#+end_src
-** EWW
-#+begin_src emacs-lisp :tangle no
-  (setq url-configuration-directory user-emacs-directory)
-  (setq browse-url-browser-function 'eww-browse-url)
-  (add-hook 'eww-mode-hook 'visual-line-mode)
 #+end_src
 ** Evil
 :PROPERTIES:
