@@ -13,7 +13,6 @@
 (define-prefix-command 'my/shell-prefix-map nil)
 (keymap-set my/global-prefix-map "s" '("Shell" . my/shell-prefix-map))
 
-(keymap-set my/global-prefix-map "O" '("Ollama" . (lambda () (interactive) (async-shell-command "OLLAMA_DEBUG=1 OLLAMA_DEBUG_LOG_REQEUSTS=1 OLLAMA_CONTEXT_LENGTH=32768 ollama serve"))))
 
 (use-package emacs
   :ensure nil
@@ -88,9 +87,13 @@
   (completions-max-height 10) ; height limit for completion list buffer
   (completions-header-format nil) ; no header in completion list buffer
   (completions-detailed t) ; display completions with details. Useful in describe-function etc
+  (completion-ignore-case t)		 ; case insensitive completion
   (read-buffer-completion-ignore-case t) ; ignore case for buffer name completion
   (read-file-name-completion-ignore-case t) ; ignore case for file name completion
   (minibuffer-default-prompt-format " [%s]") ; format string for default values
+  (enable-recursive-minibuffer t)	     ; allow to minibuffer recursively
+  (minibuffer-electric-default-mode t)	     ; remove default if user types
+
   ;; mini-buffer history
   (history-length 1000)		; minibuffer history length
   (history-delete-duplicates t)	; remove duplicates
@@ -103,11 +106,6 @@
   :config
   (minibuffer-depth-indicate-mode t) ; show depth in case of recursion
   (setq
-   enable-recursive-minibuffer t ; allow to use mini-buffer recursively
-   minibuffer-electric-default-mode t
-   ;; mini-buffer completion
-   completion-eager-update t	   ;
-   completion-ignore-case t	   ; case insensitive completion
    ;; mini-buffer history
    savehist-minibuffer-history-variables '(minibuffer-history
 					   query-replace-history
@@ -396,9 +394,10 @@
   (add-to-list
    'display-buffer-alist
    `(,(rx bos
-   	  (or "*shell"	      ; shell mode is set after display buffer
-   	      "*eshell"
-   	      "*term"))
+	  (* anything)
+   	  (or "shell"	      ; shell mode is set after display buffer
+   	      "eshell"
+   	      "term"))
      (display-buffer-reuse-window display-buffer-in-side-window)
      (body-function . select-window)
      (inhibit-same-window . nil)
@@ -408,8 +407,10 @@
   (add-to-list
    'display-buffer-alist
    `(,(rx bos
+	  (* anything)
    	  (or "*vc-dir"			; vc-dir
    	      "*vc-log"			; commit message buffer
+	        "*vc-git"		; git push
    	      "*Annotate"))		; vc-annotate
      (display-buffer-reuse-window display-buffer-in-side-window)
      (body-function . select-window)
@@ -620,10 +621,10 @@
   (push 'org-self-insert-command completion-preview-commands)
   :bind
   (:map completion-preview-active-mode-map
-	("M-n" . completion-preview-next-candidate)
-	("M-p" . completion-preview-prev-candidate)
+	("C-n" . completion-preview-next-candidate)
+	("C-p" . completion-preview-prev-candidate)
 	("TAB" . completion-preview-complete)
-	("M-i" . completion-preview-insert))
+	("C-i" . completion-preview-insert))
   )
 
 (use-package compile
@@ -834,14 +835,14 @@
     (when (equal (alist-get 'name (tab-bar--current-tab)) "Gnus")
       (message "Closing tab %s" (alist-get 'name (tab-bar--current-tab)))
       (tab-bar-close-tab)))
-:bind
-("C-c m" . gnus)
-:hook
-(message-mode . flyspell-mode)
-(gnus-exit-gnus . my/gnus-close-tab)
-:config
-(if (file-exists-p "~/.gnupg/authinfo.gpg")
-    (load-file "~/etc/gnus_mail.el")))
+  :bind
+  ("C-c m" . gnus)
+  :hook
+  (message-mode . flyspell-mode)
+  (gnus-exit-gnus . my/gnus-close-tab)
+  :config
+  (if (file-exists-p "~/.gnupg/authinfo.gpg")
+      (load-file "~/etc/gnus_mail.el")))
 
 (use-package message
   :ensure nil
@@ -853,7 +854,8 @@
   (require 'epg)
 
   (defvar my/pgp-key-file (expand-file-name "~/.gnupg/share.asc")
-    "Path to your armored public key, used for attaching to outgoing mail.")
+    "Path to your armored public key, used for attaching to outgoing mail.
+gpg --output public.pgp --armor --export username@email")
 
   (defun my/pgp-generate-key-file (key-id)
     "Generate an armored public key export for KEY-ID at `my/pgp-key-file' using EPG."
@@ -868,7 +870,7 @@
 
   (defun my/message-attach-pgp-key ()
     "Attach my PGP public key as a MIME part to the current message.
-    If the key file doesn't exist yet, prompt for a key ID/email and generate it via EPG."
+     If the key file doesn't exist yet, prompt for a key ID/email and generate it via EPG."
     (interactive)
     (unless (file-exists-p my/pgp-key-file)
       (my/pgp-generate-key-file
@@ -878,6 +880,8 @@
 (use-package auth-source-xoauth2-plugin
   :ensure t
   :defer
+  :custom
+  (oauth2-token-file (expand-file-name "oauth2.plstore" "~/.gnupg"))
   :hook
   (gnus-before-startup . auth-source-xoauth2-plugin-mode)
   )
@@ -1466,8 +1470,15 @@
 (use-package eww
   :ensure nil
   :defer t
+  :init
+  (defun my/browse-url-dispatch (url &rest args)
+    "Open URL externally by default; with a prefix arg, open in eww."
+    (if current-prefix-arg
+	(eww-browse-url url)
+      (apply #'browse-url-default-browser url args)))
+  
   :custom
   (url-configuration-directory user-emacs-directory)
-  (browse-url-browser-function 'eww-browse-url)
+  (browse-url-browser-function #'my/browse-url-dispatch)
   :hook
   (eww-mode . visual-line-mode))
