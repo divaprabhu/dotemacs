@@ -78,8 +78,9 @@
   (use-short-answers t)		     ; use y or n instead of yes or no
   ;; mini-buffer completion
   (completion-styles '(partial-completion flex initials)) ; completion styles
-  (completion-auto-help 'lazy) ; show completion buffer if can't complete
-  (completion-auto-select 'second-tab) ; select completion buffer on second tab
+  (completion-auto-help t) ; show completion buffer if can't complete
+  (completion-auto-select nil) ; select completion buffer on second tab
+  (minibuffer-visible-completions t)	; navigate *completions* buffer from minibuffer
   (completion-show-help nil)	       ; no help in completion buffer
   (completion-cycle-threshold 10) ; always cycle if number of completions is less than this number
   (completions-format 'one-column)     ; completion list buffer format
@@ -88,12 +89,13 @@
   (completions-header-format nil) ; no header in completion list buffer
   (completions-detailed t) ; display completions with details. Useful in describe-function etc
   (completion-ignore-case t)		 ; case insensitive completion
+  (completion-eager-display t)		 ; show candidates without typing anything also
+  (completion-eager-update t)		 ; auto update *completions* buffer as you type
   (read-buffer-completion-ignore-case t) ; ignore case for buffer name completion
   (read-file-name-completion-ignore-case t) ; ignore case for file name completion
   (minibuffer-default-prompt-format " [%s]") ; format string for default values
   (enable-recursive-minibuffer t)	     ; allow to minibuffer recursively
   (minibuffer-electric-default-mode t)	     ; remove default if user types
-
   ;; mini-buffer history
   (history-length 1000)		; minibuffer history length
   (history-delete-duplicates t)	; remove duplicates
@@ -623,8 +625,8 @@
   (:map completion-preview-active-mode-map
 	("C-n" . completion-preview-next-candidate)
 	("C-p" . completion-preview-prev-candidate)
-	("TAB" . completion-preview-complete)
-	("C-i" . completion-preview-insert))
+	("RET" . completion-preview-complete)
+	("TAB" . completion-preview-insert-word))
   )
 
 (use-package compile
@@ -1223,10 +1225,8 @@ gpg --output public.pgp --armor --export username@email")
       and runs remotely -- they must not contain the /ssh:host: prefix."
     (let* ((root (or (when (fboundp 'project-current)
                        (when-let ((proj (project-current)))
-                         (if (fboundp 'project-root)
-                             (project-root proj)
-                           (car (project-roots proj)))))
-                     default-directory))
+			 (project-root proj))
+                       default-directory)))
            (venv-bin (expand-file-name ".venv/bin/" root)))
       (when (file-directory-p venv-bin)
       	;; --- exec-path: buffer-local, full (possibly remote) path, no dups ---
@@ -1253,10 +1253,11 @@ gpg --output public.pgp --armor --export username@email")
 				`(:pylsp (:plugins (:jedi (:environment ,venv-py))))))))
     	    )))))
 
-
   :hook
   (python-base-mode . my/python-venv-setup)
   (org-mode . my/python-venv-setup)
+  ;; (eglot-managed-mode . (lambda () (when (derived-mode-p 'python-base-mode)
+  ;; (add-hook 'flymake-diagnostic-functions #'python-flymake nil t))))
   )
 
 (use-package emacs			; custom file
@@ -1415,7 +1416,6 @@ gpg --output public.pgp --armor --export username@email")
 
 (use-package epg
   :ensure nil
-  :defer t
   :custom
   (epg-pinentry-mode 'loopback)
   :config
