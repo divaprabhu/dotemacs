@@ -244,9 +244,8 @@
 (use-package flyspell
   :ensure nil
   :defer t
-  :config
-  (setq ispell-personal-dictionary (expand-file-name "dictionary" user-emacs-directory) ; location of personal
-	)
+  :custom
+  (ispell-personal-dictionary (expand-file-name "dictionary" (file-name-directory user-init-file))) ; location of personal dict
   :hook
   (text-mode-hook . flyspell-mode)	; fly-spell in text mode
   (prog-mode-hook . flyspell-prog-mode) ; fly-spell in progmode comment
@@ -615,7 +614,7 @@
   :defer t
   :hook
   (prog-mode . 'completion-preview)
-  (text-mode . 'completion-preview)
+  ;; (text-mode . 'completion-preview)
   (comint-mode . 'completion-preview)
   :custom
   (completion-preview-minimum-symbol-length 1) ; minimum number of chars to start completion
@@ -731,7 +730,7 @@
   :bind
   ("M-/" . 'hippie-expand)
   :custom
-  (abbrev-file-name (expand-file-name "abbrev_defs" "~/.config/emacs")) ; location to store personal abbrevs
+  (abbrev-file-name (expand-file-name "abbrev_defs" (file-name-directory user-init-file))) ; location to store personal abbrevs
   (save-abbrevs 'silently)		; save abbrev when file is saved
   (abbrev-suggest t)
   :config
@@ -1404,15 +1403,12 @@ gpg --output public.pgp --armor --export username@email")
   :defer t
   :custom
   (proced-enable-color-flag t)
-  (proced-tree-flag t)
+  (proced-tree-flag nil)
   (proced-auto-update-flag 'visible)
   (proced-auto-update-interval 1)
   (proced-descend t)
   (proced-filter 'user) ;; We can change interactively with `f'
-  :config
-  (add-hook 'proced-mode-hook
-	    (lambda ()
-	      (proced-toggle-auto-update 1))))
+  )
 
 (use-package epg
   :ensure nil
@@ -1454,6 +1450,44 @@ gpg --output public.pgp --armor --export username@email")
 	 ("C-<f12>" . popper-toggle-type))
   :hook
   (popper-mode . popper-echo-mode))	; For echo area hints
+
+(use-package minuet
+  :ensure t
+  :defer t
+  :custom
+  (minuet-provider 'openai-compatible)
+  (minuet-n-completions 1)
+  (minuet-context-window 512)
+  (minuet-auto-suggestion-debounce-delay 1) ; when typing stops for these many seconds, send completion request
+  (minuet-auto-suggestion-throttle-dely 1)   ; delay between two completion requests
+  (minuet-request-timeout 2)
+  :bind
+  (:map minuet-active-mode-map
+  	("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
+  	("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
+  	("C-u <tab>" . #'minuet-accept-suggestion) ;; accept whole completion
+  	("<tab>" . #'minuet-accept-suggestion-line)
+  	("C-g" . #'minuet-dismiss-suggestion))
+  :init
+  (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
+  :config
+  ;; (setenv "GEMINI_API_KEY" (auth-source-pick-first-password :host "generativelanguage.googleapis.com"))
+  ;; (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
+  ;; (plist-put minuet-openai-fim-compatible-options :name "Ollama")
+  ;; (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
+  ;; (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder:3b")
+  ;; (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 56)
+  (setenv "OPENROUTER_API_KEY" (auth-source-pick-first-password :host "openrouter.ai"))
+  (plist-put minuet-openai-compatible-options :end-point "https://openrouter.ai/api/v1/chat/completions")
+  (plist-put minuet-openai-compatible-options :api-key "OPENROUTER_API_KEY")
+  (plist-put minuet-openai-compatible-options :model "cohere/north-mini-code:free")
+  ;; Prioritize throughput for faster completion
+  (minuet-set-optional-options minuet-openai-compatible-options :provider '(:sort "throughput"))
+  ;; Disable thinking to avoid first token latency
+  (minuet-set-optional-options minuet-openai-compatible-options :reasoning_effort "none")
+  (minuet-set-optional-options minuet-openai-compatible-options :max_tokens 56)
+  (minuet-set-optional-options minuet-openai-compatible-options :top_p 0.9)
+  )
 
 (use-package ediff
   :ensure nil
