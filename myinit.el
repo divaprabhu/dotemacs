@@ -1468,8 +1468,8 @@ gpg --output public.pgp --armor --export username@email")
   	("C-u <tab>" . #'minuet-accept-suggestion) ;; accept whole completion
   	("<tab>" . #'minuet-accept-suggestion-line)
   	("C-g" . #'minuet-dismiss-suggestion))
-  :init
-  (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
+  ;; :init
+  ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
   :config
   ;; (setenv "GEMINI_API_KEY" (auth-source-pick-first-password :host "generativelanguage.googleapis.com"))
   ;; (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
