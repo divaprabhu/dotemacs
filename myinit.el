@@ -960,7 +960,8 @@ gpg --output public.pgp --armor --export username@email")
   (add-to-list 'tramp-remote-path (expand-file-name "bin" "~/.bun"))
   (add-to-list 'tramp-remote-path (expand-file-name "bin" "~/.local"))
   (add-to-list 'tramp-remote-process-environment
-		 (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket")))
+	       (concat "SSH_AUTH_SOCK="
+		 (string-trim (shell-command-to-string "gpgconf --list-dirs agent-ssh-socket"))))
   )
 
 (use-package modus-themes
@@ -1213,44 +1214,52 @@ gpg --output public.pgp --armor --export username@email")
 
   (defun my/python-venv-setup ()
     "Set up a project-local .venv for exec-path, python-shell-interpreter,
-      org-babel-python-command, and eglot/lsp-mode's pylsp jedi environment,
-      buffer-locally.
+                org-babel-python-command, and eglot/lsp-mode's pylsp jedi environment,
+                buffer-locally.
 
-      Works for both local and TRAMP-remote projects. `exec-path' gets the
-      full (possibly remote-prefixed) path to .venv/bin, added without
-      duplicates. `python-shell-interpreter', `org-babel-python-command',
-      and the pylsp jedi environment get the *local* (non-TRAMP-prefixed)
-      path, since those are consumed by processes that TRAMP itself spawns
-      and runs remotely -- they must not contain the /ssh:host: prefix."
+                Works for both local and TRAMP-remote projects. `exec-path' gets the
+                full (possibly remote-prefixed) path to .venv/bin, added without
+                duplicates. `python-shell-interpreter', `org-babel-python-command',
+                and the pylsp jedi environment get the *local* (non-TRAMP-prefixed)
+                path, since those are consumed by processes that TRAMP itself spawns
+                and runs remotely -- they must not contain the /ssh:host: prefix."
     (let* ((root (or (when (fboundp 'project-current)
                        (when-let ((proj (project-current)))
-			 (project-root proj))
-                       default-directory)))
+          		 (project-root proj)))
+                     default-directory))
            (venv-bin (expand-file-name ".venv/bin/" root)))
       (when (file-directory-p venv-bin)
-      	;; --- exec-path: buffer-local, full (possibly remote) path, no dups ---
-      	(make-local-variable 'exec-path)
-      	(unless (member venv-bin exec-path)
+        ;; --- exec-path: buffer-local, full (possibly remote) path, no dups ---
+        (make-local-variable 'exec-path)
+        (unless (member venv-bin exec-path)
           (push venv-bin exec-path))
 
-      	;; --- interpreter / lsp paths: strip any TRAMP prefix ---
-      	(let* ((local-venv-bin (file-local-name venv-bin))
+	;; TRAMP: make the remote venv visible to remote executable lookups
+	(when (file-remote-p venv-bin)
+          (let ((remote-bin (directory-file-name (file-local-name venv-bin))))
+            (unless (member remote-bin tramp-remote-path)
+              (add-to-list 'tramp-remote-path remote-bin)
+              ;; TRAMP caches the remote path per connection, so re-probe
+              (tramp-cleanup-connection (tramp-dissect-file-name venv-bin) t t))))
+	
+        ;; --- interpreter / lsp paths: strip any TRAMP prefix ---
+        (let* ((local-venv-bin (file-local-name venv-bin))
                (interpreter (expand-file-name "python" local-venv-bin)))
           (when (file-executable-p (expand-file-name "python" venv-bin))
             (set (make-local-variable 'python-shell-interpreter) interpreter)
             (set (make-local-variable 'org-babel-python-command) interpreter)
 
-	    ;; Eglot evaluates workspace config via this function globally so TRAMP/temp buffers work.
-	    (setq-default eglot-workspace-configuration
-			  (lambda (server)
-			    (when-let* ((proj (project-current))
-					(dir (project-root proj))
-					(local-dir (file-local-name dir))
-					(venv-py (expand-file-name ".venv/bin/python" local-dir))
-					(full-venv-py (expand-file-name ".venv/bin/python" dir)))
-			      (when (file-executable-p full-venv-py)
-				`(:pylsp (:plugins (:jedi (:environment ,venv-py))))))))
-    	    )))))
+            ;; Eglot evaluates workspace config via this function globally so TRAMP/temp buffers work.
+            (setq-default eglot-workspace-configuration
+          		  (lambda (server)
+          		    (when-let* ((proj (project-current))
+          				(dir (project-root proj))
+          				(local-dir (file-local-name dir))
+          				(venv-py (expand-file-name ".venv/bin/python" local-dir))
+          				(full-venv-py (expand-file-name ".venv/bin/python" dir)))
+          		      (when (file-executable-p full-venv-py)
+          			`(:pylsp (:plugins (:jedi (:environment ,venv-py))))))))
+            )))))
 
   :hook
   (python-base-mode . my/python-venv-setup)
@@ -1370,6 +1379,7 @@ gpg --output public.pgp --armor --export username@email")
   (org-outline-path-complete-in-steps nil) ; flat navigation for org-goto
   (org-insert-heading-respect-content t) ; respect subtree when inserting next heading
   (org-export-use-babel nil)		; don't evaluate code during export
+  (org-display-remote-inline-images 'download)
   :bind
   (:map org-mode-map
 	("C-c C-n" . org-next-visible-heading)
@@ -1385,6 +1395,7 @@ gpg --output public.pgp --armor --export username@email")
 	       ("C-u" . outline-up-heading))
   :hook
   (org-mode . org-indent-mode)		; visually indent by outline structure
+  (org-babel-after-execute-hook . org-redisplay-inline-images)
   :config
   (org-babel-do-load-languages 'org-babel-load-languages
 			       '((C . t)

@@ -6102,6 +6102,30 @@ Create a .dir-locals.el file in root of folder with contents like
     :config
     (add-hook 'python-base-mode-hook 'pet-mode -10))
 #+end_src
+** Displaying plots
+Sample code
+#+begin_example
+#+BEGIN_SRC python :results graphics file :file "plot.png"
+  import matplotlib
+  matplotlib.use("Agg")  # must come before importing pyplot
+
+  import matplotlib.pyplot as plt
+  import numpy as np
+
+  # Sample data
+  x = np.linspace(0, 10, 200)
+  y = np.sin(x)
+
+  # Create the plot
+  fig, ax = plt.subplots(figsize=(8, 5))
+  ax.plot(x, y, label="sin(x)")
+  ax.set_xlabel("x")
+  ax.set_ylabel("y")
+  ax.set_title("Sample Plot")
+  ax.legend()
+  ax.grid(True)
+#+END_SRC
+#+end_example
 ** Custom Venv Handling
 #+begin_src emacs-lisp :tangle no
   (defvar-local my/env-script ".venv"
@@ -6638,6 +6662,7 @@ Create a .dir-locals.el file in root of folder with contents like
     (org-outline-path-complete-in-steps nil) ; flat navigation for org-goto
     (org-insert-heading-respect-content t) ; respect subtree when inserting next heading
     (org-export-use-babel nil)		; don't evaluate code during export
+    (org-display-remote-inline-images 'download)
     :bind
     (:map org-mode-map
   	("C-c C-n" . org-next-visible-heading)
@@ -6653,6 +6678,7 @@ Create a .dir-locals.el file in root of folder with contents like
   	       ("C-u" . outline-up-heading))
     :hook
     (org-mode . org-indent-mode)		; visually indent by outline structure
+    (org-babel-after-execute-hook . org-redisplay-inline-images)
     :config
     (org-babel-do-load-languages 'org-babel-load-languages
   			       '((C . t)
