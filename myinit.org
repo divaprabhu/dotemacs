@@ -4578,31 +4578,40 @@ Even if they are more idiosyncratic and have more surprising behaviours
   |---------------------------------+-------------------------------------------------------|
 ** Group buffer
 Buffer where all the mail folders like inbox from all servers will be shown
-|----------------+-----------------------------------------------------------------------------|
-| *SPC*            | gnus-group-read-group                                                       |
-|                | switch to summary buffer for group on current line                          |
-| *A s* or *l (ell)* | gnus-group-list-groups                                                      |
-|                | show only groups with unread articles                                       |
-| *A u* or *L*       | gnus-group-list-all-groups                                                  |
-|                | show all subscribed and unsubscribed groups but not killed or zombie groups |
-| *A A*            | gnus-group-list-active                                                      |
-|                | list all groups available from server including killed and zombie           |
-| *A k*            | gnus-group-list-killed                                                      |
-| *A z*            | gnus-group-list-zombies                                                     |
-| *u*              | gnus-group-unsubscribe-current-group                                        |
-|                | toggle subscription status of group on current line                         |
-| *C-k*            | gnus-group-kill-group (kill group which won't show in l or L listing)       |
-| *p* or <DEL>     | gnus-group-prev-unread-group                                                |
-| *n*              | gnus-group-next-unread-group                                                |
-| *P*              | gnus-group-prev-group                                                       |
-| *N*              | gnus-group-next-group                                                       |
-| *q*              | gnus-group-exit                                                             |
-| *g*              | refresh to check new news and mail                                          |
-| *c*              | mark all unread article in group as read                                    |
-| *m*              | create new email                                                            |
-| *^*              | enter server buffer (list all configured servers                            |
-| #              | mark a group                                                                |
-|----------------+-----------------------------------------------------------------------------|
+|----------------+---------------------------------------------------------------------------------|
+| *SPC* OR *RET*     | gnus-group-read-group                                                           |
+|                | switch to summary buffer for group on current line with unread article          |
+| *C-u RET*        | display all articles in the group                                               |
+| *A s* or *l (ell)* | gnus-group-list-groups                                                          |
+|                | show only groups with unread articles                                           |
+| *A u* or *L*       | gnus-group-list-all-groups                                                      |
+|                | show all subscribed and unsubscribed groups but not killed or zombie groups     |
+| *A A*            | gnus-group-list-active                                                          |
+|                | list all groups available from server including killed and zombie               |
+| *A k*            | gnus-group-list-killed                                                          |
+| *A z*            | gnus-group-list-zombies                                                         |
+| *u*              | gnus-group-unsubscribe-current-group                                            |
+|                | toggle subscription status of group on current line                             |
+|                | U indicates unsubscribed                                                        |
+| *C-k*            | gnus-group-kill-group (kill group which won't show in l or L listing)           |
+| *p* or <DEL>     | gnus-group-prev-unread-group                                                    |
+| *n*              | gnus-group-next-unread-group                                                    |
+| *P*              | gnus-group-prev-group                                                           |
+| *N*              | gnus-group-next-group                                                           |
+| *q*              | gnus-group-exit                                                                 |
+| *g*              | refresh to check new news and mail                                              |
+| *c*              | mark all unread article in group as read (catchup)                              |
+| *m*              | create new email                                                                |
+| *^*              | enter server buffer (list all configured servers                                |
+| #              | mark a group                                                                    |
+| *G G*            | gnus-group-read-ephemeral-search-group                                          |
+|                | Search mail on server side on current group under cursor or all marked groups   |
+|                | if cursor is before first group (or topic heading), all groups will be searched |
+|                | supports RFC3501 [[info:gnus#Search Queries][gnus#Search Queries]]                                            |
+|                | Result show up as an ephemeral group and can be persisted using C-c C-p         |
+|                | *A W* from this view switches article in original group                           |
+|                |                                                                                 |
+|----------------+---------------------------------------------------------------------------------|
 ** Summary and article buffer
 When a group is entered, a summary buffer showing all article is entered
 |--------------------+-------------------------------------------------------------------------------|
@@ -4621,23 +4630,107 @@ When a group is entered, a summary buffer showing all article is entered
 | *M-s M-s REGEXP RET* | gnus-summary-search-article-forward                                           |
 |                    | search articles containing match for regexp                                   |
 | *M-r REGEXP RET*     | gnus-summary-search-article-backward                                          |
+| g                  | gnus-summary-show-article (refresh current article display)                   |
 | *q*                  | gnus-summary-exit                                                             |
 | *R*                  | gnus-summary-reply-with-original (Reply by email and cite article)            |
 | *r*                  | gnus-summary-reply (Reply by email and don't cite article)                    |
+| *S W*                | gnus-summary-wide-reply-with-original (Reply All)                             |
+| *S w*                | gnus-summary-wide-reply (reply all without quoted text)                       |
 | *m*                  | gnus-summary-mail-other-window *new email)                                    |
 | *c*                  | gnus-summary-catchup-and-exit (mark all article in the current group as read) |
-| C-u / t            | show only articles younger than given days                                    |
+| *S D e*              | gnus-summary-resend-message-edit (send message from draft)                    |
+| *C-c C-f*            | gnus-summary-mail-forward (forward as a inline mime)                          |
+| *C-u C-c C-f*        | forward as inline                                                             |
+| *C-c C-a*            | mml-attach-file (when composing email)                                        |
+| *o*                  | gnus-mime-save-part (on the mime line press o to save attachment)             |
+| *RET*                | gnus-article-press-button (on the mime line press RET to open attachment)     |
+| *C-c C-c*            | message-send-and-exit (send email from composing window)                      |
+| */ N*                | gnus-summary-insert-new-articles (check new emails)                           |
+| */ s*                | gnus-summary-limit-to-subject                                                 |
+| / u                | gnus-summary-limit-to-unread                                                  |
 | / t                | show only articles older than given days                                      |
+| C-u / t            | show only articles younger than given days                                    |
+| / a                | gnus-summary-limit-to-author                                                  |
+| / R                | gnus-summary-limit-to-recepient                                               |
+| */ w*                | gnus-summary-pop-limit (cancel current filter)                                |
+|                    | limits or filters can be applied sequentially and "/ w" cancels it in reverse |
+|                    | order                                                                         |
 | T T                | toggle threading                                                              |
 | t                  | show all headers                                                              |
 | W w                | wordwrap current article                                                      |
 | ^                  | fetch parent article                                                          |
 |--------------------+-------------------------------------------------------------------------------|
+** Mark Symbols
+|---------------+-------------------------------------------------------------------|
+| !             | Ticked Article                                                    |
+|               | Article always remains visible unless it is expired by server     |
+| ?             | Dormant Article                                                   |
+|               | Only shows up if there is a follow-up or with filter / D          |
+| <SPC>         | Unread article                                                    |
+| r             | user marked article as read with "d"                              |
+| R             | article was actually opened and read                              |
+| O             | Old article (article that was marked as read in previous session) |
+|               | either r or R will show up as O in the next session               |
+| K             | marked as killed                                                  |
+|               | marked read (usually entire thread) using kill                    |
+| Y             | marked as read due to low score                                   |
+| C             | marked as read by catchup                                         |
+| Q             | part of sparse thread                                             |
+| E             | marked as expirable                                               |
+|               | such article is deleted                                           |
+| F             | article is forwarded                                              |
+| A             | answered or replied                                               |
+| N             | new or recently arrived                                           |
+| =             | has children or threads                                           |
+| *             | article is stored in cache (local disk)                           |
+| .             | article not seen before (new)                                     |
+| #             | article is marked for processing in subsequent command            |
+| precedence    | process > cache > replied > saved                                 |
+|               | if article is replied and cached, only cached mark will be shown  |
+| first column  | readedness mark of article (r, R, O, K, Y, C, E)                  |
+| second column | Marks like (#, F, *, .)                                           |
+|---------------+-------------------------------------------------------------------|
+** How to mark
+|------------+---------------------------------------------------------------|
+| *M d* or *d*   | gnus-summary-mark-as-read-forward (mark article as read)      |
+| *M t* or *!*   | gnus-summary-ticket-article-forward (tick the article)        |
+| *M c* or *M-u* | gnus-summary-clear-mark-forward (only clears readedness marks |
+|            | mark article as unread                                        |
+| *M C*        | gnus-summary-catchup (mark all unread articles as read)       |
+| *M e* or *E*   | gnus-summary-mark-as-expirable                                |
+| *#* or *M P p* | gnus-summary-mark-as-processable                              |
+|            | toggle the process mark                                       |
+| *M P U*      | gnus-summary-unmark-all-processable                           |
+| *M P r*      | gnus-uu-mark-region (mark articles in region)                 |
+| *M P g*      | gnus-uu-unmark-region                                         |
+| *M P t*      | gnus-uu-mark-thread                                           |
+| *M P T*      | gnus-uu-unmark-thread                                         |
+| M H        | gnus-summary-catchup-to-here                                  |
+| M h        | gnus-summary-catchup-from-here                                |
+| C-w        | gnus-summary-mark-region-as-read                              |
+| M k or k   | gnus-summary-kill-same-subject-and-select                     |
+| ?          | gnus-summary-mark-as-dormant                                  |
+|            |                                                               |
 ** Configuration
 #+begin_src emacs-lisp
   (use-package gnus
     :ensure nil
     :defer t
+    :preface
+    (defun my/gnus-close-tab ()
+      (when (equal (alist-get 'name (tab-bar--current-tab)) "Gnus")
+        (message "Closing tab %s" (alist-get 'name (tab-bar--current-tab)))
+        (tab-bar-close-tab)))
+    ;; custom function to indicate if mail has attachments
+    (defun gnus-user-format-function-a (header)
+      "Return '@' if the article has a multipart MIME structure, otherwise a space."
+      (let* ((extra (mail-header-extra header))
+             (content-type (cdr (assoc 'Content-Type extra))))
+        ;; Check that content-type is both present AND a string
+        (if (and (stringp content-type) 
+                 (string-match-p "multipart" content-type))
+            "@"
+  	" ")))
     :init
     (setq mail-user-agent 'gnus-user-agent
           read-mail-command #'gnus
@@ -4664,7 +4757,7 @@ When a group is entered, a summary buffer showing all article is entered
           '(((gnus-seconds-today) . "Today at %R")
             ((+ (* 60 60 24) (gnus-seconds-today)) . "Yesterday, %R")
             (t . "%Y-%m-%d %R"))
-          gnus-summary-line-format "%U%R%3i %(%-18,18&user-date;  %-20,20f  %B%s%)\n"
+          gnus-summary-line-format "%U%R%ua%3i %(%-18,18&user-date;  %-20,20f  %B%s%)\n"
           gnus-sum-thread-tree-false-root ""
           gnus-sum-thread-tree-indent " "
           gnus-sum-thread-tree-single-indent ""
@@ -4688,11 +4781,9 @@ When a group is entered, a summary buffer showing all article is entered
           mm-sign-option nil
           mm-encrypt-option 'guided
           gnus-unbuttonized-mime-types nil)
-    
-    (defun my/gnus-close-tab ()
-      (when (equal (alist-get 'name (tab-bar--current-tab)) "Gnus")
-        (message "Closing tab %s" (alist-get 'name (tab-bar--current-tab)))
-        (tab-bar-close-tab)))
+
+    ;; Add 'Content-Type' to the extra headers Gnus tracks
+    (add-to-list 'gnus-extra-headers 'Content-Type)
     :bind
     ("C-c m" . gnus)
     :hook
@@ -4711,28 +4802,15 @@ When a group is entered, a summary buffer showing all article is entered
     :init
     (require 'epg)
 
-    (defvar my/pgp-key-file (expand-file-name "~/.gnupg/share.asc")
+    (defvar my/pgp-key-file (expand-file-name "~/.gnupg/pub.asc")
       "Path to your armored public key, used for attaching to outgoing mail.
-  gpg --output public.pgp --armor --export username@email")
+      gpg --output pub.asc --armor --export username@email")
 
-    (defun my/pgp-generate-key-file (key-id)
-      "Generate an armored public key export for KEY-ID at `my/pgp-key-file' using EPG."
-      (let* ((context (epg-make-context 'OpenPGP))
-             (keys (epg-list-keys context key-id)))
-        (unless keys
-          (error "No key found matching: %s" key-id))
-        (setf (epg-context-armor context) t)
-        (with-temp-file my/pgp-key-file
-          (insert (epg-export-keys-to-string context keys)))
-        (message "Exported PGP key to %s" my/pgp-key-file)))
 
     (defun my/message-attach-pgp-key ()
       "Attach my PGP public key as a MIME part to the current message.
-       If the key file doesn't exist yet, prompt for a key ID/email and generate it via EPG."
+           If the key file doesn't exist yet, prompt for a key ID/email and generate it via EPG."
       (interactive)
-      (unless (file-exists-p my/pgp-key-file)
-        (my/pgp-generate-key-file
-         (read-string "Key file not found. GPG key ID or email to export: ")))
       (mml-attach-file my/pgp-key-file "application/pgp-keys" "My PGP public key" "attachment")))
 
   (use-package auth-source-xoauth2-plugin
@@ -5043,7 +5121,8 @@ Linebreaks
     (:map my/shell-prefix-map
   	("s" . shell)
   	("e" . eshell)
-  	("t" . term))
+  	("t" . term)
+)
     )
 #+end_src
 * Emacs Server
@@ -6126,6 +6205,24 @@ Sample code
   ax.grid(True)
 #+END_SRC
 #+end_example
+#+begin_example
+#+begin_src python :results graphics file :file "plot.png"
+  import matplotlib.pyplot as plt
+  import numpy as np
+
+  # Data for plotting
+  t = np.arange(0.0, 2.0, 0.01)
+  s = 1 + np.sin(2 * np.pi * t)
+
+  fig, ax = plt.subplots()
+  ax.plot(t, s)
+
+  ax.set(xlabel='time (s)', ylabel='voltage (mV)',
+         title='About as simple as it gets, folks')
+  ax.grid()
+  plt.show()
+#+end_src
+#+end_example
 ** Custom Venv Handling
 #+begin_src emacs-lisp :tangle no
   (defvar-local my/env-script ".venv"
@@ -6792,6 +6889,18 @@ Sample code
     )
 #+end_src
 * LLM
+** Llama CPP
+#+begin_src emacs-lisp
+  (use-package emacs
+    :ensure nil
+    :init
+    (defun my/llama-cpp ()
+      (interactive)
+      (async-shell-command "llama-server -m /data/gguf/Qwen3.5-4B-Q4_K_M.gguf --device none -ngl 0 -t 6 -b 128 -c 512"))
+    :bind
+    ("C-c a" . my/llama-cpp)
+    )
+#+end_src
 ** GPTel
 #+begin_src emacs-lisp :tangle no
   (use-package gptel
@@ -6865,12 +6974,12 @@ Sample code
 
 #+end_src
 ** Minuet
-#+begin_src emacs-lisp
+#+begin_src
   (use-package minuet
     :ensure t
     :defer t
     :custom
-    (minuet-provider 'openai-compatible)
+    (minuet-provider 'openai-fim-compatible)
     (minuet-n-completions 1)
     (minuet-context-window 512)
     (minuet-auto-suggestion-debounce-delay 1) ; when typing stops for these many seconds, send completion request
@@ -6878,30 +6987,51 @@ Sample code
     (minuet-request-timeout 2)
     :bind
     (:map minuet-active-mode-map
-    	("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
-    	("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
-    	("C-u <tab>" . #'minuet-accept-suggestion) ;; accept whole completion
-    	("<tab>" . #'minuet-accept-suggestion-line)
-    	("C-g" . #'minuet-dismiss-suggestion))
+      	("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
+      	("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
+      	("C-u <tab>" . #'minuet-accept-suggestion) ;; accept whole completion
+      	("<tab>" . #'minuet-accept-suggestion-line)
+      	("C-g" . #'minuet-dismiss-suggestion))
     ;; :init
     ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
     :config
+    ;; Ollama
     ;; (setenv "GEMINI_API_KEY" (auth-source-pick-first-password :host "generativelanguage.googleapis.com"))
     ;; (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
     ;; (plist-put minuet-openai-fim-compatible-options :name "Ollama")
     ;; (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
     ;; (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder:3b")
     ;; (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 56)
-    (setenv "OPENROUTER_API_KEY" (auth-source-pick-first-password :host "openrouter.ai"))
-    (plist-put minuet-openai-compatible-options :end-point "https://openrouter.ai/api/v1/chat/completions")
-    (plist-put minuet-openai-compatible-options :api-key "OPENROUTER_API_KEY")
-    (plist-put minuet-openai-compatible-options :model "cohere/north-mini-code:free")
+
+    ;; OpenRouter
+    ;; (setenv "OPENROUTER_API_KEY" (auth-source-pick-first-password :host "openrouter.ai"))
+    ;; (plist-put minuet-openai-compatible-options :end-point "https://openrouter.ai/api/v1/chat/completions")
+    ;; (plist-put minuet-openai-compatible-options :api-key "OPENROUTER_API_KEY")
+    ;; (plist-put minuet-openai-compatible-options :model "cohere/north-mini-code:free")
     ;; Prioritize throughput for faster completion
-    (minuet-set-optional-options minuet-openai-compatible-options :provider '(:sort "throughput"))
+
+    ;; (minuet-set-optional-options minuet-openai-compatible-options :provider '(:sort "throughput"))
     ;; Disable thinking to avoid first token latency
-    (minuet-set-optional-options minuet-openai-compatible-options :reasoning_effort "none")
-    (minuet-set-optional-options minuet-openai-compatible-options :max_tokens 56)
-    (minuet-set-optional-options minuet-openai-compatible-options :top_p 0.9)
+    ;; (minuet-set-optional-options minuet-openai-compatible-options :reasoning_effort "none")
+    ;; (minuet-set-optional-options minuet-openai-compatible-options :max_tokens 56)
+    ;; (minuet-set-optional-options minuet-openai-compatible-options :top_p 0.9)
+
+    ;; Llama.cpp
+    (plist-put minuet-openai-fim-compatible-options :model "LLAMA.CPP")
+    (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:8080/v1/completions")
+    (plist-put minuet-openai-fim-compatible-options :name "Llama.cpp")
+    (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
+    (minuet-set-nested-plist minuet-openai-fim-compatible-options nil :template :suffix)
+    (minuet-set-optional-options
+     minuet-openai-fim-compatible-options
+     :prompt
+     (defun minuet-llama-cpp-fim-qwen-prompt-function (ctx)
+       (format "<|fim_prefix|>%s\n%s<|fim_suffix|>%s<|fim_middle|>"
+               (plist-get ctx :language-and-tab)
+               (plist-get ctx :before-cursor)
+               (plist-get ctx :after-cursor)))
+     :template)
+    (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 56)
     )
 #+end_src
 

@@ -781,6 +781,21 @@
 (use-package gnus
   :ensure nil
   :defer t
+  :preface
+  (defun my/gnus-close-tab ()
+    (when (equal (alist-get 'name (tab-bar--current-tab)) "Gnus")
+      (message "Closing tab %s" (alist-get 'name (tab-bar--current-tab)))
+      (tab-bar-close-tab)))
+  ;; custom function to indicate if mail has attachments
+  (defun gnus-user-format-function-a (header)
+    "Return '@' if the article has a multipart MIME structure, otherwise a space."
+    (let* ((extra (mail-header-extra header))
+           (content-type (cdr (assoc 'Content-Type extra))))
+      ;; Check that content-type is both present AND a string
+      (if (and (stringp content-type) 
+               (string-match-p "multipart" content-type))
+          "@"
+	" ")))
   :init
   (setq mail-user-agent 'gnus-user-agent
         read-mail-command #'gnus
@@ -807,7 +822,7 @@
         '(((gnus-seconds-today) . "Today at %R")
           ((+ (* 60 60 24) (gnus-seconds-today)) . "Yesterday, %R")
           (t . "%Y-%m-%d %R"))
-        gnus-summary-line-format "%U%R%3i %(%-18,18&user-date;  %-20,20f  %B%s%)\n"
+        gnus-summary-line-format "%U%R%ua%3i %(%-18,18&user-date;  %-20,20f  %B%s%)\n"
         gnus-sum-thread-tree-false-root ""
         gnus-sum-thread-tree-indent " "
         gnus-sum-thread-tree-single-indent ""
@@ -831,11 +846,9 @@
         mm-sign-option nil
         mm-encrypt-option 'guided
         gnus-unbuttonized-mime-types nil)
-  
-  (defun my/gnus-close-tab ()
-    (when (equal (alist-get 'name (tab-bar--current-tab)) "Gnus")
-      (message "Closing tab %s" (alist-get 'name (tab-bar--current-tab)))
-      (tab-bar-close-tab)))
+
+  ;; Add 'Content-Type' to the extra headers Gnus tracks
+  (add-to-list 'gnus-extra-headers 'Content-Type)
   :bind
   ("C-c m" . gnus)
   :hook
@@ -854,28 +867,15 @@
   :init
   (require 'epg)
 
-  (defvar my/pgp-key-file (expand-file-name "~/.gnupg/share.asc")
+  (defvar my/pgp-key-file (expand-file-name "~/.gnupg/pub.asc")
     "Path to your armored public key, used for attaching to outgoing mail.
-gpg --output public.pgp --armor --export username@email")
+    gpg --output pub.asc --armor --export username@email")
 
-  (defun my/pgp-generate-key-file (key-id)
-    "Generate an armored public key export for KEY-ID at `my/pgp-key-file' using EPG."
-    (let* ((context (epg-make-context 'OpenPGP))
-           (keys (epg-list-keys context key-id)))
-      (unless keys
-        (error "No key found matching: %s" key-id))
-      (setf (epg-context-armor context) t)
-      (with-temp-file my/pgp-key-file
-        (insert (epg-export-keys-to-string context keys)))
-      (message "Exported PGP key to %s" my/pgp-key-file)))
 
   (defun my/message-attach-pgp-key ()
     "Attach my PGP public key as a MIME part to the current message.
-     If the key file doesn't exist yet, prompt for a key ID/email and generate it via EPG."
+         If the key file doesn't exist yet, prompt for a key ID/email and generate it via EPG."
     (interactive)
-    (unless (file-exists-p my/pgp-key-file)
-      (my/pgp-generate-key-file
-       (read-string "Key file not found. GPG key ID or email to export: ")))
     (mml-attach-file my/pgp-key-file "application/pgp-keys" "My PGP public key" "attachment")))
 
 (use-package auth-source-xoauth2-plugin
@@ -906,18 +906,19 @@ gpg --output public.pgp --armor --export username@email")
   )
 
 (use-package shell
-  :ensure nil
-  :defer t
-  :custom
-  (async-shell-command-display-buffer nil) ; display command buffer after command completion
-  (async-shell-command-buffer 'new-buffer) ; create new buffer if there is already a buffer from another command
-  (shell-command-prompt-show-cwd t)       ; show current dir in shell-command and async-shell-command
-  :bind
-  (:map my/shell-prefix-map
-	("s" . shell)
-	("e" . eshell)
-	("t" . term))
-  )
+    :ensure nil
+    :defer t
+    :custom
+    (async-shell-command-display-buffer nil) ; display command buffer after command completion
+    (async-shell-command-buffer 'new-buffer) ; create new buffer if there is already a buffer from another command
+    (shell-command-prompt-show-cwd t)       ; show current dir in shell-command and async-shell-command
+    :bind
+    (:map my/shell-prefix-map
+  	("s" . shell)
+  	("e" . eshell)
+  	("t" . term)
+)
+    )
 
 (use-package server
   :ensure nil
@@ -1462,42 +1463,14 @@ gpg --output public.pgp --armor --export username@email")
   :hook
   (popper-mode . popper-echo-mode))	; For echo area hints
 
-(use-package minuet
-  :ensure t
-  :defer t
-  :custom
-  (minuet-provider 'openai-compatible)
-  (minuet-n-completions 1)
-  (minuet-context-window 512)
-  (minuet-auto-suggestion-debounce-delay 1) ; when typing stops for these many seconds, send completion request
-  (minuet-auto-suggestion-throttle-dely 1)   ; delay between two completion requests
-  (minuet-request-timeout 2)
+(use-package emacs
+  :ensure nil
+  :init
+  (defun my/llama-cpp ()
+    (interactive)
+    (async-shell-command "llama-server -m /data/gguf/Qwen3.5-4B-Q4_K_M.gguf --device none -ngl 0 -t 6 -b 128 -c 512"))
   :bind
-  (:map minuet-active-mode-map
-  	("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
-  	("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
-  	("C-u <tab>" . #'minuet-accept-suggestion) ;; accept whole completion
-  	("<tab>" . #'minuet-accept-suggestion-line)
-  	("C-g" . #'minuet-dismiss-suggestion))
-  ;; :init
-  ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
-  :config
-  ;; (setenv "GEMINI_API_KEY" (auth-source-pick-first-password :host "generativelanguage.googleapis.com"))
-  ;; (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
-  ;; (plist-put minuet-openai-fim-compatible-options :name "Ollama")
-  ;; (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
-  ;; (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder:3b")
-  ;; (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 56)
-  (setenv "OPENROUTER_API_KEY" (auth-source-pick-first-password :host "openrouter.ai"))
-  (plist-put minuet-openai-compatible-options :end-point "https://openrouter.ai/api/v1/chat/completions")
-  (plist-put minuet-openai-compatible-options :api-key "OPENROUTER_API_KEY")
-  (plist-put minuet-openai-compatible-options :model "cohere/north-mini-code:free")
-  ;; Prioritize throughput for faster completion
-  (minuet-set-optional-options minuet-openai-compatible-options :provider '(:sort "throughput"))
-  ;; Disable thinking to avoid first token latency
-  (minuet-set-optional-options minuet-openai-compatible-options :reasoning_effort "none")
-  (minuet-set-optional-options minuet-openai-compatible-options :max_tokens 56)
-  (minuet-set-optional-options minuet-openai-compatible-options :top_p 0.9)
+  ("C-c a" . my/llama-cpp)
   )
 
 (use-package ediff
