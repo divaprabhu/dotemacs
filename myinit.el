@@ -1,3 +1,4 @@
+;;; myinit.el  --- My Init  -*- lexical-binding: t; -*-
 (define-prefix-command 'my/global-prefix-map nil)
 (keymap-set global-map "C-c" my/global-prefix-map)
 
@@ -80,7 +81,7 @@
   (completion-styles '(partial-completion flex initials)) ; completion styles
   (completion-auto-help t) ; show completion buffer if can't complete
   (completion-auto-select nil) ; select completion buffer on second tab
-  (minibuffer-visible-completions t)	; navigate *completions* buffer from minibuffer
+  ;; (minibuffer-visible-completions t)	; navigate *completions* buffer from minibuffer
   (completion-show-help nil)	       ; no help in completion buffer
   (completion-cycle-threshold 10) ; always cycle if number of completions is less than this number
   (completions-format 'one-column)     ; completion list buffer format
@@ -89,8 +90,8 @@
   (completions-header-format nil) ; no header in completion list buffer
   (completions-detailed t) ; display completions with details. Useful in describe-function etc
   (completion-ignore-case t)		 ; case insensitive completion
-  (completion-eager-display t)		 ; show candidates without typing anything also
-  (completion-eager-update t)		 ; auto update *completions* buffer as you type
+  ;; (completion-eager-display t)		 ; show candidates without typing anything also
+  ;; (completion-eager-update t)		 ; auto update *completions* buffer as you type
   (read-buffer-completion-ignore-case t) ; ignore case for buffer name completion
   (read-file-name-completion-ignore-case t) ; ignore case for file name completion
   (minibuffer-default-prompt-format " [%s]") ; format string for default values
@@ -133,11 +134,12 @@
   (suggest-key-bindings 5)
   (extended-command-suggest-shorter t))
 
-(use-package emacs			; help and info
+(use-package help			; help and info
   :ensure nil
   :custom
   (help-window-select t) ; switch to help window when created
   (help-window-keep-selected t) ; reuse same Help buffer
+  (view-lossage-auto-refresh t)                ; EMACS-31: live-updating C-h l, great for teaching/debugging    
   )
 
 (use-package emacs			; mark and region
@@ -150,6 +152,7 @@
   (set-mark-command-repeat-pop t) ; C-u C-SPC C-SPC... keeps popping local mark
   (mark-ring-max 512)		  ; local mark ring size
   (global-mark-ring-max 512)      ; global mark ring size
+  (exchange-point-and-mark-highlight-region nil) ; don't activate region if not already activated
   :config
   (delete-selection-mode 1)    ; typing with region active replaces it
   )
@@ -162,13 +165,7 @@
   (kill-read-only-ok t) ; no error in read-only buffer, add to clipboard
   (kill-ring-max 1000)  ; kill ring size
   (save-interprogram-paste-before-kill t) ; save clipboard to kill ring before replacing it with kill
-  :config
-  (defun my/kill-region-or-backward-word ()
-    (interactive)
-    (if (region-active-p)
-	(kill-region (region-beginning) (region-end))
-      (backward-kill-word 1)))
-  (substitute-key-definition 'kill-region 'my/kill-region-or-backward-word (current-global-map))
+  (kill-region-dwim 'emacs-word) ; EMACS-31: C-w with no region kills a word
   )
 
 (use-package register
@@ -202,6 +199,7 @@
   (visible-bell t)		   ; don't beep but flash
   (truncate-lines t)	  ; truncate display of long lines, don't wrap
   (indicate-empty-lines t)		; show empty lines at the end of buffer
+  ;; (mode-line-collapse-minor-modes t)
   :config
   (set-face-attribute 'default nil :height 120)
   (put 'scroll-left 'disabled nil)	; allow scrolling left
@@ -299,6 +297,8 @@
   ;; (recentf-exclude (list "^/\\(?:ssh\\|su\\|sudo\\)?:"))
   (recentf-exclude (list #'file-remote-p))
   (recentf-save-file (expand-file-name "recentf" user-emacs-directory))
+  (recentf-autosave-interval 300)	; save recentf list every 5 min
+  (recentf-show-messages nil)		; suppress recentf messages
   :config
   (recentf-mode 1)
   :bind
@@ -321,6 +321,7 @@
 		     (lambda (buffer) (diff-buffer-with-file (buffer-file-name buffer)))
 		     "show diff between the buffer and its file"))
   )
+
 (use-package icomplete
   :ensure nil
   :defer t
@@ -335,6 +336,8 @@
   (icomplete-in-buffer t)		; in buffer completions
   (icomplete-max-delay-chars 0)
   (icomplete-scroll t)			; scroll instead of rotate
+  (icomplete-vertical-in-buffer-adjust-list t) ; align in buffer completion to cursor position
+  (icomplete-vertical-render-prefix-indicator t) ; indicator for selected candidate
   :bind (:map icomplete-minibuffer-map
 	      ("C-n" . icomplete-forward-completions)
 	      ("C-p" . icomplete-backward-completions)
@@ -396,9 +399,9 @@
    'display-buffer-alist
    `(,(rx bos
 	  (* anything)
-   	  (or "shell"	      ; shell mode is set after display buffer
-   	      "eshell"
-   	      "term"))
+   	  (or "eshell"	      ; shell mode is set after display buffer
+   	      ;; "term"
+   	      "shell"))
      (display-buffer-reuse-window display-buffer-in-side-window)
      (body-function . select-window)
      (inhibit-same-window . nil)
@@ -453,7 +456,7 @@
   ("M-o" . other-window)
   ("C-x w =" . balance-windows)
   ("C-x w u" . winner-undo)
-  ("C-x w r" . winner-redo)
+  ("C-x w U" . winner-redo)
   ("C-x w 1" . delete-other-windows)
   ("C-x w {" . shrink-window-horizontally)
   ("C-x w }" . enlarge-window-horizontally)
@@ -686,27 +689,19 @@
   :defer t
   :bind
   (:map vc-prefix-map
-        ("c" . my/vc-git-clone)
+        ("c" . vc-clone)
         ("e" . vc-ediff))
   :custom
   (vc-revert-show-diff t)	      ; revert first shows diff buffer
   (vc-follow-symlinks t)	      ; follow symlinks
   (vc-command-messages t)	      ; log backend commands being run
+  (vc-auto-revert-mode t)	      ;
+  (vc-allow-rewriting-published-history t) ;
+  (vc-dir-auto-hide-up-to-date 'revert)	; hide upto-to-date files in vc-dir
+  (vc-use-incoming-outgoing-prefixes t) ; make C-x v I and C-x v O prefixes
   :hook
   (diff-mode . next-error-follow-minor-mode)	; auto enable follow mode
-  :config
-  (defun my/vc-git-clone (repository-url local-dir)
-    "Run \"git clone REPOSITORY-URL\" to LOCAL-DIR.
-    Executes `vc-dir' in the newly cloned directory."
-    (interactive
-     (let* ((url (read-string "Repository URL: "))
-            (default-name (file-name-base url))
-            (parent (read-directory-name "Clone into directory: " default-directory))
-            (dir (expand-file-name default-name parent)))
-       (list url dir)))
-    (vc-git-command nil 0 nil "clone" repository-url
-                    (directory-file-name local-dir))
-    (vc-dir (expand-file-name local-dir)))    
+  :config    
   (add-to-list 'vc-directory-exclusion-list ".venv")
   )
 (use-package project
@@ -754,11 +749,11 @@
   (dired-copy-preserve-time t)		; preserve last modified time
   (dired-recursive-copies 'top)     ; recursive copy confirm only for top level dir
   (dired-vc-rename-file t)	    ; if under version control, use vc-rename-file
-  (dired-hide-details-hide-absolute-location t)            ; EMACS-31
   (ls-lisp-use-insert-directory-program nil) ; use ls-lisp instead of ls, useful for windows
   (dired-free-space nil)		     ; don't display free space
   ;; (dired-omit-files "\\`[.]\\|\\`[.]?#\\|\\`[.][.]?\\'") ; hide dot files in dired omit mode
   (dired-omit-verbose nil)		; don't spam echo area
+  (dired-hide-details-hide-absolute-location t); EMACS-31: hide the absolute dir path in dired-hide-details-mode
   :hook
   (dired-mode . dired-omit-mode)	; hide . and ..
   )
@@ -847,8 +842,6 @@
         mm-encrypt-option 'guided
         gnus-unbuttonized-mime-types nil)
 
-  ;; Add 'Content-Type' to the extra headers Gnus tracks
-  (add-to-list 'gnus-extra-headers 'Content-Type)
   :bind
   ("C-c m" . gnus)
   :hook
@@ -857,6 +850,14 @@
   :config
   (if (file-exists-p "~/.gnupg/authinfo.gpg")
       (load-file "~/etc/gnus_mail.el")))
+
+;; Add 'Content-Type' to the extra headers Gnus tracks
+(use-package gnus-sum
+  :ensure nil
+  :defer t
+  :after gnus
+  :config
+  (add-to-list 'gnus-extra-headers 'Content-Type))
 
 (use-package message
   :ensure nil
@@ -931,12 +932,33 @@
   (server-kill-new-buffers t)
   )
 
+(use-package desktop
+  :ensure nil
+  :demand t
+  :custom
+  (desktop-restore-eager 2) ; number of buffers to restore eagerly
+  (desktop-lazy-idle-delay 5) ; idle delay for creating other buffers lazily
+  (desktop-load-locked-desktop t) ; notify if another emacs instance is locking session
+  (desktop-restore-frames t) ; save and restore frames and window config
+  (desktop-save t)	     ; always save desktop when quitting emacs
+  (desktop-auto-save-timeout 10) ; idle time seconds before autosaving
+  (desktop-base-file-name "emacs.desktop") ; desktop file name
+  (desktop-globals-to-save		; global variables to be saved
+   '(desktop-missing-file-warning tags-file-name tags-table-list search-ring regexp-search-ring register-alist file-name-history))
+  (desktop-locals-to-save		; local variables to be saved
+   '(buffer-undo-list eww-history-position desktop-locals-to-save truncate-lines case-fold-search case-replace fill-column overwrite-mode change-log-default-name line-number-mode column-number-mode size-indication-mode buffer-file-coding-system buffer-display-time indent-tabs-mode tab-width indicate-buffer-boundaries indicate-empty-lines show-trailing-whitespace))
+  :config
+  (setq desktop-dirname user-emacs-directory)
+  (desktop-save-mode t)		; enable desktop save mode
+  )
+
 (use-package saveplace
   :ensure nil
   :custom
   (save-place-limit 600)
   (save-place-file (expand-file-name "saveplace" user-emacs-directory))
   (save-place-forget-unreadable-files t)
+  (save-place-autosave-interval 300)	; autosave every 5 min
   :config
   (save-place-mode 1)
   (defun my/save-place-ignore-remote (orig-fun &rest args)
@@ -1112,6 +1134,7 @@
   (eglot-extend-to-xref t "activate eglot in non-project cross-referenced files")
   (eglot-send-changes-idle-time 1 "Send changes to LSP server after so many idle seconds")
   (eglot-report-progress nil "Don't spam echo area")
+  (eglot-documentation-renderer 'markdown-ts-view-mode) ;; EMACS-31
   :hook
   (prog-mode . eglot-ensure)
   ((eglot-managed-mode . my/eglot-eldoc))
@@ -1158,47 +1181,49 @@
 (use-package treesit
   :ensure nil
   :defer t
-  :preface
-  (defun mp-setup-install-grammars ()
-    "Install Tree-sitter grammars if they are absent."
-    (interactive)
-    (dolist (grammar
-	       ;; Note the version numbers. These are the versions that
-	       ;; are known to work with Combobulate *and* Emacs.
-	       '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
-		 (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
-		 (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
-		 (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-		 (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-		 (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
-		 (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
-		 (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-		 (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
-	(add-to-list 'treesit-language-source-alist grammar)
-	;; Only install `grammar' if we don't already have it
-	;; installed. However, if you want to *update* a grammar then
-	;; this obviously prevents that from happening.
-	(unless (treesit-language-available-p (car grammar))
-	(treesit-install-language-grammar (car grammar)))))
-  ;; Optional. Combobulate works in both xxxx-ts-modes and
+  ;; :preface
+  ;; (defun mp-setup-install-grammars ()
+  ;;   "Install Tree-sitter grammars if they are absent."
+  ;;   (interactive)
+  ;;   (dolist (grammar
+  ;; 	       ;; Note the version numbers. These are the versions that
+  ;; 	       ;; are known to work with Combobulate *and* Emacs.
+  ;; 	       '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+  ;; 		 (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+  ;; 		 (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+  ;; 		 (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+  ;; 		 (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+  ;; 		 (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
+  ;; 		 (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+  ;; 		 (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+  ;; 		 (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
+  ;; 	(add-to-list 'treesit-language-source-alist grammar)
+  ;; 	;; Only install `grammar' if we don't already have it
+  ;; 	;; installed. However, if you want to *update* a grammar then
+  ;; 	;; this obviously prevents that from happening.
+  ;; 	(unless (treesit-language-available-p (car grammar))
+  ;; 	(treesit-install-language-grammar (car grammar)))))
+  ;; ;; Optional. Combobulate works in both xxxx-ts-modes and
   ;; non-ts-modes.
   ;; You can remap major modes with `major-mode-remap-alist'. Note
   ;; that this does *not* extend to hooks! Make sure you migrate them
   ;; also
-  (dolist (mapping
-	     '((python-mode . python-ts-mode)
-	       (css-mode . css-ts-mode)
-	       (typescript-mode . typescript-ts-mode)
-	       (js2-mode . js-ts-mode)
-	       (bash-mode . bash-ts-mode)
-	       (conf-toml-mode . toml-ts-mode)
-	       (go-mode . go-ts-mode)
-	       (css-mode . css-ts-mode)
-	       (json-mode . json-ts-mode)
-	       (js-json-mode . json-ts-mode)))
-    (add-to-list 'major-mode-remap-alist mapping))
-  :config
-  (mp-setup-install-grammars))
+  ;; (dolist (mapping
+  ;; 	   '((python-mode . python-ts-mode)
+  ;; 	     (css-mode . css-ts-mode)
+  ;; 	     (typescript-mode . typescript-ts-mode)
+  ;; 	     (js2-mode . js-ts-mode)
+  ;; 	     (bash-mode . bash-ts-mode)
+  ;; 	     (conf-toml-mode . toml-ts-mode)
+  ;; 	     (go-mode . go-ts-mode)
+  ;; 	     (css-mode . css-ts-mode)
+  ;; 	     (json-mode . json-ts-mode)
+  ;; 	     (js-json-mode . json-ts-mode)))
+  ;;   (add-to-list 'major-mode-remap-alist mapping))
+  :custom
+  (treesit-auto-install-grammar 'ask)
+  (treesit-enabled-modes t)
+  )
 
 (use-package python
   :ensure nil
@@ -1225,7 +1250,7 @@
                 path, since those are consumed by processes that TRAMP itself spawns
                 and runs remotely -- they must not contain the /ssh:host: prefix."
     (let* ((root (or (when (fboundp 'project-current)
-                       (when-let ((proj (project-current)))
+                       (when-let* ((proj (project-current)))
           		 (project-root proj)))
                      default-directory))
            (venv-bin (expand-file-name ".venv/bin/" root)))
@@ -1439,9 +1464,10 @@
   :defer t
   :init
   (setq popper-reference-buffers
-	'("^\\*eshell.*\\*$"      eshell-mode
+	'(
+	  "^\\*eshell.*\\*$"      eshell-mode
 	  "^\\*shell.*\\*$"       shell-mode
-	  "^\\*.*term.*\\*$"      term-mode
+	  ;; "^\\*.*term.*\\*$"      term-mode
 	  "^\\*Async Shell.*\\*$" shell-command-mode
 	  inferior-python-mode
 	  inferior-emacs-lisp-mode
@@ -1461,7 +1487,8 @@
 	 ("M-<f12>"   . popper-cycle)
 	 ("C-<f12>" . popper-toggle-type))
   :hook
-  (popper-mode . popper-echo-mode))	; For echo area hints
+  (popper-mode . popper-echo-mode)	; For echo area hints
+  )
 
 (use-package emacs
   :ensure nil
@@ -1481,9 +1508,12 @@
   (ediff-split-window-function 'split-window-horizontally)
   (ediff-keep-variants t))
 
-(use-package markdown-mode
+(use-package markdown-ts-mode
   :ensure nil
-  :defer t)
+  :mode ("\\.md\\'" "\\.mdx\\'" "\\.markdown\\'")
+  :config
+  (require 'markdown-ts-mode-x)
+  )
 
 (use-package eww
   :ensure nil
